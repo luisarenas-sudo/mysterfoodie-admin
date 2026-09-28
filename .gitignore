@@ -33,3 +33,5 @@ lib/mock-supabase.ts
 lib/types.ts
 lib/utils.ts
 supabase/seed.sql
+node_modules_borrar_manual/
+*.tsbuildinfo
