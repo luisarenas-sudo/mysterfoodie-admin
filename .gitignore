@@ -1,0 +1,35 @@
+node_modules
+.next
+.env
+.env.local*
+*.log
+
+# Carpeta de configuracion local de Claude Code (no es parte del proyecto)
+.claude/
+
+# Duplicados de conflicto de Google Drive (basura, no son parte del proyecto)
+README 2.md
+postcss.config 2.mjs
+app/globals 2.css
+app/page 2.tsx
+app/layout 2.tsx
+next-env.d 2.ts
+package-lock 2.json
+tailwind.config 2.ts
+tsconfig 2.json
+supabase/schema 2.sql
+package 2.json
+lib/supabase 2.ts
+.gitignore 2
+next.config 2.mjs
+.next 2/
+node_modules 2/
+
+# CRM interno viejo, huerfano y roto (referencia tablas que ya no existen); ver README
+app/(dashboard)/
+components/Sidebar.tsx
+lib/mock-data.ts
+lib/mock-supabase.ts
+lib/types.ts
+lib/utils.ts
+supabase/seed.sql
