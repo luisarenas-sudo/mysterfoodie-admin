@@ -1,0 +1,75 @@
+import { requireRole } from "@/lib/auth";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import InviteUserForm from "@/components/InviteUserForm";
+
+export const dynamic = "force-dynamic";
+
+type ProfileRow = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  client_id: string | null;
+};
+
+export default async function UsuariosPage() {
+  await requireRole("admin");
+  const db = getSupabaseServiceClient();
+
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, email, full_name, role, client_id")
+    .order("email");
+
+  const { data: clients } = await db.from("clients").select("id, name").order("name");
+  const clientNameById = new Map((clients || []).map((c) => [c.id, c.name as string]));
+
+  const rows: (ProfileRow & { client_name: string | null })[] = (profiles || []).map((p) => ({
+    ...p,
+    client_name: p.client_id ? clientNameById.get(p.client_id) ?? null : null,
+  }));
+
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-10">
+      <h1 className="heading text-3xl text-brand-500">Usuarios</h1>
+      <p className="mt-1 text-sm text-stone-500">
+        Invita agentes y duenos de negocio, y administra sus roles.
+      </p>
+
+      <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-ink">Invitar usuario</h2>
+        <InviteUserForm clients={(clients || []).map((c) => ({ id: c.id, name: c.name }))} />
+      </div>
+
+      <div className="mt-8 overflow-x-auto rounded-lg border border-stone-200 bg-white">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-stone-200 text-left text-stone-500">
+              <th className="px-4 py-2 font-medium">Correo</th>
+              <th className="px-4 py-2 font-medium">Nombre</th>
+              <th className="px-4 py-2 font-medium">Rol</th>
+              <th className="px-4 py-2 font-medium">Negocio</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-b border-stone-100 last:border-0">
+                <td className="px-4 py-2">{r.email}</td>
+                <td className="px-4 py-2">{r.full_name || "-"}</td>
+                <td className="px-4 py-2 capitalize">{r.role}</td>
+                <td className="px-4 py-2">{r.client_name || "-"}</td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td className="px-4 py-6 text-center text-stone-400" colSpan={4}>
+                  Aun no hay usuarios invitados.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  );
+}

@@ -22,12 +22,7 @@
   "exclude": [
     "node_modules",
     "node_modules_borrar_manual",
-    "app/(dashboard)",
-    "components/Sidebar.tsx",
-    "lib/mock-data.ts",
-    "lib/mock-supabase.ts",
-    "lib/types.ts",
-    "lib/utils.ts",
+    "_archivado-crm-viejo",
     "app/layout 2.tsx",
     "app/page 2.tsx",
     "lib/supabase 2.ts",

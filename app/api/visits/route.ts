@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { requireRole } from "@/lib/auth";
 import { RATING_CATEGORIES, FLAG_QUESTIONS } from "@/lib/categories";
 import { overallScore, topAndBottomCategories, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
@@ -23,6 +24,16 @@ type Body = {
 };
 
 export async function POST(req: NextRequest) {
+  let profile;
+  try {
+    profile = await requireRole("admin", "agente");
+  } catch {
+    return NextResponse.json(
+      { error: "Necesitas iniciar sesion como agente o admin para registrar una visita" },
+      { status: 401 }
+    );
+  }
+
   let body: Body;
   try {
     body = await req.json();
@@ -101,6 +112,7 @@ export async function POST(req: NextRequest) {
       overall_score: score,
       short_code: shortCode,
       status: "completado",
+      created_by: profile.userId,
     })
     .select("id")
     .single();

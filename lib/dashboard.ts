@@ -103,3 +103,41 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     visits,
   };
 }
+
+export type AgentVisit = {
+  id: string;
+  shortCode: string;
+  overallScore: number;
+  createdAt: string;
+  clientId: string;
+  clientName: string;
+};
+
+/** Visitas registradas por un agente/mystery shopper especifico, para "Mis visitas". */
+export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
+  const db = getSupabaseServiceClient();
+
+  const { data: forms } = await db
+    .from("forms")
+    .select("id, short_code, overall_score, created_at, client_id")
+    .eq("created_by", agentId)
+    .order("created_at", { ascending: false });
+
+  if (!forms || forms.length === 0) return [];
+
+  const { data: clients } = await db
+    .from("clients")
+    .select("id, name")
+    .in("id", forms.map((f) => f.client_id));
+
+  const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+
+  return forms.map((f) => ({
+    id: f.id,
+    shortCode: f.short_code,
+    overallScore: f.overall_score,
+    createdAt: f.created_at,
+    clientId: f.client_id,
+    clientName: nameById.get(f.client_id) ?? "Negocio",
+  }));
+}
