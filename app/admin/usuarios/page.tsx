@@ -1,8 +1,12 @@
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getAdminStats } from "@/lib/dashboard";
 import InviteUserForm from "@/components/InviteUserForm";
+import UserRoleEditor from "@/components/UserRoleEditor";
 
 export const dynamic = "force-dynamic";
+
+type Role = "admin" | "agente" | "cliente";
 
 type ProfileRow = {
   id: string;
@@ -12,16 +16,34 @@ type ProfileRow = {
   client_id: string | null;
 };
 
+function StatCard({
+  label,
+  value,
+  sublabel,
+}: {
+  label: string;
+  value: string | number;
+  sublabel?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-stone-200 bg-white p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
+      <p className="heading mt-1 text-3xl text-ink">{value}</p>
+      {sublabel && <p className="mt-1 text-xs text-stone-500">{sublabel}</p>}
+    </div>
+  );
+}
+
 export default async function UsuariosPage() {
-  await requireRole("admin");
+  const session = await requireRole("admin");
   const db = getSupabaseServiceClient();
 
-  const { data: profiles } = await db
-    .from("profiles")
-    .select("id, email, full_name, role, client_id")
-    .order("email");
+  const [{ data: profiles }, { data: clients }, stats] = await Promise.all([
+    db.from("profiles").select("id, email, full_name, role, client_id").order("email"),
+    db.from("clients").select("id, name").order("name"),
+    getAdminStats(),
+  ]);
 
-  const { data: clients } = await db.from("clients").select("id, name").order("name");
   const clientNameById = new Map((clients || []).map((c) => [c.id, c.name as string]));
 
   const rows: (ProfileRow & { client_name: string | null })[] = (profiles || []).map((p) => ({
@@ -35,6 +57,29 @@ export default async function UsuariosPage() {
       <p className="mt-1 text-sm text-stone-500">
         Invita agentes y dueños de negocio, y administra sus roles.
       </p>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Negocios totales"
+          value={stats.totalNegocios}
+          sublabel={`+${stats.negociosUltimoMes} en el último mes`}
+        />
+        <StatCard
+          label="Negocios nuevos"
+          value={stats.negociosUltimoMes}
+          sublabel="Últimos 30 días"
+        />
+        <StatCard
+          label="Usuarios totales"
+          value={stats.totalUsuarios}
+          sublabel={`${stats.usuariosPorRol.admin} admin · ${stats.usuariosPorRol.agente} agentes · ${stats.usuariosPorRol.cliente} clientes`}
+        />
+        <StatCard
+          label="Visitas registradas"
+          value={stats.totalVisitas}
+          sublabel={`${stats.visitasUltimoMes} en el último mes`}
+        />
+      </div>
 
       <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
         <h2 className="text-sm font-semibold text-ink">Invitar usuario</h2>
@@ -56,7 +101,13 @@ export default async function UsuariosPage() {
               <tr key={r.id} className="border-b border-stone-100 last:border-0">
                 <td className="px-4 py-2">{r.email}</td>
                 <td className="px-4 py-2">{r.full_name || "-"}</td>
-                <td className="px-4 py-2 capitalize">{r.role}</td>
+                <td className="px-4 py-2">
+                  <UserRoleEditor
+                    userId={r.id}
+                    initialRole={r.role as Role}
+                    isSelf={r.id === session.userId}
+                  />
+                </td>
                 <td className="px-4 py-2">{r.client_name || "-"}</td>
               </tr>
             ))}

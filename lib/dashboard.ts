@@ -141,3 +141,50 @@ export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
     clientName: nameById.get(f.client_id) ?? "Negocio",
   }));
 }
+
+export type AdminStats = {
+  totalNegocios: number;
+  negociosUltimoMes: number;
+  totalUsuarios: number;
+  usuariosPorRol: { admin: number; agente: number; cliente: number };
+  totalVisitas: number;
+  visitasUltimoMes: number;
+};
+
+/** Estadísticas generales para el panel de administración de usuarios. */
+export async function getAdminStats(): Promise<AdminStats> {
+  const db = getSupabaseServiceClient();
+
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+  const sinceIso = since.toISOString();
+
+  const [
+    { count: totalNegocios },
+    { count: negociosUltimoMes },
+    { data: profiles },
+    { count: totalVisitas },
+    { count: visitasUltimoMes },
+  ] = await Promise.all([
+    db.from("clients").select("id", { count: "exact", head: true }),
+    db.from("clients").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
+    db.from("profiles").select("role"),
+    db.from("forms").select("id", { count: "exact", head: true }),
+    db.from("forms").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
+  ]);
+
+  const usuariosPorRol = { admin: 0, agente: 0, cliente: 0 };
+  (profiles || []).forEach((p) => {
+    const role = p.role as keyof typeof usuariosPorRol;
+    if (role in usuariosPorRol) usuariosPorRol[role] += 1;
+  });
+
+  return {
+    totalNegocios: totalNegocios ?? 0,
+    negociosUltimoMes: negociosUltimoMes ?? 0,
+    totalUsuarios: (profiles || []).length,
+    usuariosPorRol,
+    totalVisitas: totalVisitas ?? 0,
+    visitasUltimoMes: visitasUltimoMes ?? 0,
+  };
+}

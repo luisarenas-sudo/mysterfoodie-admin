@@ -9,6 +9,11 @@ type Body = {
   clientId?: string | null;
 };
 
+type PatchBody = {
+  id?: string;
+  role?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
     await requireRole("admin");
@@ -72,6 +77,58 @@ export async function POST(req: NextRequest) {
 
   if (profileError) {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function PATCH(req: NextRequest) {
+  let session;
+  try {
+    session = await requireRole("admin");
+  } catch {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  let body: PatchBody;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  const { id, role } = body;
+
+  if (!id || !role || !["admin", "agente", "cliente"].includes(role)) {
+    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+  }
+
+  if (id === session.userId) {
+    return NextResponse.json(
+      { error: "No puedes cambiar tu propio rol" },
+      { status: 400 }
+    );
+  }
+
+  let db;
+  try {
+    db = getSupabaseServiceClient();
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Supabase no configurado" },
+      { status: 500 }
+    );
+  }
+
+  const { data: target } = await db.from("profiles").select("id").eq("id", id).maybeSingle();
+  if (!target) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+  }
+
+  const { error } = await db.from("profiles").update({ role }).eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
