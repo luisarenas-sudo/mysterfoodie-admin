@@ -110,11 +110,11 @@ export default async function ReportPage({
         </div>
       )}
 
-      <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">
-        <p className="font-medium text-ink">
-          Este es un resumen por categoría. El reporte completo incluye el detalle de los{" "}
-          {TOTAL_ITEM_COUNT} indicadores evaluados dentro de cada categoría, comparativo con el
-          sector y recomendaciones específicas.
+      <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
+        <p className="font-medium text-ink">Este es un resumen por categoría.</p>
+        <p className="mt-2 font-medium text-ink">
+          El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores evaluados
+          dentro de cada categoría, comparativo con el sector y recomendaciones específicas.
         </p>
         {purchaseLink ? (
           <a
