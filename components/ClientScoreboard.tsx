@@ -23,7 +23,14 @@ function formatDateLong(iso: string) {
  * /negocios/[id] (vista de admin) como /mi-negocio (vista del dueño
  * del negocio) sobre el mismo ClientDetail.
  */
-export default function ClientScoreboard({ client }: { client: ClientDetail }) {
+export default function ClientScoreboard({
+  client,
+  canManageEmail = false,
+}: {
+  client: ClientDetail;
+  /** Admin y agente pueden ver el estado del correo y reenviarlo por evaluación; el dueño del negocio (/mi-negocio) no. */
+  canManageEmail?: boolean;
+}) {
   const visits = client.visits;
   const latest = visits[visits.length - 1];
   const previous = visits.length > 1 ? visits[visits.length - 2] : null;
@@ -110,6 +117,7 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
                 <th className="px-4 py-2 font-medium">Promedio</th>
                 <th className="px-4 py-2 font-medium">Veredicto</th>
                 <th className="px-4 py-2 font-medium">Reporte</th>
+                {canManageEmail && <th className="px-4 py-2 font-medium">Evaluación</th>}
               </tr>
             </thead>
             <tbody>
@@ -130,6 +138,13 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
                       Ver
                     </Link>
                   </td>
+                  {canManageEmail && (
+                    <td className="px-4 py-2">
+                      <Link href={`/visitas/${v.id}`} className="text-brand-500 hover:underline">
+                        Detalle y correo
+                      </Link>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

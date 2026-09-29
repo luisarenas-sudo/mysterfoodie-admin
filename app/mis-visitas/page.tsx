@@ -39,6 +39,7 @@ export default async function MisVisitasPage() {
                 <th className="px-4 py-2 font-medium">Promedio</th>
                 <th className="px-4 py-2 font-medium">Veredicto</th>
                 <th className="px-4 py-2 font-medium">Reporte</th>
+                <th className="px-4 py-2 font-medium">Evaluación</th>
               </tr>
             </thead>
             <tbody>
@@ -57,6 +58,11 @@ export default async function MisVisitasPage() {
                       className="text-brand-500 hover:underline"
                     >
                       Ver
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2">
+                    <Link href={`/visitas/${v.id}`} className="text-brand-500 hover:underline">
+                      Detalle y correo
                     </Link>
                   </td>
                 </tr>

@@ -116,6 +116,99 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
   };
 }
 
+export type EmailConfirmationInfo = {
+  status: string;
+  error: string | null;
+  recipientEmail: string;
+  sentAt: string;
+};
+
+export type VisitFullDetail = {
+  id: string;
+  shortCode: string;
+  reportUrl: string;
+  overallScore: number;
+  createdAt: string;
+  shopperName: string | null;
+  waiterName: string | null;
+  clientId: string;
+  clientName: string;
+  clientType: string;
+  categoryScores: { key: string; label: string; average: number; count: number }[];
+  lastEmail: EmailConfirmationInfo | null;
+};
+
+/**
+ * Detalle completo de una evaluación puntual (no del historial de un
+ * negocio): usado por /visitas/[formId] para mostrar el desglose de
+ * indicadores y, sobre el mismo endpoint genérico de
+ * /api/forms/[formId]/email, el estado del correo automático con sus
+ * controles de reenvío - tanto para una visita recién guardada como
+ * para cualquier evaluación anterior.
+ */
+export async function getVisitDetail(formId: string): Promise<VisitFullDetail | null> {
+  const db = getSupabaseServiceClient();
+
+  const { data: form } = await db
+    .from("forms")
+    .select("id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name")
+    .eq("id", formId)
+    .maybeSingle();
+  if (!form) return null;
+
+  const { data: client } = await db
+    .from("clients")
+    .select("id, name, type")
+    .eq("id", form.client_id)
+    .maybeSingle();
+  if (!client) return null;
+
+  const { data: ratingRows } = await db
+    .from("form_ratings")
+    .select("category_key, score")
+    .eq("form_id", form.id);
+
+  const raw: Ratings = {};
+  (ratingRows || []).forEach((r) => {
+    raw[r.category_key] = r.score;
+  });
+  const catScores = categoryScores(raw).filter((c) => c.count > 0);
+
+  const { data: emailRows } = await db
+    .from("email_confirmations")
+    .select("status, error, recipient_email, sent_at")
+    .eq("form_id", form.id)
+    .order("sent_at", { ascending: false })
+    .limit(1);
+
+  const lastEmailRow = (emailRows || [])[0];
+
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "";
+  const reportUrl = form.report_url || (baseUrl ? `${baseUrl}/r/${form.short_code}` : `/r/${form.short_code}`);
+
+  return {
+    id: form.id,
+    shortCode: form.short_code,
+    reportUrl,
+    overallScore: form.overall_score,
+    createdAt: form.created_at,
+    shopperName: form.shopper_name,
+    waiterName: form.waiter_name,
+    clientId: client.id,
+    clientName: client.name,
+    clientType: client.type,
+    categoryScores: catScores,
+    lastEmail: lastEmailRow
+      ? {
+          status: lastEmailRow.status,
+          error: lastEmailRow.error,
+          recipientEmail: lastEmailRow.recipient_email,
+          sentAt: lastEmailRow.sent_at,
+        }
+      : null,
+  };
+}
+
 export type AgentVisit = {
   id: string;
   shortCode: string;

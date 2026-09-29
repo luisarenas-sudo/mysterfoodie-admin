@@ -59,7 +59,7 @@ export default async function NegocioDetailPage({
         </Link>
       </div>
 
-      <ClientScoreboard client={client} />
+      <ClientScoreboard client={client} canManageEmail />
     </main>
   );
 }
