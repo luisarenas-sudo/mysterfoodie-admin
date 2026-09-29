@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 
@@ -12,6 +13,7 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   // Fallback manual: si el link fue consumido antes de que el usuario le
   // diera clic (por ejemplo, por un escaneo automático de seguridad del
@@ -110,7 +112,7 @@ export default function SetPasswordPage() {
     if (verifyError || !data.session) {
       setOtpError(
         verifyError?.message ??
-          "El código no es válido o ya expiró. Pide al equipo que te reenvíe la invitación."
+          "El código no es válido o ya expiró. Solicita un nuevo correo de recuperación."
       );
       return;
     }
@@ -142,8 +144,11 @@ export default function SetPasswordPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSuccess(true);
+    window.setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 900);
   }
 
   return (
@@ -167,6 +172,7 @@ export default function SetPasswordPage() {
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={otpEmail}
                 onChange={(e) => setOtpEmail(e.target.value)}
                 className="input mt-1"
@@ -177,10 +183,13 @@ export default function SetPasswordPage() {
               <input
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
                 required
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                className="input mt-1"
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                className="input mt-1 tracking-widest"
+                placeholder="000000"
               />
             </label>
             {otpError && <p className="text-sm text-red-600">{otpError}</p>}
@@ -192,10 +201,17 @@ export default function SetPasswordPage() {
               {otpVerifying ? "Verificando..." : "Verificar código"}
             </button>
           </form>
+          <p className="text-sm text-stone-500">
+            ¿No te llegó el correo o ya no tienes el código?{" "}
+            <Link href="/forgot-password" className="font-medium text-brand-600 hover:underline">
+              Pide uno nuevo
+            </Link>
+            .
+          </p>
         </div>
       )}
 
-      {ready && (
+      {ready && !success && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block">
             <span className="text-sm font-medium text-ink">Nueva contraseña</span>
@@ -203,6 +219,7 @@ export default function SetPasswordPage() {
               type="password"
               required
               minLength={8}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input mt-1"
@@ -214,11 +231,13 @@ export default function SetPasswordPage() {
               type="password"
               required
               minLength={8}
+              autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               className="input mt-1"
             />
           </label>
+          <p className="text-xs text-stone-400">Mínimo 8 caracteres.</p>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
@@ -228,6 +247,12 @@ export default function SetPasswordPage() {
             {saving ? "Guardando..." : "Guardar y entrar"}
           </button>
         </form>
+      )}
+
+      {success && (
+        <p className="mt-6 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
+          Contraseña guardada. Entrando...
+        </p>
       )}
     </main>
   );

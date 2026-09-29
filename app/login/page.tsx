@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/auth";
 
@@ -50,14 +51,26 @@ export default async function LoginPage({
             name="email"
             type="email"
             required
+            autoComplete="email"
             className="input mt-1"
             placeholder="tu@correo.com"
           />
         </label>
         <label className="block">
           <span className="text-sm font-medium text-ink">Contraseña</span>
-          <input name="password" type="password" required className="input mt-1" />
+          <input
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="input mt-1"
+          />
         </label>
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-sm font-medium text-brand-600 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
         <button
           type="submit"
           className="w-full rounded-md bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
