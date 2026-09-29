@@ -6,6 +6,7 @@ import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS } from "@/lib/categories";
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
+import { createShortLink } from "@/lib/shortio";
 
 type Body = {
   business: {
@@ -161,7 +162,19 @@ export async function POST(req: NextRequest) {
   }
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-  const reportUrl = `${baseUrl}/r/${shortCode}`;
+  const internalReportUrl = `${baseUrl}/r/${shortCode}`;
+
+  // El link que se comparte con el negocio siempre es el de go.mysterfoodie.com
+  // (via Short.io), igual que en el sitio anterior. Si Short.io falla o no
+  // esta configurado (falta SHORTIO_API_KEY), se usa el link interno como
+  // respaldo para que el flujo nunca se rompa.
+  let reportUrl = internalReportUrl;
+  const shortLink = await createShortLink(internalReportUrl, {
+    title: `${body.business.name} - ${score}/5`,
+  });
+  if (shortLink.ok) {
+    reportUrl = shortLink.shortURL;
+  }
 
   const recipientEmail = body.business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
