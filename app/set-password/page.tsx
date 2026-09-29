@@ -25,24 +25,29 @@ export default function SetPasswordPage() {
   const [otpVerifying, setOtpVerifying] = useState(false);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
     let settled = false;
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // El flujo implícito (links de recuperación generados desde el
-      // dashboard de Supabase) llega con el token en el hash de la URL
-      // (#access_token=...&type=recovery) y el SDK lo procesa de forma
-      // asíncrona, disparando este evento cuando termina.
-      if (settled) return;
-      if (event === "PASSWORD_RECOVERY" || session) {
-        settled = true;
-        setReady(true);
-      }
-    });
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
     (async () => {
+      const supabase = await createSupabaseBrowserClient();
+      if (cancelled) return;
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        // El flujo implícito (links de recuperación generados desde el
+        // dashboard de Supabase) llega con el token en el hash de la URL
+        // (#access_token=...&type=recovery) y el SDK lo procesa de forma
+        // asíncrona, disparando este evento cuando termina.
+        if (settled) return;
+        if (event === "PASSWORD_RECOVERY" || session) {
+          settled = true;
+          setReady(true);
+        }
+      });
+      unsubscribe = () => subscription.unsubscribe();
+
       const url = new URL(window.location.href);
       const code = url.searchParams.get("code");
       const emailFromLink = url.searchParams.get("email");
@@ -83,7 +88,8 @@ export default function SetPasswordPage() {
     })();
 
     return () => {
-      subscription.unsubscribe();
+      cancelled = true;
+      unsubscribe?.();
     };
   }, []);
 
@@ -101,7 +107,7 @@ export default function SetPasswordPage() {
     }
 
     setOtpVerifying(true);
-    const supabase = createSupabaseBrowserClient();
+    const supabase = await createSupabaseBrowserClient();
     const { data, error: verifyError } = await supabase.auth.verifyOtp({
       email: otpEmail.trim(),
       token: otpCode.trim(),
@@ -135,7 +141,7 @@ export default function SetPasswordPage() {
     }
 
     setSaving(true);
-    const supabase = createSupabaseBrowserClient();
+    const supabase = await createSupabaseBrowserClient();
     const { error: updateError } = await supabase.auth.updateUser({ password });
     setSaving(false);
 
