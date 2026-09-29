@@ -18,9 +18,9 @@ function formatDateLong(iso: string) {
 }
 
 /**
- * Bloque compartido: ultima calificacion, veredicto, evolucion,
+ * Bloque compartido: última calificación, veredicto, evolución,
  * comparativo de indicadores e historial de visitas. Lo usan tanto
- * /negocios/[id] (vista de admin) como /mi-negocio (vista del dueno
+ * /negocios/[id] (vista de admin) como /mi-negocio (vista del dueño
  * del negocio) sobre el mismo ClientDetail.
  */
 export default function ClientScoreboard({ client }: { client: ClientDetail }) {
@@ -51,7 +51,7 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
     <>
       <div className="mt-6 grid gap-4 sm:grid-cols-[auto_1fr]">
         <div className="flex flex-col items-start justify-center rounded-lg border border-stone-200 bg-white p-5">
-          <p className="text-sm text-stone-500">Ultima calificacion</p>
+          <p className="text-sm text-stone-500">Última calificación</p>
           <p className="text-5xl font-bold text-ink">{latest.overallScore}</p>
           {scoreDelta !== null && (
             <p
@@ -75,7 +75,7 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
           <p className="text-sm font-medium text-ink">Veredicto</p>
           <p className="mt-1 text-sm text-stone-600">{verdict.summary}</p>
           <p className="mt-3 text-xs text-stone-400">
-            Ultima visita: {formatDateLong(latest.createdAt)}
+            Última visita: {formatDateLong(latest.createdAt)}
             {latest.shopperName ? ` - por ${latest.shopperName}` : ""}
           </p>
         </div>
@@ -83,7 +83,7 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
 
       {visits.length > 1 && (
         <section className="mt-8">
-          <h2 className="heading text-xl text-ink">Evolucion del promedio</h2>
+          <h2 className="heading text-xl text-ink">Evolución del promedio</h2>
           <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
             <ScoreTrendChart data={trendData} />
           </div>
@@ -92,7 +92,7 @@ export default function ClientScoreboard({ client }: { client: ClientDetail }) {
 
       <section className="mt-8">
         <h2 className="heading text-xl text-ink">
-          Indicadores {previous ? "(visita actual vs anterior)" : "de la ultima visita"}
+          Indicadores {previous ? "(visita actual vs anterior)" : "de la última visita"}
         </h2>
         <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
           <CategoryCompareChart data={compareData} showPrevious={Boolean(previous)} />

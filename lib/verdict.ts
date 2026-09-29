@@ -12,7 +12,7 @@ export function getVerdict(score: number): Verdict {
     return {
       level: "excelente",
       label: "Excelente",
-      summary: "Esta entre los negocios mejor evaluados del sector. Sigan asi.",
+      summary: "Está entre los negocios mejor evaluados del sector. Sigan así.",
       color: "#15803d",
     };
   }
@@ -20,7 +20,7 @@ export function getVerdict(score: number): Verdict {
     return {
       level: "bueno",
       label: "Bueno",
-      summary: "Va bien, pero hay detalles puntuales que pulir para destacar mas.",
+      summary: "Va bien, pero hay detalles puntuales que pulir para destacar más.",
       color: "#ca8a04",
     };
   }
@@ -35,7 +35,7 @@ export function getVerdict(score: number): Verdict {
   return {
     level: "critico",
     label: "Necesita atencion",
-    summary: "Varios indicadores estan por debajo de lo esperado en el sector.",
+    summary: "Varios indicadores están por debajo de lo esperado en el sector.",
     color: "#dc2626",
   };
 }

@@ -8,17 +8,17 @@ export const RATING_CATEGORIES: RatingCategory[] = [
   {
     key: "bienvenida",
     label: "Bienvenida y tiempo de espera inicial",
-    helpText: "Que tan rapido y bien fue recibido el comensal al llegar",
+    helpText: "Qué tan rápido y bien fue recibido el comensal al llegar",
   },
   {
     key: "amabilidad",
     label: "Amabilidad y atencion del personal",
-    helpText: "Trato, disposicion y cordialidad del equipo",
+    helpText: "Trato, disposición y cordialidad del equipo",
   },
   {
     key: "conocimiento_menu",
-    label: "Conocimiento del menu y recomendaciones del staff",
-    helpText: "El personal explica el menu y sugiere platillos o bebidas",
+    label: "Conocimiento del menú y recomendaciones del staff",
+    helpText: "El personal explica el menú y sugiere platillos o bebidas",
   },
   {
     key: "tiempo_entrega",
@@ -33,16 +33,16 @@ export const RATING_CATEGORIES: RatingCategory[] = [
   {
     key: "presentacion",
     label: "Presentacion de los platillos",
-    helpText: "Como se ve lo que llega a la mesa",
+    helpText: "Cómo se ve lo que llega a la mesa",
   },
   {
     key: "limpieza_area",
     label: "Limpieza del area de comensales",
-    helpText: "Mesas, piso, cristaleria y entorno general",
+    helpText: "Mesas, piso, cristalería y entorno general",
   },
   {
     key: "limpieza_banos",
-    label: "Limpieza de banos",
+    label: "Limpieza de baños",
     helpText: "Estado e higiene de los sanitarios",
   },
   {
@@ -52,13 +52,13 @@ export const RATING_CATEGORIES: RatingCategory[] = [
   },
   {
     key: "precio_valor",
-    label: "Relacion calidad-precio",
-    helpText: "Lo que se recibio contra lo que se pago",
+    label: "Relación calidad-precio",
+    helpText: "Lo que se recibió contra lo que se pagó",
   },
   {
     key: "recomendaria",
     label: "Probabilidad de recomendar el lugar",
-    helpText: "Que tan probable es recomendar este negocio a alguien mas",
+    helpText: "Qué tan probable es recomendar este negocio a alguien más",
   },
 ];
 
@@ -70,7 +70,7 @@ export type FlagQuestion = {
 export const FLAG_QUESTIONS: FlagQuestion[] = [
   {
     key: "menu_actualizado",
-    label: "El menu esta actualizado, tiene variedad y precios claros",
+    label: "El menú está actualizado, tiene variedad y precios claros",
   },
   {
     key: "redes_sociales",
@@ -82,13 +82,13 @@ export const FLAG_QUESTIONS: FlagQuestion[] = [
   },
   {
     key: "senaletica_precios",
-    label: "Los precios son visibles y faciles de consultar",
+    label: "Los precios son visibles y fáciles de consultar",
   },
 ];
 
 export const BUSINESS_TYPES = [
   { value: "restaurante", label: "Restaurante" },
   { value: "bar", label: "Bar" },
-  { value: "cafeteria", label: "Cafeteria" },
+  { value: "cafeteria", label: "Cafetería" },
   { value: "otro", label: "Otro" },
 ];

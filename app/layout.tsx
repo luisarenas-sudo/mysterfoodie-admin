@@ -16,7 +16,7 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "MysterFoodie - Evaluacion Mystery Shopper",
+  title: "MysterFoodie - Evaluación Mystery Shopper",
   description: "Levantamiento de evaluaciones Mystery Shopper para restaurantes y bares",
   icons: {
     icon: "/favicon.ico",

@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/set-password") return true;
   if (pathname.startsWith("/r/")) return true;
-  // Las rutas de API validan su propia sesion con requireRole().
+  // Las rutas de API validan su propia sesión con requireRole().
   if (pathname.startsWith("/api/")) return true;
   return false;
 }
@@ -15,9 +15,9 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
-  // Sin Supabase configurado no hay forma de saber quien es quien;
+  // Sin Supabase configurado no hay forma de saber quién es quién;
   // se deja pasar todo para no tapiar el sitio completo con un error
-  // de configuracion (las paginas ya muestran su propio aviso).
+  // de configuración (las páginas ya muestran su propio aviso).
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
   }

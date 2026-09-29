@@ -14,10 +14,10 @@ export type SessionProfile = {
 
 /**
  * Cliente de Supabase para Server Components, Server Actions y Route
- * Handlers: lee/escribe la sesion via cookies (usa la anon key, no la
+ * Handlers: lee/escribe la sesión vía cookies (usa la anon key, no la
  * service role key). En un Server Component puro las cookies son de
  * solo lectura; el try/catch de abajo lo tolera porque el middleware
- * ya se encarga de refrescar la sesion en ese caso.
+ * ya se encarga de refrescar la sesión en ese caso.
  */
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
@@ -43,7 +43,7 @@ export async function createSupabaseServerClient() {
 }
 
 /**
- * Sesion actual + rol, o null si no hay usuario logueado. Valida el
+ * Sesión actual + rol, o null si no hay usuario logueado. Valida el
  * usuario contra el servidor de Supabase Auth (no solo lee la cookie).
  */
 export async function getSessionProfile(): Promise<SessionProfile | null> {
@@ -73,7 +73,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
 
 /**
  * Usar en Server Components y Route Handlers como defensa adicional
- * detras del middleware. Lanza si no hay sesion o el rol no coincide.
+ * detrás del middleware. Lanza si no hay sesión o el rol no coincide.
  */
 export async function requireRole(...roles: Role[]): Promise<SessionProfile> {
   const profile = await getSessionProfile();

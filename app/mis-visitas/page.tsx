@@ -24,8 +24,8 @@ export default async function MisVisitasPage() {
 
       {visits.length === 0 && (
         <p className="mt-6 text-sm text-stone-500">
-          Aun no has registrado ninguna evaluacion. Levanta la primera desde &quot;Nueva
-          evaluacion&quot;.
+          Aún no has registrado ninguna evaluación. Levanta la primera desde &quot;Nueva
+          evaluación&quot;.
         </p>
       )}
 

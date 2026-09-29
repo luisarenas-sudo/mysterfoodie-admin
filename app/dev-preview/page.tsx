@@ -31,7 +31,7 @@ export default function DevPreview() {
       </div>
 
       <section className="mt-8">
-        <h2 className="heading text-xl text-ink">Evolucion del promedio</h2>
+        <h2 className="heading text-xl text-ink">Evolución del promedio</h2>
         <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
           <ScoreTrendChart data={trendData} />
         </div>

@@ -35,11 +35,11 @@ export default function SetPasswordPage() {
     setError(null);
 
     if (password.length < 8) {
-      setError("La contrasena debe tener al menos 8 caracteres.");
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
     if (password !== confirm) {
-      setError("Las contrasenas no coinciden.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
@@ -60,23 +60,23 @@ export default function SetPasswordPage() {
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Crea tu contrasena</h1>
+      <h1 className="heading mt-2 text-3xl text-ink">Crea tu contraseña</h1>
 
       {!ready && !invalid && (
-        <p className="mt-6 text-sm text-stone-500">Validando invitacion...</p>
+        <p className="mt-6 text-sm text-stone-500">Validando invitación...</p>
       )}
 
       {invalid && (
         <p className="mt-6 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
-          Este link de invitacion ya no es valido o expiro. Pide al equipo que te reenvie la
-          invitacion.
+          Este link de invitación ya no es válido o expiró. Pide al equipo que te reenvíe la
+          invitación.
         </p>
       )}
 
       {ready && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block">
-            <span className="text-sm font-medium text-ink">Nueva contrasena</span>
+            <span className="text-sm font-medium text-ink">Nueva contraseña</span>
             <input
               type="password"
               required
@@ -87,7 +87,7 @@ export default function SetPasswordPage() {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-ink">Confirma la contrasena</span>
+            <span className="text-sm font-medium text-ink">Confirma la contraseña</span>
             <input
               type="password"
               required

@@ -53,7 +53,7 @@ export default async function ReportPage({
     return (
       <main className="mx-auto max-w-xl px-6 py-14">
         <p className="text-sm text-stone-600">
-          Este sitio aun no tiene Supabase configurado, asi que no se puede mostrar el reporte.
+          Este sitio aún no tiene Supabase configurado, así que no se puede mostrar el reporte.
         </p>
       </main>
     );
@@ -67,7 +67,7 @@ export default async function ReportPage({
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const purchaseLink = contactWhatsapp
     ? `https://wa.me/${contactWhatsapp}?text=${encodeURIComponent(
-        `Hola, quiero el reporte completo de la evaluacion de ${client?.name ?? ""} (codigo ${shortCode}).`
+        `Hola, quiero el reporte completo de la evaluación de ${client?.name ?? ""} (código ${shortCode}).`
       )}`
     : null;
 
@@ -75,7 +75,7 @@ export default async function ReportPage({
     <main className="mx-auto max-w-xl px-6 py-14">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
       <h1 className="heading mt-2 text-3xl text-ink">
-        Resultado de la evaluacion de {client?.name ?? "tu negocio"}
+        Resultado de la evaluación de {client?.name ?? "tu negocio"}
       </h1>
       <p className="mt-1 text-sm text-stone-500">
         Visita realizada el {new Date(form.created_at).toLocaleDateString("es-MX")}
@@ -113,7 +113,7 @@ export default async function ReportPage({
       <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">
         <p className="font-medium text-ink">
           Este es un resumen general. El reporte completo incluye el detalle de los{" "}
-          {11} indicadores evaluados, comparativo con el sector y recomendaciones especificas.
+          {11} indicadores evaluados, comparativo con el sector y recomendaciones específicas.
         </p>
         {purchaseLink ? (
           <a

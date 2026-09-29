@@ -38,7 +38,7 @@ type SubmitResult = {
   profileLink: string | null;
 };
 
-const STEPS = ["Negocio", "Calificacion", "Indicadores", "Revisar"] as const;
+const STEPS = ["Negocio", "Calificación", "Indicadores", "Revisar"] as const;
 
 export default function Home() {
   const [step, setStep] = useState(0);
@@ -68,7 +68,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setSubmitError(data.error || "No se pudo guardar la evaluacion");
+        setSubmitError(data.error || "No se pudo guardar la evaluación");
         return;
       }
       setResult(data);
@@ -99,23 +99,23 @@ export default function Home() {
   if (result) {
     return (
       <main className="mx-auto max-w-xl px-6 py-14">
-        <p className="text-sm uppercase tracking-wide text-brand-600">Evaluacion guardada</p>
+        <p className="text-sm uppercase tracking-wide text-brand-600">Evaluación guardada</p>
         <h1 className="heading mt-2 text-3xl text-ink">
           {business.name}: {result.overallScore} de 5
         </h1>
 
         <div className="mt-6 rounded-lg border border-stone-200 bg-white p-5">
-          <p className="text-sm font-medium text-stone-700">Correo automatico</p>
+          <p className="text-sm font-medium text-stone-700">Correo automático</p>
           {result.email ? (
             <p className="mt-1 text-sm text-stone-600">
               {result.email.status === "sent" && "Enviado correctamente."}
               {result.email.status === "skipped_no_api_key" &&
-                "No se envio: falta configurar RESEND_API_KEY."}
-              {result.email.status === "failed" && `Fallo el envio: ${result.email.error}`}
+                "No se envió: falta configurar RESEND_API_KEY."}
+              {result.email.status === "failed" && `Falló el envío: ${result.email.error}`}
             </p>
           ) : (
             <p className="mt-1 text-sm text-stone-600">
-              No se envio: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado.
+              No se envió: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado.
             </p>
           )}
         </div>
@@ -143,8 +143,8 @@ export default function Home() {
             Texto para enviar por DM de Instagram a la cuenta del negocio
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            Instagram no permite pre-llenar el mensaje desde un link, asi que copia el texto y
-            pegalo dentro del DM al abrirlo.
+            Instagram no permite pre-llenar el mensaje desde un link, así que copia el texto y
+            pégalo dentro del DM al abrirlo.
           </p>
           <textarea
             readOnly
@@ -191,7 +191,7 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-xl px-6 py-14">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Evaluacion Mystery Shopper</h1>
+      <h1 className="heading mt-2 text-3xl text-ink">Evaluación Mystery Shopper</h1>
 
       <ol className="mt-6 flex gap-4 text-xs text-stone-500">
         {STEPS.map((label, i) => (
@@ -251,7 +251,7 @@ export default function Home() {
               className="input"
             />
           </Field>
-          <Field label="Direccion (opcional)">
+          <Field label="Dirección (opcional)">
             <input
               value={business.address}
               onChange={(e) => updateBusiness("address", e.target.value)}
@@ -324,7 +324,7 @@ export default function Home() {
               {business.city || "Sin ciudad"} - @{business.instagramHandle || "sin instagram"}
             </p>
             <p className="mt-2 text-stone-600">
-              {RATING_CATEGORIES.length} categorias calificadas
+              {RATING_CATEGORIES.length} categorías calificadas
             </p>
           </div>
           {submitError && (
@@ -333,7 +333,7 @@ export default function Home() {
           <StepNav
             onBack={() => setStep(2)}
             onNext={handleSubmit}
-            nextLabel={submitting ? "Guardando..." : "Enviar evaluacion"}
+            nextLabel={submitting ? "Guardando..." : "Enviar evaluación"}
             nextDisabled={submitting}
           />
         </div>
@@ -370,7 +370,7 @@ function StepNav({
           onClick={onBack}
           className="rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
         >
-          Atras
+          Atrás
         </button>
       ) : (
         <span />

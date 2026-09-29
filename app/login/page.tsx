@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/auth";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  "Invalid login credentials": "Correo o contrasena incorrectos.",
+  "Invalid login credentials": "Correo o contraseña incorrectos.",
 };
 
 export default async function LoginPage({
@@ -33,7 +33,7 @@ export default async function LoginPage({
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Iniciar sesion</h1>
+      <h1 className="heading mt-2 text-3xl text-ink">Iniciar sesión</h1>
       <p className="mt-1 text-sm text-stone-500">Acceso para el equipo y para negocios registrados.</p>
 
       {error && (
@@ -55,7 +55,7 @@ export default async function LoginPage({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-ink">Contrasena</span>
+          <span className="text-sm font-medium text-ink">Contraseña</span>
           <input name="password" type="password" required className="input mt-1" />
         </label>
         <button

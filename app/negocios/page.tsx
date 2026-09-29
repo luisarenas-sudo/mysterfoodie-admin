@@ -29,8 +29,8 @@ export default async function NegociosPage() {
 
       {!configError && clients.length === 0 && (
         <p className="mt-6 text-sm text-stone-500">
-          Aun no hay visitas registradas. Levanta la primera evaluacion desde
-          &quot;Nueva evaluacion&quot;.
+          Aún no hay visitas registradas. Levanta la primera evaluación desde
+          &quot;Nueva evaluación&quot;.
         </p>
       )}
 

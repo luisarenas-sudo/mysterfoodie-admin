@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
   const email = body.email?.trim().toLowerCase();
@@ -30,11 +30,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta el correo" }, { status: 400 });
   }
   if (!role || !["admin", "agente", "cliente"].includes(role)) {
-    return NextResponse.json({ error: "Rol invalido" }, { status: 400 });
+    return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
   }
   if (role === "cliente" && !body.clientId) {
     return NextResponse.json(
-      { error: "Selecciona a que negocio pertenece este usuario" },
+      { error: "Selecciona a qué negocio pertenece este usuario" },
       { status: 400 }
     );
   }

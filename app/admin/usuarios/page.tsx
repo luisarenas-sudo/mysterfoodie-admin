@@ -33,7 +33,7 @@ export default async function UsuariosPage() {
     <main className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="heading text-3xl text-brand-500">Usuarios</h1>
       <p className="mt-1 text-sm text-stone-500">
-        Invita agentes y duenos de negocio, y administra sus roles.
+        Invita agentes y dueños de negocio, y administra sus roles.
       </p>
 
       <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
@@ -63,7 +63,7 @@ export default async function UsuariosPage() {
             {rows.length === 0 && (
               <tr>
                 <td className="px-4 py-6 text-center text-stone-400" colSpan={4}>
-                  Aun no hay usuarios invitados.
+                  Aún no hay usuarios invitados.
                 </td>
               </tr>
             )}

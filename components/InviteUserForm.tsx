@@ -35,7 +35,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
         setMessage({ type: "error", text: data.error || "No se pudo invitar al usuario" });
         return;
       }
-      setMessage({ type: "ok", text: `Invitacion enviada a ${email}` });
+      setMessage({ type: "ok", text: `Invitación enviada a ${email}` });
       setEmail("");
       setFullName("");
       setClientId("");
@@ -76,7 +76,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
           className="input mt-1"
         >
           <option value="agente">Agente (mystery shopper)</option>
-          <option value="cliente">Cliente (dueno de negocio)</option>
+          <option value="cliente">Cliente (dueño de negocio)</option>
           <option value="admin">Admin</option>
         </select>
       </label>
@@ -113,7 +113,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
           disabled={submitting}
           className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
         >
-          {submitting ? "Enviando..." : "Enviar invitacion"}
+          {submitting ? "Enviando..." : "Enviar invitación"}
         </button>
       </div>
     </form>

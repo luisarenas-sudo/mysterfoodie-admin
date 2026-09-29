@@ -12,12 +12,12 @@ async function signOut() {
 
 const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
   admin: [
-    { href: "/", label: "Nueva evaluacion" },
+    { href: "/", label: "Nueva evaluación" },
     { href: "/negocios", label: "Negocios" },
     { href: "/admin/usuarios", label: "Usuarios" },
   ],
   agente: [
-    { href: "/", label: "Nueva evaluacion" },
+    { href: "/", label: "Nueva evaluación" },
     { href: "/mis-visitas", label: "Mis visitas" },
   ],
   cliente: [{ href: "/mi-negocio", label: "Mi negocio" }],
@@ -53,13 +53,13 @@ export default async function AppHeader() {
             </span>
             <form action={signOut}>
               <button type="submit" className="text-white/60 hover:text-white">
-                Cerrar sesion
+                Cerrar sesión
               </button>
             </form>
           </nav>
         ) : (
           <Link href="/login" className="text-sm font-medium text-white/80 hover:text-white">
-            Iniciar sesion
+            Iniciar sesión
           </Link>
         )}
       </div>

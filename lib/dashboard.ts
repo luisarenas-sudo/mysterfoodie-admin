@@ -113,7 +113,7 @@ export type AgentVisit = {
   clientName: string;
 };
 
-/** Visitas registradas por un agente/mystery shopper especifico, para "Mis visitas". */
+/** Visitas registradas por un agente/mystery shopper específico, para "Mis visitas". */
 export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
   const db = getSupabaseServiceClient();
 

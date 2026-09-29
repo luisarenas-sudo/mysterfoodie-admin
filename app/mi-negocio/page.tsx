@@ -12,7 +12,7 @@ export default async function MiNegocioPage() {
       <main className="mx-auto max-w-xl px-6 py-14 text-center">
         <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
         <h1 className="heading mt-2 text-2xl text-ink">
-          Tu cuenta aun no esta vinculada a un negocio
+          Tu cuenta aún no está vinculada a un negocio
         </h1>
         <p className="mt-2 text-sm text-stone-500">
           Contacta al equipo de MysterFoodie para que la enlacen al negocio correcto.
@@ -38,8 +38,8 @@ export default async function MiNegocioPage() {
       <main className="mx-auto max-w-5xl px-6 py-10">
         <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
         <p className="mt-2 text-sm text-stone-500">
-          Aun no hay visitas registradas para tu negocio. En cuanto se realice la primera
-          evaluacion Mystery Shopper, la veras aqui.
+          Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
+          evaluación Mystery Shopper, la verás aquí.
         </p>
       </main>
     );

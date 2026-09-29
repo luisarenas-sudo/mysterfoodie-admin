@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     profile = await requireRole("admin", "agente");
   } catch {
     return NextResponse.json(
-      { error: "Necesitas iniciar sesion como agente o admin para registrar una visita" },
+      { error: "Necesitas iniciar sesión como agente o admin para registrar una visita" },
       { status: 401 }
     );
   }
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
   if (!body.business?.name?.trim()) {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   );
   if (missingRatings.length > 0) {
     return NextResponse.json(
-      { error: "Faltan categorias por calificar", missing: missingRatings.map((c) => c.key) },
+      { error: "Faltan categorías por calificar", missing: missingRatings.map((c) => c.key) },
       { status: 400 }
     );
   }
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
   if (formError || !form) {
     return NextResponse.json(
-      { error: formError?.message || "No se pudo guardar la evaluacion" },
+      { error: formError?.message || "No se pudo guardar la evaluación" },
       { status: 500 }
     );
   }
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
     await db.from("email_confirmations").insert({
       form_id: form.id,
       recipient_email: recipientEmail,
-      subject: `Resultado de tu evaluacion Mystery Shopper - ${score} estrellas`,
+      subject: `Resultado de tu evaluación Mystery Shopper - ${score} estrellas`,
       status: emailOutcome.status,
       provider_id: emailOutcome.providerId || null,
       error: emailOutcome.error || null,
