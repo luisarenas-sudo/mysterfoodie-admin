@@ -15,19 +15,63 @@ export default function SetPasswordPage() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
+    let settled = false;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // El flujo implícito (links de recuperación generados desde el
+      // dashboard de Supabase) llega con el token en el hash de la URL
+      // (#access_token=...&type=recovery) y el SDK lo procesa de forma
+      // asíncrona, disparando este evento cuando termina.
+      if (settled) return;
+      if (event === "PASSWORD_RECOVERY" || session) {
+        settled = true;
+        setReady(true);
+      }
+    });
+
     (async () => {
       const url = new URL(window.location.href);
       const code = url.searchParams.get("code");
+
+      // Flujo PKCE (links generados por la propia app con `code=...`).
       if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
+        const { data } = await supabase.auth.exchangeCodeForSession(code);
+        if (data.session) {
+          settled = true;
+          setReady(true);
+          return;
+        }
       }
+
+      // Puede que el SDK ya haya procesado el hash de la URL antes de
+      // que este efecto corriera.
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        settled = true;
         setReady(true);
-      } else {
-        setInvalid(true);
+        return;
       }
+
+      // Como último recurso, le damos un momento al SDK para terminar
+      // de procesar el hash de la URL (flujo implícito) antes de
+      // marcar el link como inválido.
+      window.setTimeout(async () => {
+        if (settled) return;
+        const { data: retryData } = await supabase.auth.getSession();
+        if (retryData.session) {
+          settled = true;
+          setReady(true);
+        } else {
+          setInvalid(true);
+        }
+      }, 1200);
     })();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function handleSubmit(e: FormEvent) {
