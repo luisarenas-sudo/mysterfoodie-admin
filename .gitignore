@@ -31,3 +31,4 @@ _archivado-crm-viejo/
 node_modules_borrar_manual/
 *.tsbuildinfo
 mysterfoodie-admin-deploy.zip
+.DS_Store
