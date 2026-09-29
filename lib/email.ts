@@ -5,8 +5,6 @@ export type SendResultEmailParams = {
   to: string;
   businessName: string;
   score: number;
-  strengths: { label: string; score: number }[];
-  opportunities: { label: string; score: number }[];
   reportUrl: string;
 };
 
@@ -17,14 +15,8 @@ export type SendEmailOutcome = {
 };
 
 function renderEmailHtml(params: SendResultEmailParams): string {
-  const { businessName, score, strengths, opportunities, reportUrl } = params;
+  const { businessName, score, reportUrl } = params;
   const verdict = getVerdict(score);
-  const strengthItems = strengths
-    .map((s) => `<li>${s.label}: ${s.score} de 5</li>`)
-    .join("");
-  const opportunityItems = opportunities
-    .map((o) => `<li>${o.label}: ${o.score} de 5</li>`)
-    .join("");
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
@@ -40,10 +32,6 @@ function renderEmailHtml(params: SendResultEmailParams): string {
         ${verdict.label}
       </p>
       <p style="color: #57534e;">${verdict.summary}</p>
-      <p>Algunos puntos que más destacaron:</p>
-      <ul>${strengthItems}</ul>
-      <p>Algunas áreas con oportunidad de mejora:</p>
-      <ul>${opportunityItems}</ul>
       <p>
         Este es solo un resumen general. El reporte completo incluye el detalle de cada
         indicador evaluado, comparativo con el sector y recomendaciones específicas.

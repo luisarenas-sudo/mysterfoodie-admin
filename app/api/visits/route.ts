@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     await db.from("form_flags").insert(flagRows);
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const reportUrl = `${baseUrl}/r/${shortCode}`;
 
   const recipientEmail = body.business.email || process.env.ADMIN_EMAIL || "";
@@ -153,8 +153,6 @@ export async function POST(req: NextRequest) {
       to: recipientEmail,
       businessName: body.business.name,
       score,
-      strengths,
-      opportunities,
       reportUrl,
     });
 

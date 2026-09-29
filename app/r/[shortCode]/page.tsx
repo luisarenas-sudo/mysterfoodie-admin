@@ -1,5 +1,4 @@
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { topAndBottomCategories, type Ratings } from "@/lib/scoring";
 import { getVerdict } from "@/lib/verdict";
 import VerdictBadge from "@/components/VerdictBadge";
 import { notFound } from "next/navigation";
@@ -28,17 +27,7 @@ async function loadReport(shortCode: string) {
     .eq("id", form.client_id)
     .maybeSingle();
 
-  const { data: ratingRows } = await db
-    .from("form_ratings")
-    .select("category_key, score")
-    .eq("form_id", form.id);
-
-  const ratings: Ratings = {};
-  (ratingRows || []).forEach((r) => {
-    ratings[r.category_key] = r.score;
-  });
-
-  return { form, client, ratings };
+  return { form, client };
 }
 
 export default async function ReportPage({
@@ -62,7 +51,6 @@ export default async function ReportPage({
   if (!data) return notFound();
 
   const { form, client } = data;
-  const { strengths, opportunities } = topAndBottomCategories(data.ratings, 2);
   const verdict = getVerdict(form.overall_score);
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const purchaseLink = contactWhatsapp
@@ -89,25 +77,6 @@ export default async function ReportPage({
           <VerdictBadge score={form.overall_score} />
         </div>
         <p className="mx-auto mt-3 max-w-sm text-sm text-stone-500">{verdict.summary}</p>
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-stone-200 bg-white p-4">
-          <p className="text-sm font-medium text-stone-700">Lo mejor evaluado</p>
-          <ul className="mt-2 space-y-1 text-sm text-stone-600">
-            {strengths.map((s) => (
-              <li key={s.key}>{s.label}: {s.score} de 5</li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-lg border border-stone-200 bg-white p-4">
-          <p className="text-sm font-medium text-stone-700">Oportunidad de mejora</p>
-          <ul className="mt-2 space-y-1 text-sm text-stone-600">
-            {opportunities.map((o) => (
-              <li key={o.key}>{o.label}: {o.score} de 5</li>
-            ))}
-          </ul>
-        </div>
       </div>
 
       <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">

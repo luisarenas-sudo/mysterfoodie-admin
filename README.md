@@ -23,8 +23,11 @@ cuentas" mas abajo.
    - `ADMIN_EMAIL` como respaldo cuando el negocio no tenga correo capturado
    - `ADMIN_CONTACT_WHATSAPP` para el boton de "solicitar reporte completo" en la pagina
      publica del reporte
-   - `NEXT_PUBLIC_APP_URL` (por ejemplo `http://localhost:3000` en desarrollo, o el dominio
-     real en produccion) - se usa para armar los links de los correos de invitacion
+   - `APP_URL` (por ejemplo `http://localhost:3000` en desarrollo, o el dominio real en
+     produccion) - se usa para armar los links de los correos de invitacion y del reporte
+     publico. Importante: usar `APP_URL`, NO `NEXT_PUBLIC_APP_URL` - en GoDaddy las variables
+     `NEXT_PUBLIC_*` quedan vacias porque el build no tiene acceso a los Secrets (solo en
+     runtime), asi que esa variable nunca llegaria a tomar el valor configurado.
 5. Crea tu propio usuario admin (la primera vez no hay nadie que pueda invitar a nadie):
    en el SQL editor de Supabase, despues de crear tu usuario desde Authentication > Users >
    Invite user (o Add user), corre:

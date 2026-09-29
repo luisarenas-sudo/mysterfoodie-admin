@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
   const { data: invited, error: inviteError } = await db.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${baseUrl}/set-password`,
