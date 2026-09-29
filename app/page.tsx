@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import ScoreSelector from "@/components/ScoreSelector";
-import { RATING_CATEGORIES, FLAG_QUESTIONS, BUSINESS_TYPES } from "@/lib/categories";
+import BooleanToggle from "@/components/BooleanToggle";
+import SelectChips from "@/components/SelectChips";
+import { CATEGORIES, BUSINESS_TYPES, type Category } from "@/lib/categories";
 
 type Business = {
   name: string;
@@ -26,19 +28,38 @@ const EMPTY_BUSINESS: Business = {
   city: "",
 };
 
+type CategoryScoreResult = { key: string; label: string; average: number; count: number };
+
 type SubmitResult = {
   shortCode: string;
   reportUrl: string;
   overallScore: number;
-  strengths: { key: string; label: string; score: number }[];
-  opportunities: { key: string; label: string; score: number }[];
+  categoryScores: CategoryScoreResult[];
   email: { status: string; error?: string } | null;
   dmMessage: string;
   dmLink: string | null;
   profileLink: string | null;
 };
 
-const STEPS = ["Negocio", "Calificación", "Indicadores", "Revisar"] as const;
+type StepDef =
+  | { kind: "business" }
+  | { kind: "category"; category: Category }
+  | { kind: "comments" }
+  | { kind: "review" };
+
+const STEPS: StepDef[] = [
+  { kind: "business" },
+  ...CATEGORIES.map((category) => ({ kind: "category" as const, category })),
+  { kind: "comments" },
+  { kind: "review" },
+];
+
+function stepLabel(step: StepDef): string {
+  if (step.kind === "business") return "Negocio";
+  if (step.kind === "category") return step.category.label;
+  if (step.kind === "comments") return "Comentarios";
+  return "Revisar";
+}
 
 export default function Home() {
   const [step, setStep] = useState(0);
@@ -46,15 +67,32 @@ export default function Home() {
   const [shopperName, setShopperName] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [selects, setSelects] = useState<Record<string, string>>({});
+  const [comments, setComments] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const ratingsComplete = RATING_CATEGORIES.every((c) => ratings[c.key]);
+  const current = STEPS[step];
+  const progressPct = Math.round((step / (STEPS.length - 1)) * 100);
 
   function updateBusiness<K extends keyof Business>(key: K, value: Business[K]) {
     setBusiness((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function categoryComplete(category: Category) {
+    return category.items.every((item) => {
+      if (item.type === "star") return (ratings[item.key] || 0) > 0;
+      if (item.type === "select") return Boolean(selects[item.key]);
+      return true;
+    });
+  }
+
+  function canAdvance() {
+    if (current.kind === "business") return Boolean(business.name.trim());
+    if (current.kind === "category") return categoryComplete(current.category);
+    return true;
   }
 
   async function handleSubmit() {
@@ -64,7 +102,7 @@ export default function Home() {
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business, shopperName, ratings, flags }),
+        body: JSON.stringify({ business, shopperName, ratings, flags, selects, comments }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -92,6 +130,8 @@ export default function Home() {
     setShopperName("");
     setRatings({});
     setFlags({});
+    setSelects({});
+    setComments("");
     setResult(null);
     setSubmitError(null);
   }
@@ -103,6 +143,18 @@ export default function Home() {
         <h1 className="heading mt-2 text-3xl text-ink">
           {business.name}: {result.overallScore} de 5
         </h1>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {result.categoryScores
+            .filter((c) => c.count > 0)
+            .map((c) => (
+              <div key={c.key} className="rounded-lg border border-stone-200 bg-white p-4 text-center">
+                <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{c.label}</p>
+                <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
+                <p className="text-xs text-stone-400">de 5</p>
+              </div>
+            ))}
+        </div>
 
         <div className="mt-6 rounded-lg border border-stone-200 bg-white p-5">
           <p className="text-sm font-medium text-stone-700">Correo automático</p>
@@ -189,23 +241,24 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-14">
+    <main className="mx-auto max-w-3xl px-6 py-10">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
       <h1 className="heading mt-2 text-3xl text-ink">Evaluación Mystery Shopper</h1>
 
-      <ol className="mt-6 flex gap-4 text-xs text-stone-500">
-        {STEPS.map((label, i) => (
-          <li
-            key={label}
-            className={i === step ? "font-semibold text-brand-600" : ""}
-          >
-            {i + 1}. {label}
-          </li>
-        ))}
-      </ol>
+      <div className="mt-6">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+          <div
+            className="h-2 rounded-full bg-brand-gradient transition-all duration-300"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <p className="mt-2 text-xs text-stone-500">
+          Paso {step + 1} de {STEPS.length} — {stepLabel(current)}
+        </p>
+      </div>
 
-      {step === 0 && (
-        <div className="mt-8 space-y-4">
+      {current.kind === "business" && (
+        <div className="mt-8 max-w-xl space-y-4">
           <Field label="Nombre del negocio">
             <input
               value={business.name}
@@ -265,79 +318,115 @@ export default function Home() {
               className="input"
             />
           </Field>
-          <StepNav
-            onNext={() => setStep(1)}
-            nextDisabled={!business.name.trim()}
-          />
         </div>
       )}
 
-      {step === 1 && (
-        <div className="mt-8 space-y-6">
-          {RATING_CATEGORIES.map((cat) => (
-            <div key={cat.key}>
-              <p className="text-sm font-medium text-ink">{cat.label}</p>
-              <p className="text-xs text-stone-500">{cat.helpText}</p>
+      {current.kind === "category" && (
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {current.category.items.map((item) => (
+            <div key={item.key}>
+              <p className="text-sm font-medium text-ink">{item.label}</p>
               <div className="mt-2">
-                <ScoreSelector
-                  value={ratings[cat.key] || 0}
-                  onChange={(v) => setRatings((prev) => ({ ...prev, [cat.key]: v }))}
-                />
+                {item.type === "star" && (
+                  <ScoreSelector
+                    value={ratings[item.key] || 0}
+                    onChange={(v) => setRatings((prev) => ({ ...prev, [item.key]: v }))}
+                  />
+                )}
+                {item.type === "boolean" && (
+                  <BooleanToggle
+                    value={Boolean(flags[item.key])}
+                    onChange={(v) => setFlags((prev) => ({ ...prev, [item.key]: v }))}
+                  />
+                )}
+                {item.type === "select" && item.options && (
+                  <SelectChips
+                    options={item.options}
+                    value={selects[item.key]}
+                    onChange={(v) => setSelects((prev) => ({ ...prev, [item.key]: v }))}
+                  />
+                )}
               </div>
             </div>
           ))}
-          <StepNav
-            onBack={() => setStep(0)}
-            onNext={() => setStep(2)}
-            nextDisabled={!ratingsComplete}
+        </div>
+      )}
+
+      {current.kind === "comments" && (
+        <div className="mt-8 max-w-xl space-y-2">
+          <p className="text-sm font-medium text-ink">Sugerencias, mejoras y más</p>
+          <p className="text-xs text-stone-500">
+            Opcional: cualquier observación adicional sobre la visita que no quede reflejada en
+            los indicadores.
+          </p>
+          <textarea
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            rows={6}
+            className="input"
+            placeholder="Escribe aquí cualquier comentario adicional..."
           />
         </div>
       )}
 
-      {step === 2 && (
-        <div className="mt-8 space-y-4">
-          {FLAG_QUESTIONS.map((f) => (
-            <label
-              key={f.key}
-              className="flex items-center justify-between rounded-md border border-stone-200 bg-white px-4 py-3"
-            >
-              <span className="text-sm text-ink">{f.label}</span>
-              <input
-                type="checkbox"
-                checked={Boolean(flags[f.key])}
-                onChange={(e) =>
-                  setFlags((prev) => ({ ...prev, [f.key]: e.target.checked }))
-                }
-                className="h-5 w-5"
-              />
-            </label>
-          ))}
-          <StepNav onBack={() => setStep(1)} onNext={() => setStep(3)} />
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="mt-8 space-y-4">
+      {current.kind === "review" && (
+        <div className="mt-8 max-w-xl space-y-4">
           <div className="rounded-md border border-stone-200 bg-white p-4 text-sm">
             <p className="font-medium text-ink">{business.name}</p>
             <p className="text-stone-500">
               {business.city || "Sin ciudad"} - @{business.instagramHandle || "sin instagram"}
             </p>
-            <p className="mt-2 text-stone-600">
-              {RATING_CATEGORIES.length} categorías calificadas
-            </p>
+            <ul className="mt-3 space-y-1 text-stone-600">
+              {CATEGORIES.map((cat) => (
+                <li key={cat.key} className="flex justify-between">
+                  <span>{cat.label}</span>
+                  <span className="text-stone-400">completo</span>
+                </li>
+              ))}
+            </ul>
+            {comments.trim() && (
+              <p className="mt-3 text-xs text-stone-500">
+                Comentarios: {comments.trim().slice(0, 140)}
+                {comments.trim().length > 140 ? "…" : ""}
+              </p>
+            )}
           </div>
-          {submitError && (
-            <p className="text-sm text-red-600">{submitError}</p>
-          )}
-          <StepNav
-            onBack={() => setStep(2)}
-            onNext={handleSubmit}
-            nextLabel={submitting ? "Guardando..." : "Enviar evaluación"}
-            nextDisabled={submitting}
-          />
+          {submitError && <p className="text-sm text-red-600">{submitError}</p>}
         </div>
       )}
+
+      <div className="mt-8 flex max-w-xl justify-between">
+        {step > 0 ? (
+          <button
+            type="button"
+            onClick={() => setStep((s) => s - 1)}
+            className="rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+          >
+            Atrás
+          </button>
+        ) : (
+          <span />
+        )}
+        {current.kind === "review" ? (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting ? "Guardando..." : "Enviar evaluación"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!canAdvance()}
+            className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Continuar
+          </button>
+        )}
+      </div>
     </main>
   );
 }
@@ -348,41 +437,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-sm font-medium text-ink">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
-  );
-}
-
-function StepNav({
-  onBack,
-  onNext,
-  nextDisabled,
-  nextLabel = "Continuar",
-}: {
-  onBack?: () => void;
-  onNext: () => void;
-  nextDisabled?: boolean;
-  nextLabel?: string;
-}) {
-  return (
-    <div className="flex justify-between pt-2">
-      {onBack ? (
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-        >
-          Atrás
-        </button>
-      ) : (
-        <span />
-      )}
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={nextDisabled}
-        className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {nextLabel}
-      </button>
-    </div>
   );
 }

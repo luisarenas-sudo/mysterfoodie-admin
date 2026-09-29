@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
-import { RATING_CATEGORIES, FLAG_QUESTIONS } from "@/lib/categories";
-import { overallScore, topAndBottomCategories, type Ratings } from "@/lib/scoring";
+import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS } from "@/lib/categories";
+import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
 
@@ -21,6 +21,8 @@ type Body = {
   shopperName?: string;
   ratings: Ratings;
   flags: Record<string, boolean>;
+  selects: Record<string, string>;
+  comments?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -45,12 +47,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta el nombre del negocio" }, { status: 400 });
   }
 
-  const missingRatings = RATING_CATEGORIES.filter(
-    (c) => !body.ratings || !(c.key in body.ratings)
+  const missingRatings = STAR_ITEMS.filter(
+    (item) => !body.ratings || !(item.key in body.ratings)
   );
   if (missingRatings.length > 0) {
     return NextResponse.json(
-      { error: "Faltan categorías por calificar", missing: missingRatings.map((c) => c.key) },
+      { error: "Faltan indicadores por calificar", missing: missingRatings.map((i) => i.key) },
+      { status: 400 }
+    );
+  }
+
+  const missingSelects = SELECT_ITEMS.filter(
+    (item) => !body.selects || !body.selects[item.key]
+  );
+  if (missingSelects.length > 0) {
+    return NextResponse.json(
+      { error: "Faltan opciones por elegir", missing: missingSelects.map((i) => i.key) },
       { status: 400 }
     );
   }
@@ -66,7 +78,7 @@ export async function POST(req: NextRequest) {
   }
 
   const score = overallScore(body.ratings);
-  const { strengths, opportunities } = topAndBottomCategories(body.ratings, 3);
+  const catScores = categoryScores(body.ratings);
   const shortCode = nanoid(8);
 
   let clientId: string | null = null;
@@ -104,6 +116,8 @@ export async function POST(req: NextRequest) {
     clientId = newClient.id;
   }
 
+  const menuTipo = SELECT_ITEMS.length > 0 ? body.selects?.[SELECT_ITEMS[0].key] || null : null;
+
   const { data: form, error: formError } = await db
     .from("forms")
     .insert({
@@ -113,6 +127,8 @@ export async function POST(req: NextRequest) {
       short_code: shortCode,
       status: "completado",
       created_by: profile.userId,
+      menu_type: menuTipo,
+      comments: body.comments?.trim() || null,
     })
     .select("id")
     .single();
@@ -124,20 +140,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const ratingRows = RATING_CATEGORIES.map((c) => ({
+  const ratingRows = STAR_ITEMS.map((item) => ({
     form_id: form.id,
-    category_key: c.key,
-    category_label: c.label,
-    score: body.ratings[c.key],
+    category_key: item.key,
+    category_label: item.label,
+    score: body.ratings[item.key],
   }));
-  await db.from("form_ratings").insert(ratingRows);
+  if (ratingRows.length > 0) {
+    await db.from("form_ratings").insert(ratingRows);
+  }
 
-  const flagRows = FLAG_QUESTIONS.map((f) => ({
+  const flagRows = BOOLEAN_ITEMS.map((item) => ({
     form_id: form.id,
-    flag_key: f.key,
-    flag_label: f.label,
-    flag_value: Boolean(body.flags?.[f.key]),
-  })).filter((f) => body.flags && f.flag_key in body.flags);
+    flag_key: item.key,
+    flag_label: item.label,
+    flag_value: Boolean(body.flags?.[item.key]),
+  }));
   if (flagRows.length > 0) {
     await db.from("form_flags").insert(flagRows);
   }
@@ -154,6 +172,7 @@ export async function POST(req: NextRequest) {
       businessName: body.business.name,
       score,
       reportUrl,
+      categoryScores: catScores,
     });
 
     await db.from("email_confirmations").insert({
@@ -178,8 +197,7 @@ export async function POST(req: NextRequest) {
     shortCode,
     reportUrl,
     overallScore: score,
-    strengths,
-    opportunities,
+    categoryScores: catScores,
     email: emailOutcome,
     dmMessage,
     dmLink,

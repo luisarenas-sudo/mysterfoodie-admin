@@ -26,6 +26,13 @@ create table if not exists forms (
   created_at timestamptz not null default now()
 );
 
+-- Campos agregados para el cuestionario ampliado (~50 indicadores en 5
+-- categorias): tipo de menu (select de Alimentos, no puntua) y
+-- comentarios libres del mystery shopper al final del formulario.
+-- Idempotente: seguro correrlo aunque la tabla forms ya exista.
+alter table forms add column if not exists menu_type text;
+alter table forms add column if not exists comments text;
+
 create table if not exists form_ratings (
   id uuid primary key default gen_random_uuid(),
   form_id uuid not null references forms(id) on delete cascade,

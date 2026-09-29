@@ -1,7 +1,7 @@
 import VerdictBadge from "@/components/VerdictBadge";
 import ScoreTrendChart from "@/components/charts/ScoreTrendChart";
 import CategoryCompareChart from "@/components/charts/CategoryCompareChart";
-import { RATING_CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/categories";
 
 export default function DevPreview() {
   const trendData = [
@@ -11,10 +11,10 @@ export default function DevPreview() {
     { date: "05 may", score: 4.2 },
   ];
 
-  const compareData = RATING_CATEGORIES.map((c, i) => ({
+  const compareData = CATEGORIES.map((c, i) => ({
     label: c.label,
-    actual: [4, 5, 3, 4, 5, 2, 4, 3, 4, 5, 4][i],
-    anterior: [3, 4, 3, 3, 4, 2, 3, 3, 3, 4, 3][i],
+    actual: [4, 5, 3, 4, 4][i],
+    anterior: [3, 4, 3, 3, 4][i],
   }));
 
   return (

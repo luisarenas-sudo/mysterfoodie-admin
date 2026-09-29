@@ -1,11 +1,13 @@
 import { Resend } from "resend";
 import { getVerdict } from "./verdict";
+import type { CategoryScore } from "./scoring";
 
 export type SendResultEmailParams = {
   to: string;
   businessName: string;
   score: number;
   reportUrl: string;
+  categoryScores: CategoryScore[];
 };
 
 export type SendEmailOutcome = {
@@ -14,8 +16,22 @@ export type SendEmailOutcome = {
   error?: string;
 };
 
+function renderCategoryRows(categoryScores: CategoryScore[]): string {
+  return categoryScores
+    .filter((c) => c.count > 0)
+    .map(
+      (c) => `
+        <tr>
+          <td style="padding: 6px 0; font-size: 14px; color: #44403c;">${c.label}</td>
+          <td style="padding: 6px 0; font-size: 14px; color: #222222; font-weight: bold; text-align: right;">${c.average} / 5</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
 function renderEmailHtml(params: SendResultEmailParams): string {
-  const { businessName, score, reportUrl } = params;
+  const { businessName, score, reportUrl, categoryScores } = params;
   const verdict = getVerdict(score);
 
   return `
@@ -32,9 +48,15 @@ function renderEmailHtml(params: SendResultEmailParams): string {
         ${verdict.label}
       </p>
       <p style="color: #57534e;">${verdict.summary}</p>
-      <p>
-        Este es solo un resumen general. El reporte completo incluye el detalle de cada
-        indicador evaluado, comparativo con el sector y recomendaciones específicas.
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 16px; border-top: 1px solid #e7e5e4;">
+        ${renderCategoryRows(categoryScores)}
+      </table>
+
+      <p style="margin-top: 20px;">
+        Este es solo un resumen por categoría. El reporte completo incluye el detalle de cada
+        uno de los indicadores evaluados dentro de cada categoría, comparativo con el sector y
+        recomendaciones específicas.
       </p>
       <p>
         <a href="${reportUrl}" style="background-color: #f24444; background-image: linear-gradient(180deg, #f24444, #f25631); color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">

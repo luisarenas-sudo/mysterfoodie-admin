@@ -1,4 +1,5 @@
 import { getSupabaseServiceClient } from "./supabase";
+import { categoryScores, type Ratings } from "./scoring";
 
 export type ClientSummary = {
   id: string;
@@ -80,19 +81,30 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
 
   const { data: allRatings } = await db
     .from("form_ratings")
-    .select("form_id, category_key, category_label, score")
+    .select("form_id, category_key, score")
     .in("form_id", (forms || []).map((f) => f.id));
 
-  const visits: VisitDetail[] = (forms || []).map((f) => ({
-    id: f.id,
-    shortCode: f.short_code,
-    shopperName: f.shopper_name,
-    overallScore: f.overall_score,
-    createdAt: f.created_at,
-    ratings: (allRatings || [])
+  // Los indicadores individuales son ~50 por visita; para que el
+  // comparativo entre visitas sea legible se agregan por categoria
+  // (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad) en vez de
+  // mostrar cada indicador crudo.
+  const visits: VisitDetail[] = (forms || []).map((f) => {
+    const raw: Ratings = {};
+    (allRatings || [])
       .filter((r) => r.form_id === f.id)
-      .map((r) => ({ key: r.category_key, label: r.category_label, score: r.score })),
-  }));
+      .forEach((r) => {
+        raw[r.category_key] = r.score;
+      });
+    const scores = categoryScores(raw).filter((c) => c.count > 0);
+    return {
+      id: f.id,
+      shortCode: f.short_code,
+      shopperName: f.shopper_name,
+      overallScore: f.overall_score,
+      createdAt: f.created_at,
+      ratings: scores.map((c) => ({ key: c.key, label: c.label, score: c.average })),
+    };
+  });
 
   return {
     id: client.id,

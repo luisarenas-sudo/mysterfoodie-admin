@@ -41,8 +41,13 @@ cuentas" mas abajo.
 
 1. Un agente o admin inicia sesion y se captura el negocio (nombre, tipo, usuario de
    Instagram, correo opcional, ciudad, etc.)
-2. Se califican 11 indicadores del sector (1 a 5) mas 4 banderas rapidas de si/no
-3. Al enviar: se guarda en Supabase (`clients`, `forms`, `form_ratings`, `form_flags`), se
+2. Se recorre un wizard con barra de progreso, dividido en 5 categorias reales del
+   cuestionario (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad; ~50 indicadores
+   tipo estrella en total), mas un selector de tipo de menu y un paso final de
+   comentarios libres opcionales. Ver `lib/categories.ts` para el detalle exacto.
+3. El promedio general de la visita es el promedio de los 5 promedios de categoria (no
+   un promedio plano de los ~50 indicadores) - ver `lib/scoring.ts`.
+4. Al enviar: se guarda en Supabase (`clients`, `forms`, `form_ratings`, `form_flags`), se
    calcula el promedio, se intenta enviar el correo (`email_confirmations` guarda el
    resultado del envio), y se muestra en pantalla:
    - El texto para copiar y pegar en el DM de Instagram del negocio

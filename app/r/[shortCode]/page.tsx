@@ -1,5 +1,7 @@
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict } from "@/lib/verdict";
+import { categoryScores, type Ratings } from "@/lib/scoring";
+import { TOTAL_ITEM_COUNT } from "@/lib/categories";
 import VerdictBadge from "@/components/VerdictBadge";
 import { notFound } from "next/navigation";
 
@@ -27,7 +29,17 @@ async function loadReport(shortCode: string) {
     .eq("id", form.client_id)
     .maybeSingle();
 
-  return { form, client };
+  const { data: ratingRows } = await db
+    .from("form_ratings")
+    .select("category_key, score")
+    .eq("form_id", form.id);
+
+  const ratings: Ratings = {};
+  (ratingRows || []).forEach((r) => {
+    ratings[r.category_key] = r.score;
+  });
+
+  return { form, client, catScores: categoryScores(ratings) };
 }
 
 export default async function ReportPage({
@@ -50,7 +62,7 @@ export default async function ReportPage({
 
   if (!data) return notFound();
 
-  const { form, client } = data;
+  const { form, client, catScores } = data;
   const verdict = getVerdict(form.overall_score);
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const purchaseLink = contactWhatsapp
@@ -58,6 +70,8 @@ export default async function ReportPage({
         `Hola, quiero el reporte completo de la evaluación de ${client?.name ?? ""} (código ${shortCode}).`
       )}`
     : null;
+
+  const visibleCategories = catScores.filter((c) => c.count > 0);
 
   return (
     <main className="mx-auto max-w-xl px-6 py-14">
@@ -79,10 +93,28 @@ export default async function ReportPage({
         <p className="mx-auto mt-3 max-w-sm text-sm text-stone-500">{verdict.summary}</p>
       </div>
 
+      {visibleCategories.length > 0 && (
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {visibleCategories.map((c) => (
+            <div
+              key={c.key}
+              className="rounded-lg border border-stone-200 bg-white p-4 text-center"
+            >
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
+                {c.label}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
+              <p className="text-xs text-stone-400">de 5</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6">
         <p className="font-medium text-ink">
-          Este es un resumen general. El reporte completo incluye el detalle de los{" "}
-          {11} indicadores evaluados, comparativo con el sector y recomendaciones específicas.
+          Este es un resumen por categoría. El reporte completo incluye el detalle de los{" "}
+          {TOTAL_ITEM_COUNT} indicadores evaluados dentro de cada categoría, comparativo con el
+          sector y recomendaciones específicas.
         </p>
         {purchaseLink ? (
           <a
