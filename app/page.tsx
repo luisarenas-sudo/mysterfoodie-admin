@@ -4,7 +4,13 @@ import { useState } from "react";
 import ScoreSelector from "@/components/ScoreSelector";
 import BooleanToggle from "@/components/BooleanToggle";
 import SelectChips from "@/components/SelectChips";
-import { CATEGORIES, BUSINESS_TYPES, type Category } from "@/lib/categories";
+import {
+  CATEGORIES,
+  BUSINESS_TYPES,
+  groupCategoryItems,
+  type Category,
+  type CategoryItem,
+} from "@/lib/categories";
 
 type Business = {
   name: string;
@@ -30,12 +36,15 @@ const EMPTY_BUSINESS: Business = {
 
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
 
+type EmailOutcome = { status: string; error?: string };
+
 type SubmitResult = {
+  formId: string;
   shortCode: string;
   reportUrl: string;
   overallScore: number;
   categoryScores: CategoryScoreResult[];
-  email: { status: string; error?: string } | null;
+  email: EmailOutcome | null;
   dmMessage: string;
   dmLink: string | null;
   profileLink: string | null;
@@ -69,10 +78,16 @@ export default function Home() {
   const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [selects, setSelects] = useState<Record<string, string>>({});
   const [comments, setComments] = useState("");
+  const [waiterName, setWaiterName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [emailStatus, setEmailStatus] = useState<(EmailOutcome & { to?: string }) | null>(null);
+  const [emailBusy, setEmailBusy] = useState<"resend" | "alt" | null>(null);
+  const [emailActionError, setEmailActionError] = useState<string | null>(null);
+  const [showAltEmail, setShowAltEmail] = useState(false);
+  const [altEmail, setAltEmail] = useState("");
 
   const current = STEPS[step];
   const progressPct = Math.round((step / (STEPS.length - 1)) * 100);
@@ -102,7 +117,7 @@ export default function Home() {
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business, shopperName, ratings, flags, selects, comments }),
+        body: JSON.stringify({ business, shopperName, ratings, flags, selects, comments, waiterName }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -114,6 +129,33 @@ export default function Home() {
       setSubmitError(err instanceof Error ? err.message : "Error de red");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function sendReportEmail(overrideTo?: string) {
+    if (!result) return;
+    setEmailActionError(null);
+    setEmailBusy(overrideTo ? "alt" : "resend");
+    try {
+      const res = await fetch(`/api/forms/${result.formId}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(overrideTo ? { to: overrideTo } : {}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEmailActionError(data.error || "No se pudo enviar el correo");
+        return;
+      }
+      setEmailStatus({ ...data.email, to: data.recipientEmail });
+      if (overrideTo) {
+        setShowAltEmail(false);
+        setAltEmail("");
+      }
+    } catch (err) {
+      setEmailActionError(err instanceof Error ? err.message : "Error de red");
+    } finally {
+      setEmailBusy(null);
     }
   }
 
@@ -132,8 +174,14 @@ export default function Home() {
     setFlags({});
     setSelects({});
     setComments("");
+    setWaiterName("");
     setResult(null);
     setSubmitError(null);
+    setEmailStatus(null);
+    setEmailBusy(null);
+    setEmailActionError(null);
+    setShowAltEmail(false);
+    setAltEmail("");
   }
 
   if (result) {
@@ -158,18 +206,103 @@ export default function Home() {
 
         <div className="mt-6 rounded-lg border border-stone-200 bg-white p-5">
           <p className="text-sm font-medium text-stone-700">Correo automático</p>
-          {result.email ? (
-            <p className="mt-1 text-sm text-stone-600">
-              {result.email.status === "sent" && "Enviado correctamente."}
-              {result.email.status === "skipped_no_api_key" &&
-                "No se envió: falta configurar RESEND_API_KEY."}
-              {result.email.status === "failed" && `Falló el envío: ${result.email.error}`}
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-stone-600">
-              No se envió: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado.
-            </p>
-          )}
+
+          {(() => {
+            const info = emailStatus ?? result.email;
+            const infoStatus = info?.status;
+            const sentTo = emailStatus?.to;
+            return (
+              <>
+                <div className="mt-3 flex items-start gap-3">
+                  {infoStatus === "sent" ? (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 flex-shrink-0 text-status-excellent">
+                      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+                      <path
+                        d="M8 12.5l2.5 2.5L16 9"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : infoStatus === "failed" ? (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 flex-shrink-0 text-status-critical">
+                      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+                      <path
+                        d="M9 9l6 6M15 9l-6 6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 flex-shrink-0 text-status-good">
+                      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
+                      <path d="M12 8v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <circle cx="12" cy="16.2" r="1.1" fill="currentColor" />
+                    </svg>
+                  )}
+                  <div>
+                    <p className="text-sm text-stone-600">
+                      {infoStatus === "sent" && "Enviado correctamente."}
+                      {infoStatus === "skipped_no_api_key" &&
+                        "No se envió: falta configurar RESEND_API_KEY."}
+                      {infoStatus === "failed" && `Falló el envío: ${info?.error}`}
+                      {!info &&
+                        "No se envió: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado."}
+                    </p>
+                    {sentTo ? (
+                      <p className="mt-0.5 text-xs text-stone-400">Enviado a {sentTo}</p>
+                    ) : null}
+                  </div>
+                </div>
+
+                {emailActionError ? (
+                  <p className="mt-2 text-xs text-status-critical">{emailActionError}</p>
+                ) : null}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => sendReportEmail()}
+                    disabled={emailBusy !== null}
+                    className="rounded-md bg-stone-800 px-3 py-2 text-sm text-white hover:bg-stone-700 disabled:opacity-50"
+                  >
+                    {emailBusy === "resend" ? "Reenviando..." : "Reenviar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAltEmail((v) => !v)}
+                    disabled={emailBusy !== null}
+                    className="rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+                  >
+                    Enviar a otro correo
+                  </button>
+                </div>
+
+                {showAltEmail ? (
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="email"
+                      value={altEmail}
+                      onChange={(e) => setAltEmail(e.target.value)}
+                      placeholder="otro-correo@ejemplo.com"
+                      className="flex-1 rounded-md border border-stone-300 px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => sendReportEmail(altEmail.trim())}
+                      disabled={emailBusy !== null || !altEmail.trim()}
+                      className="rounded-md bg-brand-600 px-3 py-2 text-sm text-white hover:bg-brand-700 disabled:opacity-50"
+                    >
+                      {emailBusy === "alt" ? "Enviando..." : "Enviar"}
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            );
+          })()}
         </div>
 
         <div className="mt-4 rounded-lg border border-stone-200 bg-white p-5">
@@ -322,38 +455,76 @@ export default function Home() {
       )}
 
       {current.kind === "category" && (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {current.category.items.map((item) => (
-            <div key={item.key}>
-              <p className="text-sm font-medium text-ink">{item.label}</p>
-              <div className="mt-2">
-                {item.type === "star" && (
-                  <ScoreSelector
-                    value={ratings[item.key] || 0}
-                    onChange={(v) => setRatings((prev) => ({ ...prev, [item.key]: v }))}
+        <div className="mt-8 space-y-6">
+          {groupCategoryItems(current.category.items).map((block, blockIdx) =>
+            block.kind === "standalone" ? (
+              <div
+                key={`standalone-${blockIdx}`}
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2"
+              >
+                {block.items.map((item) => (
+                  <ItemField
+                    key={item.key}
+                    item={item}
+                    ratings={ratings}
+                    flags={flags}
+                    selects={selects}
+                    setRatings={setRatings}
+                    setFlags={setFlags}
+                    setSelects={setSelects}
                   />
-                )}
-                {item.type === "boolean" && (
-                  <BooleanToggle
-                    value={Boolean(flags[item.key])}
-                    onChange={(v) => setFlags((prev) => ({ ...prev, [item.key]: v }))}
-                  />
-                )}
-                {item.type === "select" && item.options && (
-                  <SelectChips
-                    options={item.options}
-                    value={selects[item.key]}
-                    onChange={(v) => setSelects((prev) => ({ ...prev, [item.key]: v }))}
-                  />
-                )}
+                ))}
               </div>
-            </div>
-          ))}
+            ) : (
+              <div
+                key={`group-${block.group}-${blockIdx}`}
+                className="rounded-lg border border-stone-200 bg-stone-50 p-4"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                  {block.group}
+                </p>
+                <div className="mt-3 space-y-4">
+                  {block.subBlocks.map((sub, subIdx) => (
+                    <div key={`sub-${subIdx}`}>
+                      {sub.subgroup && (
+                        <p className="mb-2 border-t border-stone-200 pt-3 text-xs font-medium text-stone-500">
+                          {sub.subgroup}
+                        </p>
+                      )}
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {sub.items.map((item) => (
+                          <ItemField
+                            key={item.key}
+                            item={item}
+                            ratings={ratings}
+                            flags={flags}
+                            selects={selects}
+                            setRatings={setRatings}
+                            setFlags={setFlags}
+                            setSelects={setSelects}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
         </div>
       )}
 
       {current.kind === "comments" && (
-        <div className="mt-8 max-w-xl space-y-2">
+        <div className="mt-8 max-w-xl space-y-6">
+          <Field label="Nombre del mesero que te atendió (opcional)">
+            <input
+              value={waiterName}
+              onChange={(e) => setWaiterName(e.target.value)}
+              className="input"
+              placeholder="Ej. Fermín"
+            />
+          </Field>
+          <div className="space-y-2">
           <p className="text-sm font-medium text-ink">Sugerencias, mejoras y más</p>
           <p className="text-xs text-stone-500">
             Opcional: cualquier observación adicional sobre la visita que no quede reflejada en
@@ -366,6 +537,7 @@ export default function Home() {
             className="input"
             placeholder="Escribe aquí cualquier comentario adicional..."
           />
+          </div>
         </div>
       )}
 
@@ -384,8 +556,11 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+            {waiterName.trim() && (
+              <p className="mt-3 text-xs text-stone-500">Mesero: {waiterName.trim()}</p>
+            )}
             {comments.trim() && (
-              <p className="mt-3 text-xs text-stone-500">
+              <p className="mt-1 text-xs text-stone-500">
                 Comentarios: {comments.trim().slice(0, 140)}
                 {comments.trim().length > 140 ? "…" : ""}
               </p>
@@ -437,5 +612,50 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-sm font-medium text-ink">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
+  );
+}
+
+function ItemField({
+  item,
+  ratings,
+  flags,
+  selects,
+  setRatings,
+  setFlags,
+  setSelects,
+}: {
+  item: CategoryItem;
+  ratings: Record<string, number>;
+  flags: Record<string, boolean>;
+  selects: Record<string, string>;
+  setRatings: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  setFlags: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setSelects: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-ink">{item.label}</p>
+      <div className="mt-2">
+        {item.type === "star" && (
+          <ScoreSelector
+            value={ratings[item.key] || 0}
+            onChange={(v) => setRatings((prev) => ({ ...prev, [item.key]: v }))}
+          />
+        )}
+        {item.type === "boolean" && (
+          <BooleanToggle
+            value={Boolean(flags[item.key])}
+            onChange={(v) => setFlags((prev) => ({ ...prev, [item.key]: v }))}
+          />
+        )}
+        {item.type === "select" && item.options && (
+          <SelectChips
+            options={item.options}
+            value={selects[item.key]}
+            onChange={(v) => setSelects((prev) => ({ ...prev, [item.key]: v }))}
+          />
+        )}
+      </div>
+    </div>
   );
 }

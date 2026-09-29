@@ -33,6 +33,35 @@ create table if not exists forms (
 alter table forms add column if not exists menu_type text;
 alter table forms add column if not exists comments text;
 
+-- Nombre del mesero que atendio la visita, capturado al final del
+-- formulario; se usa para personalizar el correo enviado al negocio.
+alter table forms add column if not exists waiter_name text;
+
+-- Reporte completo comprado via MercadoPago. Mientras sea null, el link
+-- publico (/r/[shortCode]) solo muestra el resumen por categoria. El
+-- webhook de MercadoPago (/api/mercadopago/webhook) lo llena cuando
+-- confirma un pago aprobado para ese formulario.
+alter table forms add column if not exists report_unlocked_at timestamptz;
+
+-- Guarda el link corto (go.mysterfoodie.com/xxx) generado al crear la
+-- evaluacion, para poder reenviar el correo (o mandarlo a otro correo)
+-- despues sin regenerar un link corto nuevo en Short.io cada vez.
+alter table forms add column if not exists report_url text;
+
+create table if not exists report_payments (
+  id uuid primary key default gen_random_uuid(),
+  form_id uuid not null references forms(id) on delete cascade,
+  mercadopago_preference_id text,
+  mercadopago_payment_id text,
+  status text not null default 'pending',
+  amount numeric(10,2),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists report_payments_form_id_idx on report_payments(form_id);
+create index if not exists report_payments_payment_id_idx on report_payments(mercadopago_payment_id);
+
 create table if not exists form_ratings (
   id uuid primary key default gen_random_uuid(),
   form_id uuid not null references forms(id) on delete cascade,

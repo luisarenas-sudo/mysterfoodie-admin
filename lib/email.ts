@@ -5,6 +5,10 @@ import type { CategoryScore } from "./scoring";
 export type SendResultEmailParams = {
   to: string;
   businessName: string;
+  /** Frase en lenguaje natural del tipo de negocio, ej. "cafetería" (ver businessTypePhrase en lib/categories.ts). */
+  businessType?: string;
+  /** Nombre del mesero que atendió la visita, capturado al final del formulario. */
+  waiterName?: string | null;
   score: number;
   reportUrl: string;
   categoryScores: CategoryScore[];
@@ -31,8 +35,12 @@ function renderCategoryRows(categoryScores: CategoryScore[]): string {
 }
 
 function renderEmailHtml(params: SendResultEmailParams): string {
-  const { businessName, score, reportUrl, categoryScores } = params;
+  const { businessName, businessType, waiterName, score, reportUrl, categoryScores } = params;
   const verdict = getVerdict(score);
+  const visitLocation = businessType ? `tu ${businessType}` : "tu establecimiento";
+  const waiterMention = waiterName
+    ? `, donde nos atendió <strong>${waiterName}</strong>`
+    : "";
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
@@ -41,7 +49,7 @@ function renderEmailHtml(params: SendResultEmailParams): string {
       <p>Hola equipo de <strong>${businessName}</strong>,</p>
       <p>
         Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso
-        en tu establecimiento. El promedio general obtenido fue:
+        a ${visitLocation}${waiterMention}. El promedio general obtenido fue:
       </p>
       <p style="font-size: 28px; font-weight: bold; color: #f24444; margin-bottom: 4px;">${score} de 5 estrellas</p>
       <p style="display: inline-block; font-size: 12px; font-weight: bold; color: ${verdict.color}; border: 1px solid ${verdict.color}; border-radius: 999px; padding: 4px 12px; margin-top: 0;">

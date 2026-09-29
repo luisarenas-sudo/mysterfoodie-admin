@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
-import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS } from "@/lib/categories";
+import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhrase } from "@/lib/categories";
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
@@ -24,6 +24,7 @@ type Body = {
   flags: Record<string, boolean>;
   selects: Record<string, string>;
   comments?: string;
+  waiterName?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -130,6 +131,7 @@ export async function POST(req: NextRequest) {
       created_by: profile.userId,
       menu_type: menuTipo,
       comments: body.comments?.trim() || null,
+      waiter_name: body.waiterName?.trim() || null,
     })
     .select("id")
     .single();
@@ -144,7 +146,7 @@ export async function POST(req: NextRequest) {
   const ratingRows = STAR_ITEMS.map((item) => ({
     form_id: form.id,
     category_key: item.key,
-    category_label: item.label,
+    category_label: fullItemLabel(item),
     score: body.ratings[item.key],
   }));
   if (ratingRows.length > 0) {
@@ -154,7 +156,7 @@ export async function POST(req: NextRequest) {
   const flagRows = BOOLEAN_ITEMS.map((item) => ({
     form_id: form.id,
     flag_key: item.key,
-    flag_label: item.label,
+    flag_label: fullItemLabel(item),
     flag_value: Boolean(body.flags?.[item.key]),
   }));
   if (flagRows.length > 0) {
@@ -176,6 +178,8 @@ export async function POST(req: NextRequest) {
     reportUrl = shortLink.shortURL;
   }
 
+  await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
+
   const recipientEmail = body.business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
@@ -183,6 +187,8 @@ export async function POST(req: NextRequest) {
     emailOutcome = await sendResultEmail({
       to: recipientEmail,
       businessName: body.business.name,
+      businessType: businessTypePhrase(body.business.type),
+      waiterName: body.waiterName?.trim() || null,
       score,
       reportUrl,
       categoryScores: catScores,
@@ -207,6 +213,7 @@ export async function POST(req: NextRequest) {
     : null;
 
   return NextResponse.json({
+    formId: form.id,
     shortCode,
     reportUrl,
     overallScore: score,
