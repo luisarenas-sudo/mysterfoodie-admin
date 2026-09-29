@@ -13,6 +13,15 @@ export default function SetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Fallback manual: si el link fue consumido antes de que el usuario le
+  // diera clic (por ejemplo, por un escaneo automático de seguridad del
+  // proveedor de correo), permitimos ingresar el código de 6 dígitos que
+  // también viene en el correo.
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     let settled = false;
@@ -34,6 +43,8 @@ export default function SetPasswordPage() {
     (async () => {
       const url = new URL(window.location.href);
       const code = url.searchParams.get("code");
+      const emailFromLink = url.searchParams.get("email");
+      if (emailFromLink) setOtpEmail(emailFromLink);
 
       // Flujo PKCE (links generados por la propia app con `code=...`).
       if (code) {
@@ -74,6 +85,40 @@ export default function SetPasswordPage() {
     };
   }, []);
 
+  async function handleVerifyOtp(e: FormEvent) {
+    e.preventDefault();
+    setOtpError(null);
+
+    if (!otpEmail) {
+      setOtpError("Ingresa tu correo.");
+      return;
+    }
+    if (otpCode.trim().length < 6) {
+      setOtpError("Ingresa el código de 6 dígitos que viene en el correo.");
+      return;
+    }
+
+    setOtpVerifying(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      email: otpEmail.trim(),
+      token: otpCode.trim(),
+      type: "recovery",
+    });
+    setOtpVerifying(false);
+
+    if (verifyError || !data.session) {
+      setOtpError(
+        verifyError?.message ??
+          "El código no es válido o ya expiró. Pide al equipo que te reenvíe la invitación."
+      );
+      return;
+    }
+
+    setInvalid(false);
+    setReady(true);
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -111,10 +156,43 @@ export default function SetPasswordPage() {
       )}
 
       {invalid && (
-        <p className="mt-6 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
-          Este link de invitación ya no es válido o expiró. Pide al equipo que te reenvíe la
-          invitación.
-        </p>
+        <div className="mt-6 space-y-4">
+          <p className="rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
+            Este link de invitación ya no es válido o expiró. Si el correo también incluye un
+            código de 6 dígitos, puedes ingresarlo aquí en vez de usar el link.
+          </p>
+          <form onSubmit={handleVerifyOtp} className="space-y-3 rounded-md border border-stone-200 p-4">
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Correo</span>
+              <input
+                type="email"
+                required
+                value={otpEmail}
+                onChange={(e) => setOtpEmail(e.target.value)}
+                className="input mt-1"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium text-ink">Código de 6 dígitos</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                required
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                className="input mt-1"
+              />
+            </label>
+            {otpError && <p className="text-sm text-red-600">{otpError}</p>}
+            <button
+              type="submit"
+              disabled={otpVerifying}
+              className="w-full rounded-md bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {otpVerifying ? "Verificando..." : "Verificar código"}
+            </button>
+          </form>
+        </div>
       )}
 
       {ready && (
