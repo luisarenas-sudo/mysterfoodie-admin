@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 function isPublicPath(pathname: string): boolean {
-  if (pathname === "/login" || pathname === "/set-password") return true;
+  if (pathname === "/login" || pathname === "/set-password" || pathname === "/forgot-password") return true;
   if (pathname.startsWith("/r/")) return true;
   // Las rutas de API validan su propia sesión con requireRole().
   if (pathname.startsWith("/api/")) return true;
