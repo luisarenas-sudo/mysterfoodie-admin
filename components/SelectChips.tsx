@@ -22,7 +22,7 @@ export default function SelectChips({
               "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors " +
               (selected
                 ? "border-transparent bg-brand-gradient text-white"
-                : "border-stone-300 bg-white text-stone-600 hover:bg-stone-50")
+                : "border-black/10 bg-white text-stone-600 hover:bg-black/5")
             }
             aria-pressed={selected}
           >

@@ -160,7 +160,7 @@ export default function Home() {
           {result.categoryScores
             .filter((c) => c.count > 0)
             .map((c) => (
-              <div key={c.key} className="rounded-lg border border-stone-200 bg-white p-4 text-center">
+              <div key={c.key} className="card p-4 text-center">
                 <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{c.label}</p>
                 <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
                 <p className="text-xs text-stone-400">de 5</p>
@@ -172,7 +172,7 @@ export default function Home() {
           <EmailStatusPanel formId={result.formId} initialStatus={result.email} />
         </div>
 
-        <div className="mt-4 rounded-lg border border-stone-200 bg-white p-5">
+        <div className="mt-4 card p-5">
           <p className="text-sm font-medium text-stone-700">Link corto del reporte</p>
           <div className="mt-2 flex items-center gap-2">
             <input
@@ -183,14 +183,14 @@ export default function Home() {
             <button
               type="button"
               onClick={() => copyToClipboard(result.reportUrl, "link")}
-              className="rounded-md bg-stone-800 px-3 py-2 text-sm text-white hover:bg-stone-700"
+              className="btn-primary text-sm"
             >
               {copied === "link" ? "Copiado" : "Copiar"}
             </button>
           </div>
         </div>
 
-        <div className="mt-4 rounded-lg border border-stone-200 bg-white p-5">
+        <div className="mt-4 card p-5">
           <p className="text-sm font-medium text-stone-700">
             Texto para enviar por DM de Instagram a la cuenta del negocio
           </p>
@@ -208,7 +208,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => copyToClipboard(result.dmMessage, "dm")}
-              className="rounded-md bg-stone-800 px-3 py-2 text-sm text-white hover:bg-stone-700"
+              className="btn-primary text-sm"
             >
               {copied === "dm" ? "Copiado" : "Copiar mensaje"}
             </button>
@@ -232,7 +232,7 @@ export default function Home() {
         <button
           type="button"
           onClick={resetAll}
-          className="mt-8 rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+          className="mt-8 btn-secondary text-sm"
         >
           Registrar otra visita
         </button>
@@ -410,7 +410,7 @@ export default function Home() {
 
       {current.kind === "review" && (
         <div className="mt-8 max-w-xl space-y-4">
-          <div className="rounded-md border border-stone-200 bg-white p-4 text-sm">
+          <div className="card p-4 text-sm">
             <p className="font-medium text-ink">{business.name}</p>
             <p className="text-stone-500">
               {business.city || "Sin ciudad"} - @{business.instagramHandle || "sin instagram"}
@@ -442,7 +442,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setStep((s) => s - 1)}
-            className="rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+            className="btn-secondary text-sm"
           >
             Atrás
           </button>

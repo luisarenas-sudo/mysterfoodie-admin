@@ -4,7 +4,7 @@
 
 html,
 body {
-  background-color: #ffffff;
+  background-color: #f2f2f5;
   color: #222222;
 }
 
@@ -26,4 +26,87 @@ body {
 .heading {
   font-family: var(--font-fredoka);
   letter-spacing: 0.01em;
+}
+
+/* MysterFoodie visual refresh — matches the "MysterFoodie Rediseño"
+   mockups: soft grouped-list surfaces, brand-gradient primary actions,
+   pill-shaped secondary actions and chips. */
+
+.card {
+  border-radius: 1.125rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background-image: linear-gradient(180deg, #f24444 0%, #f25631 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  box-shadow: 0 6px 16px rgba(242, 68, 68, 0.28);
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  color: #222222;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.375rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.045);
+  color: #222222;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.chip:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.chip[data-selected="true"] {
+  background-image: linear-gradient(180deg, #f24444 0%, #f25631 100%);
+  color: #ffffff;
 }

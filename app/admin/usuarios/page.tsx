@@ -26,7 +26,7 @@ function StatCard({
   sublabel?: string;
 }) {
   return (
-    <div className="rounded-lg border border-stone-200 bg-white p-4">
+    <div className="card p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
       <p className="heading mt-1 text-3xl text-ink">{value}</p>
       {sublabel && <p className="mt-1 text-xs text-stone-500">{sublabel}</p>}
@@ -81,12 +81,12 @@ export default async function UsuariosPage() {
         />
       </div>
 
-      <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5">
+      <div className="mt-8 card p-5">
         <h2 className="text-sm font-semibold text-ink">Invitar usuario</h2>
         <InviteUserForm clients={(clients || []).map((c) => ({ id: c.id, name: c.name }))} />
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-lg border border-stone-200 bg-white">
+      <div className="mt-8 overflow-x-auto card">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-left text-stone-500">

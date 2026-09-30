@@ -30,7 +30,7 @@ export default async function MisVisitasPage() {
       )}
 
       {visits.length > 0 && (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-stone-200 bg-white">
+        <div className="mt-6 overflow-x-auto card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 text-left text-stone-500">

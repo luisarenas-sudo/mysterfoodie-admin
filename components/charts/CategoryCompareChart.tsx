@@ -28,7 +28,7 @@ function CompareTooltip({
 }) {
   if (!active || !payload || payload.length === 0) return null;
   return (
-    <div className="rounded-md border border-stone-200 bg-white px-3 py-2 text-sm shadow-sm">
+    <div className="card px-3 py-2 text-sm shadow-sm">
       <p className="mb-1 text-stone-600">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }} className="font-semibold">

@@ -39,7 +39,7 @@ export default async function NegociosPage() {
           <Link
             key={client.id}
             href={`/negocios/${client.id}`}
-            className="flex items-center justify-between rounded-lg border border-stone-200 bg-white p-4 transition-colors hover:border-brand-300"
+            className="flex items-center justify-between card p-4 transition-colors hover:border-brand-300"
           >
             <div>
               <p className="font-semibold text-ink">{client.name}</p>

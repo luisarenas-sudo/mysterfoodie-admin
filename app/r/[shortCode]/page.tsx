@@ -122,7 +122,7 @@ function ItemRow({
   menuType: string | null;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-stone-200 bg-white px-3 py-2">
+    <div className="flex items-center justify-between card px-3 py-2">
       <span className="text-sm text-stone-700">{item.label}</span>
       <ItemValue item={item} ratings={ratings} flags={flags} menuType={menuType} />
     </div>
@@ -202,7 +202,7 @@ function FullReportDetail({
         </div>
       ))}
       {comments && comments.trim() && (
-        <div className="rounded-lg border border-stone-200 bg-white p-4">
+        <div className="card p-4">
           <p className="text-sm font-medium text-ink">Comentarios del mystery shopper</p>
           <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">{comments}</p>
         </div>
@@ -281,7 +281,7 @@ export default async function ReportPage({
         </p>
       )}
 
-      <div className="mt-6 rounded-lg border border-stone-200 bg-white p-6 text-center">
+      <div className="mt-6 card p-6 text-center">
         <p className="text-sm text-stone-500">Promedio general</p>
         <p className="text-5xl font-bold text-brand-600">{form.overall_score}</p>
         <p className="text-sm text-stone-500">de 5</p>
@@ -296,7 +296,7 @@ export default async function ReportPage({
           {visibleCategories.map((c) => (
             <div
               key={c.key}
-              className="rounded-lg border border-stone-200 bg-white p-4 text-center"
+              className="card p-4 text-center"
             >
               <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
                 {c.label}

@@ -57,7 +57,7 @@ export default function ClientScoreboard({
   return (
     <>
       <div className="mt-6 grid gap-4 sm:grid-cols-[auto_1fr]">
-        <div className="flex flex-col items-start justify-center rounded-lg border border-stone-200 bg-white p-5">
+        <div className="flex flex-col items-start justify-center card p-5">
           <p className="text-sm text-stone-500">Última calificación</p>
           <p className="text-5xl font-bold text-ink">{latest.overallScore}</p>
           {scoreDelta !== null && (
@@ -78,7 +78,7 @@ export default function ClientScoreboard({
             <VerdictBadge score={latest.overallScore} />
           </div>
         </div>
-        <div className="rounded-lg border border-stone-200 bg-white p-5">
+        <div className="card p-5">
           <p className="text-sm font-medium text-ink">Veredicto</p>
           <p className="mt-1 text-sm text-stone-600">{verdict.summary}</p>
           <p className="mt-3 text-xs text-stone-400">
@@ -91,7 +91,7 @@ export default function ClientScoreboard({
       {visits.length > 1 && (
         <section className="mt-8">
           <h2 className="heading text-xl text-ink">Evolución del promedio</h2>
-          <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
+          <div className="mt-3 card p-4">
             <ScoreTrendChart data={trendData} />
           </div>
         </section>
@@ -101,14 +101,14 @@ export default function ClientScoreboard({
         <h2 className="heading text-xl text-ink">
           Indicadores {previous ? "(visita actual vs anterior)" : "de la última visita"}
         </h2>
-        <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
+        <div className="mt-3 card p-4">
           <CategoryCompareChart data={compareData} showPrevious={Boolean(previous)} />
         </div>
       </section>
 
       <section className="mt-8">
         <h2 className="heading text-xl text-ink">Historial de visitas</h2>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-stone-200 bg-white">
+        <div className="mt-3 overflow-x-auto card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-stone-200 text-left text-stone-500">

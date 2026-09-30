@@ -26,7 +26,7 @@ function TrendTooltip({
 }) {
   if (!active || !payload || payload.length === 0) return null;
   return (
-    <div className="rounded-md border border-stone-200 bg-white px-3 py-2 text-sm shadow-sm">
+    <div className="card px-3 py-2 text-sm shadow-sm">
       <p className="text-stone-500">{label}</p>
       <p className="font-semibold text-brand-500">{payload[0].value} de 5</p>
     </div>

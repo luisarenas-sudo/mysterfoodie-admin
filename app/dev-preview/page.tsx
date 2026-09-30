@@ -32,14 +32,14 @@ export default function DevPreview() {
 
       <section className="mt-8">
         <h2 className="heading text-xl text-ink">Evolución del promedio</h2>
-        <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
+        <div className="mt-3 card p-4">
           <ScoreTrendChart data={trendData} />
         </div>
       </section>
 
       <section className="mt-8">
         <h2 className="heading text-xl text-ink">Indicadores (visita actual vs anterior)</h2>
-        <div className="mt-3 rounded-lg border border-stone-200 bg-white p-4">
+        <div className="mt-3 card p-4">
           <CategoryCompareChart data={compareData} showPrevious />
         </div>
       </section>
