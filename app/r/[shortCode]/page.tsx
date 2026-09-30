@@ -9,6 +9,7 @@ import {
 } from "@/lib/categories";
 import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import VerdictBadge from "@/components/VerdictBadge";
+import MobileReportePublico from "@/components/mobile/MobileReportePublico";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -247,9 +248,27 @@ export default async function ReportPage({
     : null;
 
   const visibleCategories = catScores.filter((c) => c.count > 0);
+  const paymentStatus = pago && ["exitoso", "pendiente", "fallido", "error"].includes(pago) ? pago : undefined;
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-14">
+    <>
+      <MobileReportePublico
+        shortCode={shortCode}
+        clientName={client?.name ?? "tu negocio"}
+        overallScore={form.overall_score}
+        categories={visibleCategories}
+        unlocked={unlocked}
+        price={FULL_REPORT_PRICE_MXN}
+        mercadopagoConfigured={mercadopagoConfigured}
+        whatsappFallbackLink={whatsappFallbackLink}
+        paymentStatus={paymentStatus}
+        ratings={ratings}
+        flags={flags}
+        menuType={form.menu_type}
+        comments={form.comments}
+      />
+
+    <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
       <h1 className="heading mt-2 text-3xl text-ink">
         Resultado de la evaluación de {client?.name ?? "tu negocio"}
@@ -346,5 +365,6 @@ export default async function ReportPage({
         </div>
       )}
     </main>
+    </>
   );
 }

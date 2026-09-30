@@ -49,6 +49,12 @@ export async function GET(req: NextRequest) {
     .eq("id", form.client_id)
     .maybeSingle();
 
+  // Nombre/correo que el comprador ya escribió en /r/[shortCode] (si los
+  // escribió): solo sirven para precargar el checkout de MercadoPago, no
+  // se validan ni se guardan aparte.
+  const payerName = req.nextUrl.searchParams.get("nombre") || undefined;
+  const payerEmail = req.nextUrl.searchParams.get("email") || undefined;
+
   const preference = await createPaymentPreference({
     title: `Reporte completo Mystery Shopper - ${client?.name ?? "negocio"}`,
     price: FULL_REPORT_PRICE_MXN,
@@ -57,6 +63,7 @@ export async function GET(req: NextRequest) {
     failureUrl: `${reportUrl}?pago=fallido`,
     pendingUrl: `${reportUrl}?pago=pendiente`,
     notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
+    payer: { name: payerName, email: payerEmail },
   });
 
   if (!preference.ok) {
