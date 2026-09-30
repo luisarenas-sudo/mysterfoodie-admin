@@ -48,9 +48,11 @@ export default async function PerfilPage() {
         </div>
         <div className="min-w-0">
           <div className="truncate text-[17px] font-bold">{displayName}</div>
-          <div className="truncate text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-            {profile.email}
-          </div>
+          {displayName !== profile.email && (
+            <div className="truncate text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              {profile.email}
+            </div>
+          )}
         </div>
       </div>
 

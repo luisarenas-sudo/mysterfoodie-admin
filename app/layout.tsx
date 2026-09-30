@@ -36,7 +36,7 @@ export default async function RootLayout({
   return (
     <html lang="es" className={`${poppins.variable} ${fredoka.variable}`}>
       <body className="font-sans">
-        <HeaderVisibility>
+        <HeaderVisibility role={profile?.role ?? null}>
           <AppHeader />
         </HeaderVisibility>
         <MobileChromeBody role={profile?.role ?? null}>{children}</MobileChromeBody>

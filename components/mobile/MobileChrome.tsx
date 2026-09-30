@@ -16,9 +16,22 @@ function isOverlayRoute(pathname: string) {
   return false;
 }
 
-export function HeaderVisibility({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  return <div className={isOverlayRoute(pathname) ? "hidden md:block" : ""}>{children}</div>;
+/**
+ * Para admin/agente, todas las pantallas móviles tienen su propio
+ * encabezado (título + tab bar abajo), así que el AppHeader de
+ * escritorio (barra negra con nav) se oculta en móvil siempre que haya
+ * sesión de admin/agente, igual que en las maquetas (pantallas de app
+ * nativa, sin chrome de navegador).
+ */
+export function HeaderVisibility({
+  role,
+  children,
+}: {
+  role: Role | null;
+  children: React.ReactNode;
+}) {
+  const hideOnMobile = Boolean(role && (role === "admin" || role === "agente"));
+  return <div className={hideOnMobile ? "hidden md:block" : ""}>{children}</div>;
 }
 
 export function MobileChromeBody({
