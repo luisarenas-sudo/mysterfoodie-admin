@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { getVisitDetail } from "@/lib/dashboard";
 import VerdictBadge from "@/components/VerdictBadge";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
+import MobileVisitDetail from "@/components/mobile/MobileVisitDetail";
 
 export const dynamic = "force-dynamic";
 
@@ -49,55 +50,66 @@ export default async function VisitaDetailPage({
   const backLabel = profile.role === "admin" ? visit.clientName : "Mis visitas";
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <Link href={backHref} className="text-sm text-stone-500 hover:text-brand-500">
-        ← {backLabel}
-      </Link>
+    <>
+      <MobileVisitDetail visit={visit} backHref={backHref} backLabel={backLabel} />
 
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm uppercase tracking-wide text-brand-600">Evaluación</p>
-          <h1 className="heading mt-1 text-3xl text-ink">
-            {visit.clientName}: {visit.overallScore} de 5
-          </h1>
-          <p className="mt-1 text-sm text-stone-500">
-            {formatDateLong(visit.createdAt)}
-            {visit.shopperName ? ` · Mystery shopper: ${visit.shopperName}` : ""}
-            {visit.waiterName ? ` · Mesero: ${visit.waiterName}` : ""}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <VerdictBadge score={visit.overallScore} />
-          <Link
-            href={`/r/${visit.shortCode}`}
-            target="_blank"
-            className="btn-secondary text-sm"
-          >
-            Ver reporte público
-          </Link>
-        </div>
-      </div>
+      <main className="mx-auto hidden max-w-3xl px-6 py-10 md:block">
+        <Link href={backHref} className="text-sm text-stone-500 hover:text-brand-500">
+          ← {backLabel}
+        </Link>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {visit.categoryScores.map((c) => (
-          <div key={c.key} className="card p-4 text-center">
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{c.label}</p>
-            <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
-            <p className="text-xs text-stone-400">de 5</p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm uppercase tracking-wide text-brand-600">Evaluación</p>
+            <h1 className="heading mt-1 text-3xl text-ink">
+              {visit.clientName}: {visit.overallScore} de 5
+            </h1>
+            <p className="mt-1 text-sm text-stone-500">
+              {formatDateLong(visit.createdAt)}
+              {visit.shopperName ? ` · Mystery shopper: ${visit.shopperName}` : ""}
+              {visit.waiterName ? ` · Mesero: ${visit.waiterName}` : ""}
+            </p>
           </div>
-        ))}
-      </div>
+          <div className="flex items-center gap-3">
+            <VerdictBadge score={visit.overallScore} />
+            <Link
+              href={`/r/${visit.shortCode}`}
+              target="_blank"
+              className="btn-secondary text-sm"
+            >
+              Ver reporte público
+            </Link>
+          </div>
+        </div>
 
-      <div className="mt-6">
-        <EmailStatusPanel
-          formId={visit.id}
-          initialStatus={
-            visit.lastEmail
-              ? { status: visit.lastEmail.status, error: visit.lastEmail.error, to: visit.lastEmail.recipientEmail }
-              : null
-          }
-        />
-      </div>
-    </main>
+        {visit.comments && (
+          <div className="mt-6 card p-5">
+            <p className="text-sm font-medium text-stone-700">Comentarios</p>
+            <p className="mt-2 text-sm text-stone-600">{visit.comments}</p>
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {visit.categoryScores.map((c) => (
+            <div key={c.key} className="card p-4 text-center">
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{c.label}</p>
+              <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
+              <p className="text-xs text-stone-400">de 5</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6">
+          <EmailStatusPanel
+            formId={visit.id}
+            initialStatus={
+              visit.lastEmail
+                ? { status: visit.lastEmail.status, error: visit.lastEmail.error, to: visit.lastEmail.recipientEmail }
+                : null
+            }
+          />
+        </div>
+      </main>
+    </>
   );
 }

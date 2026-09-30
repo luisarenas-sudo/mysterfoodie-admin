@@ -13,6 +13,7 @@ import MobileTabBar from "./MobileTabBar";
 function isOverlayRoute(pathname: string) {
   if (pathname.startsWith("/nueva-visita")) return true;
   if (/^\/negocios\/[^/]+$/.test(pathname)) return true;
+  if (/^\/visitas\/[^/]+$/.test(pathname)) return true;
   return false;
 }
 

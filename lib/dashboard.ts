@@ -131,11 +131,15 @@ export type VisitFullDetail = {
   createdAt: string;
   shopperName: string | null;
   waiterName: string | null;
+  comments: string | null;
   clientId: string;
   clientName: string;
   clientType: string;
   categoryScores: { key: string; label: string; average: number; count: number }[];
   lastEmail: EmailConfirmationInfo | null;
+  /** Promedio y número de visitas del negocio (todas, no solo esta), para dar contexto en el detalle. */
+  clientAverageScore: number | null;
+  clientVisitCount: number;
 };
 
 /**
@@ -151,7 +155,9 @@ export async function getVisitDetail(formId: string): Promise<VisitFullDetail | 
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name")
+    .select(
+      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments"
+    )
     .eq("id", formId)
     .maybeSingle();
   if (!form) return null;
@@ -186,6 +192,16 @@ export async function getVisitDetail(formId: string): Promise<VisitFullDetail | 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "";
   const reportUrl = form.report_url || (baseUrl ? `${baseUrl}/r/${form.short_code}` : `/r/${form.short_code}`);
 
+  const { data: clientForms } = await db
+    .from("forms")
+    .select("overall_score")
+    .eq("client_id", client.id);
+  const clientScores = (clientForms || []).map((f) => f.overall_score).filter((s): s is number => typeof s === "number");
+  const clientAverageScore =
+    clientScores.length > 0
+      ? Math.round((clientScores.reduce((sum, s) => sum + s, 0) / clientScores.length) * 10) / 10
+      : null;
+
   return {
     id: form.id,
     shortCode: form.short_code,
@@ -194,6 +210,7 @@ export async function getVisitDetail(formId: string): Promise<VisitFullDetail | 
     createdAt: form.created_at,
     shopperName: form.shopper_name,
     waiterName: form.waiter_name,
+    comments: form.comments ?? null,
     clientId: client.id,
     clientName: client.name,
     clientType: client.type,
@@ -206,6 +223,8 @@ export async function getVisitDetail(formId: string): Promise<VisitFullDetail | 
           sentAt: lastEmailRow.sent_at,
         }
       : null,
+    clientAverageScore,
+    clientVisitCount: clientScores.length,
   };
 }
 
