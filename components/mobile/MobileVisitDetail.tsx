@@ -42,12 +42,12 @@ export default function MobileVisitDetail({
   }
 
   return (
-    <div className="md:hidden" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
+    <div className="md:hidden mf-push-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
       <div
         className="flex items-center px-3 py-[14px]"
         style={{ background: "rgba(249,249,251,0.92)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
       >
-        <Link href={backHref} className="-my-2.5 -ml-1 flex items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
+        <Link href={backHref} className="mf-tap -my-2.5 -ml-1 flex items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

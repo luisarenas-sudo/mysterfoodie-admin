@@ -24,7 +24,7 @@ export default function OpportunityCopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="-my-2 flex-shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold"
+      className="mf-tap -my-2 flex-shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold"
       style={{
         background: copied ? "rgba(52,199,89,0.14)" : "rgba(242,68,68,0.1)",
         color: copied ? "#248A3D" : "#F24444",

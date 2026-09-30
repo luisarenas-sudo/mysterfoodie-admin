@@ -34,7 +34,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
         height: 83,
       }}
     >
-      <Link href="/" className="flex flex-1 flex-col items-center gap-[3px]">
+      <Link href="/" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
         <svg width="25" height="25" viewBox="0 0 24 24">
           <path
             d="M4 11.5L12 4l8 7.5V20a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1v-8.5z"
@@ -47,7 +47,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
       </Link>
 
       {role === "admin" && (
-        <Link href="/negocios" className="flex flex-1 flex-col items-center gap-[3px]">
+        <Link href="/negocios" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
           <svg width="25" height="25" viewBox="0 0 24 24">
             <path
               d="M4 10l1-6h14l1 6M4 10v9a1 1 0 001 1h3v-6h8v6h3a1 1 0 001-1v-9M4 10h16"
@@ -66,7 +66,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
         </Link>
       )}
 
-      <Link href="/nueva-visita" className="flex flex-1 flex-col items-center gap-[2px]">
+      <Link href="/nueva-visita" className="mf-tap flex flex-1 flex-col items-center gap-[2px]">
         <div
           className="mt-[-26px] flex items-center justify-center rounded-full shadow-lg"
           style={{
@@ -84,7 +84,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
         </span>
       </Link>
 
-      <Link href="/mis-visitas" className="flex flex-1 flex-col items-center gap-[3px]">
+      <Link href="/mis-visitas" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
         <svg width="25" height="25" viewBox="0 0 24 24">
           <path
             d="M7 3h8l4 4v14a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"
@@ -108,7 +108,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
         </span>
       </Link>
 
-      <Link href="/perfil" className="flex flex-1 flex-col items-center gap-[3px]">
+      <Link href="/perfil" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
         <svg width="25" height="25" viewBox="0 0 24 24">
           <circle
             cx="12"

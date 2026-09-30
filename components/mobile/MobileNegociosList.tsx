@@ -17,7 +17,7 @@ export default function MobileNegociosList({
   const filtered = clients.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
+    <div className="md:hidden mf-fade-in min-h-[70vh]" style={{ background: "#F2F2F7" }}>
       <div className="flex items-center justify-between px-5 pb-2 pt-5">
         <div>
           <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
@@ -28,7 +28,7 @@ export default function MobileNegociosList({
         <Link
           href="/negocios/nuevo"
           aria-label="Nuevo negocio"
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-white"
+          className="mf-tap flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-white"
           style={{ background: "#F24444" }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24">
@@ -50,7 +50,12 @@ export default function MobileNegociosList({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar negocio"
-            className="flex-1 bg-transparent text-[15px] outline-none"
+            className="flex-1 bg-transparent text-[16px] outline-none"
+            type="search"
+            inputMode="search"
+            autoCapitalize="none"
+            autoCorrect="off"
+            enterKeyHint="search"
           />
         </div>
       </div>

@@ -12,7 +12,7 @@ const inputStyle: React.CSSProperties = {
   background: "#fff",
   borderRadius: 14,
   padding: "13px 14px",
-  fontSize: 15,
+  fontSize: 16, // >=16px evita el zoom automático de iOS Safari al enfocar
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
 
@@ -33,7 +33,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
       type="button"
       onClick={() => onChange(!value)}
       aria-pressed={value}
-      className="-m-2 p-2"
+      className="mf-tap -m-2 p-2"
       style={{ flexShrink: 0 }}
     >
       <div
@@ -159,14 +159,18 @@ export default function MobileNuevoNegocio() {
   }
 
   return (
-    <div className="md:hidden fixed inset-0 z-40 flex flex-col" style={{ background: "#F2F2F7" }}>
+    <div className="md:hidden fixed inset-0 z-40 flex flex-col mf-push-in" style={{ background: "#F2F2F7" }}>
       <div
         className="flex flex-shrink-0 items-center justify-between px-4 pb-2.5 pt-3.5"
-        style={{ background: "rgba(249,249,251,0.95)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
+        style={{
+          background: "rgba(249,249,251,0.95)",
+          borderBottom: "1px solid rgba(60,60,67,0.1)",
+          paddingTop: "env(safe-area-inset-top)",
+        }}
       >
         <Link
           href="/negocios"
-          className="-my-3 -ml-2 py-3 pl-2 pr-3 text-[16px]"
+          className="mf-tap -my-3 -ml-2 py-3 pl-2 pr-3 text-[16px]"
           style={{ color: ACCENT }}
         >
           Cancelar
@@ -186,6 +190,9 @@ export default function MobileNuevoNegocio() {
               onChange={(e) => setName(e.target.value)}
               style={inputStyle}
               placeholder="Ej. Cocina de Mar"
+              type="text"
+              autoComplete="organization"
+              enterKeyHint="next"
             />
           </Field>
           <Field label="Tipo de negocio">
@@ -197,7 +204,7 @@ export default function MobileNuevoNegocio() {
                     key={t.value}
                     type="button"
                     onClick={() => setType(t.value)}
-                    className="rounded-full px-4 py-2 text-[14px] font-semibold"
+                    className="mf-tap rounded-full px-4 py-2 text-[14px] font-semibold"
                     style={{
                       background: active ? ACCENT : "#fff",
                       color: active ? "#fff" : "rgba(60,60,67,0.7)",
@@ -211,7 +218,14 @@ export default function MobileNuevoNegocio() {
             </div>
           </Field>
           <Field label="Ciudad">
-            <input value={city} onChange={(e) => setCity(e.target.value)} style={inputStyle} />
+            <input
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              style={inputStyle}
+              type="text"
+              autoComplete="address-level2"
+              enterKeyHint="next"
+            />
           </Field>
         </div>
 
@@ -220,7 +234,14 @@ export default function MobileNuevoNegocio() {
         </div>
         <div className="space-y-3.5">
           <Field label="Nombre de contacto">
-            <input value={contactName} onChange={(e) => setContactName(e.target.value)} style={inputStyle} />
+            <input
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              style={inputStyle}
+              type="text"
+              autoComplete="name"
+              enterKeyHint="next"
+            />
           </Field>
           <Field label="Teléfono">
             <input
@@ -228,6 +249,9 @@ export default function MobileNuevoNegocio() {
               onChange={(e) => setPhone(e.target.value)}
               style={inputStyle}
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              enterKeyHint="next"
             />
           </Field>
           <Field label="Usuario de Instagram del negocio (sin @)">
@@ -236,6 +260,11 @@ export default function MobileNuevoNegocio() {
               onChange={(e) => setInstagramHandle(e.target.value)}
               style={inputStyle}
               placeholder="Ej. cocinademar"
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="off"
+              enterKeyHint="next"
             />
           </Field>
           <Field label="Correo del negocio (opcional)">
@@ -244,7 +273,12 @@ export default function MobileNuevoNegocio() {
               onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
               type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="email"
               placeholder="contacto@negocio.com"
+              enterKeyHint="done"
             />
           </Field>
         </div>
@@ -278,14 +312,18 @@ export default function MobileNuevoNegocio() {
       </div>
 
       <div
-        className="flex-shrink-0 px-5 pb-6 pt-3"
-        style={{ background: "rgba(249,249,251,0.95)", borderTop: "1px solid rgba(60,60,67,0.1)" }}
+        className="flex-shrink-0 px-5 pt-3"
+        style={{
+          background: "rgba(249,249,251,0.95)",
+          borderTop: "1px solid rgba(60,60,67,0.1)",
+          paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+        }}
       >
         <button
           type="button"
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full rounded-2xl py-3.5 text-center text-[16px] font-bold text-white disabled:opacity-50"
+          className="mf-tap w-full rounded-2xl py-3.5 text-center text-[16px] font-bold text-white disabled:opacity-50"
           style={{ background: ACCENT }}
         >
           {submitting ? "Guardando..." : "Guardar negocio"}

@@ -67,7 +67,7 @@ function Star({ filled, onClick }: { filled: boolean; onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Calificar"
-      className="flex items-center justify-center p-1.5"
+      className="mf-tap flex items-center justify-center p-1.5"
       style={{ cursor: "pointer" }}
     >
       <svg width="28" height="28" viewBox="0 0 24 24">
@@ -84,6 +84,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
   return (
     <div
       onClick={() => onChange(!value)}
+      className="mf-tap"
       style={{
         width: 51,
         height: 31,
@@ -127,7 +128,7 @@ const inputStyle: React.CSSProperties = {
   background: "#fff",
   borderRadius: 14,
   padding: "13px 14px",
-  fontSize: 15,
+  fontSize: 16, // >=16px evita el zoom automático de iOS Safari al enfocar
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
 
@@ -216,7 +217,7 @@ export default function MobileWizard() {
     const catScores = result.categoryScores.filter((c) => c.count > 0);
 
     return (
-      <div className="md:hidden fixed inset-0 z-40 flex flex-col" style={{ background: "#F2F2F7" }}>
+      <div className="md:hidden fixed inset-0 z-40 flex flex-col mf-push-in" style={{ background: "#F2F2F7" }}>
         <div className="mf-scroll flex-1 overflow-y-auto px-5 pb-8 pt-6">
           <div className="flex flex-col items-center text-center">
             <svg width="52" height="52" viewBox="0 0 24 24">
@@ -267,7 +268,7 @@ export default function MobileWizard() {
             <button
               type="button"
               onClick={() => copyToClipboard(result.dmMessage, "dm")}
-              className="mt-2.5 w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
+              className="mf-tap mt-2.5 w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
               style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}
             >
               {copied === "dm" ? "Copiado" : "Copiar texto"}
@@ -277,7 +278,7 @@ export default function MobileWizard() {
                 href={result.dmLink}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 block w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
+                className="mf-tap mt-2 block w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
                 style={{ border: "1px solid rgba(60,60,67,0.15)" }}
               >
                 Abrir DM en Instagram
@@ -297,7 +298,7 @@ export default function MobileWizard() {
             <button
               type="button"
               onClick={() => copyToClipboard(result.reportUrl, "link")}
-              className="flex-shrink-0 rounded-xl px-3.5 py-2 text-[13.5px] font-semibold"
+              className="mf-tap flex-shrink-0 rounded-xl px-3.5 py-2 text-[13.5px] font-semibold"
               style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}
             >
               {copied === "link" ? "Copiado" : "Copiar"}
@@ -305,11 +306,18 @@ export default function MobileWizard() {
           </div>
         </div>
 
-        <div className="flex-shrink-0 px-5 pb-6 pt-3" style={{ background: "rgba(249,249,251,0.95)", borderTop: "1px solid rgba(60,60,67,0.1)" }}>
+        <div
+          className="flex-shrink-0 px-5 pt-3"
+          style={{
+            background: "rgba(249,249,251,0.95)",
+            borderTop: "1px solid rgba(60,60,67,0.1)",
+            paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+          }}
+        >
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="w-full rounded-2xl py-[15px] text-center text-[16px] font-bold text-white"
+            className="mf-tap w-full rounded-2xl py-[15px] text-center text-[16px] font-bold text-white"
             style={{ background: ACCENT }}
           >
             Listo
@@ -321,14 +329,14 @@ export default function MobileWizard() {
 
   // ---------------- wizard steps ----------------
   return (
-    <div className="md:hidden fixed inset-0 z-40 flex flex-col" style={{ background: "#F2F2F7" }}>
-      <div style={{ background: "rgba(249,249,251,0.95)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}>
+    <div className="md:hidden fixed inset-0 z-40 flex flex-col mf-push-in" style={{ background: "#F2F2F7" }}>
+      <div style={{ background: "rgba(249,249,251,0.95)", borderBottom: "1px solid rgba(60,60,67,0.1)", paddingTop: "env(safe-area-inset-top)" }}>
         <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
           <button
             type="button"
             onClick={goBack}
             aria-label="Atrás"
-            className="-my-3 flex w-[46px] flex-shrink-0 items-center py-3"
+            className="mf-tap -my-3 flex w-[46px] flex-shrink-0 items-center py-3"
             style={{ cursor: "pointer" }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24">
@@ -357,6 +365,9 @@ export default function MobileWizard() {
                 onChange={(e) => updateBusiness("name", e.target.value)}
                 style={inputStyle}
                 placeholder="Ej. Cocina de Mar"
+                type="text"
+                autoComplete="organization"
+                enterKeyHint="next"
               />
             </MobileField>
             <MobileField label="Tipo de negocio">
@@ -378,6 +389,11 @@ export default function MobileWizard() {
                 onChange={(e) => updateBusiness("instagramHandle", e.target.value)}
                 style={inputStyle}
                 placeholder="Ej. cocinademar"
+                type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="off"
+                enterKeyHint="next"
               />
             </MobileField>
             <MobileField label="Correo del negocio (opcional)">
@@ -386,7 +402,12 @@ export default function MobileWizard() {
                 onChange={(e) => updateBusiness("email", e.target.value)}
                 style={inputStyle}
                 type="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="email"
                 placeholder="contacto@negocio.com"
+                enterKeyHint="next"
               />
             </MobileField>
             <MobileField label="Ciudad">
@@ -394,6 +415,9 @@ export default function MobileWizard() {
                 value={business.city}
                 onChange={(e) => updateBusiness("city", e.target.value)}
                 style={inputStyle}
+                type="text"
+                autoComplete="address-level2"
+                enterKeyHint="next"
               />
             </MobileField>
             <MobileField label="Tu nombre (mystery shopper)">
@@ -401,6 +425,9 @@ export default function MobileWizard() {
                 value={shopperName}
                 onChange={(e) => setShopperName(e.target.value)}
                 style={inputStyle}
+                type="text"
+                autoComplete="name"
+                enterKeyHint="done"
               />
             </MobileField>
           </div>
@@ -484,6 +511,9 @@ export default function MobileWizard() {
                 onChange={(e) => setWaiterName(e.target.value)}
                 style={inputStyle}
                 placeholder="Ej. Fermín"
+                type="text"
+                autoComplete="off"
+                enterKeyHint="next"
               />
             </MobileField>
             <div>
@@ -496,6 +526,7 @@ export default function MobileWizard() {
                 onChange={(e) => setComments(e.target.value)}
                 placeholder="Ej. el mesero tardó en tomar la orden, el menú está desactualizado..."
                 style={{ ...inputStyle, height: 160, lineHeight: 1.4, resize: "none" }}
+                enterKeyHint="done"
               />
             </div>
             {submitError && <p className="text-sm text-red-600">{submitError}</p>}
@@ -503,11 +534,18 @@ export default function MobileWizard() {
         )}
       </div>
 
-      <div className="flex flex-shrink-0 gap-2.5 px-5 pb-6 pt-3" style={{ background: "rgba(249,249,251,0.95)", borderTop: "1px solid rgba(60,60,67,0.1)" }}>
+      <div
+        className="flex flex-shrink-0 gap-2.5 px-5 pt-3"
+        style={{
+          background: "rgba(249,249,251,0.95)",
+          borderTop: "1px solid rgba(60,60,67,0.1)",
+          paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+        }}
+      >
         <button
           type="button"
           onClick={goBack}
-          className="flex-1 rounded-2xl py-3.5 text-center text-[15.5px] font-semibold"
+          className="mf-tap flex-1 rounded-2xl py-3.5 text-center text-[15.5px] font-semibold"
           style={{ background: "rgba(118,118,128,0.12)" }}
         >
           Atrás
@@ -517,7 +555,7 @@ export default function MobileWizard() {
             type="button"
             onClick={() => setStep((s) => s + 1)}
             disabled={!canAdvance()}
-            className="flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
+            className="mf-tap flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
             style={{ background: ACCENT }}
           >
             Continuar
@@ -527,7 +565,7 @@ export default function MobileWizard() {
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
+            className="mf-tap flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
             style={{ background: ACCENT }}
           >
             {submitting ? "Guardando..." : "Guardar visita"}

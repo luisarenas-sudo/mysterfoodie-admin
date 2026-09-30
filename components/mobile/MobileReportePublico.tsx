@@ -155,7 +155,7 @@ export default function MobileReportePublico({
   const checkoutHref = `/api/checkout?${checkoutParams.toString()}`;
 
   return (
-    <div className="md:hidden" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
+    <div className="md:hidden mf-fade-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
       <div style={{ background: "linear-gradient(180deg,#EDEFF7 0%,#F2F2F7 100%)", padding: "28px 24px 22px 24px", textAlign: "center" }}>
         <div className="mb-[18px] flex items-center justify-center gap-1.5">
           <div className="text-[12px] font-bold tracking-[1.4px]" style={{ color: "rgba(60,60,67,0.55)" }}>
@@ -248,7 +248,10 @@ export default function MobileReportePublico({
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Tu nombre"
-                className="w-full bg-transparent py-3 text-[15px] outline-none"
+                className="w-full bg-transparent py-3 text-[16px] outline-none"
+                type="text"
+                autoComplete="name"
+                enterKeyHint="next"
               />
             </div>
             <div className="mb-4 rounded-xl px-3.5" style={{ background: "#F2F2F7" }}>
@@ -257,14 +260,19 @@ export default function MobileReportePublico({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Tu correo electrónico"
                 type="email"
-                className="w-full bg-transparent py-3 text-[15px] outline-none"
+                inputMode="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="email"
+                enterKeyHint="done"
+                className="w-full bg-transparent py-3 text-[16px] outline-none"
               />
             </div>
 
             {mercadopagoConfigured ? (
               <a
                 href={checkoutHref}
-                className="block rounded-[14px] py-[15px] text-center text-[16px] font-bold text-white"
+                className="mf-tap block rounded-[14px] py-[15px] text-center text-[16px] font-bold text-white"
                 style={{ background: "linear-gradient(180deg,#F24444 0%,#F25631 100%)" }}
               >
                 Comprar reporte completo
@@ -274,7 +282,7 @@ export default function MobileReportePublico({
                 href={whatsappFallbackLink}
                 target="_blank"
                 rel="noreferrer"
-                className="block rounded-[14px] py-[15px] text-center text-[16px] font-bold text-white"
+                className="mf-tap block rounded-[14px] py-[15px] text-center text-[16px] font-bold text-white"
                 style={{ background: "linear-gradient(180deg,#F24444 0%,#F25631 100%)" }}
               >
                 Solicitar el reporte completo
@@ -318,7 +326,7 @@ export default function MobileReportePublico({
               href={whatsappFallbackLink}
               target="_blank"
               rel="noreferrer"
-              className="mx-5 mt-3 block rounded-[14px] py-3.5 text-center text-[14.5px] font-semibold"
+              className="mf-tap mx-5 mt-3 block rounded-[14px] py-3.5 text-center text-[14.5px] font-semibold"
               style={{ background: "rgba(52,199,89,0.1)", color: "#248A3D" }}
             >
               Prefiero preguntar por WhatsApp

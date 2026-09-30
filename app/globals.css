@@ -116,4 +116,85 @@ body {
 }
 .mf-scroll {
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ------------------------------------------------------------------
+   Estándares de usabilidad "tipo iOS" para la app móvil:
+   - Ningún input hace zoom automático al enfocar (iOS Safari hace
+     zoom si el font-size calculado es menor a 16px; el !important
+     es defensa adicional sobre estilos inline que pudieran quedar
+     en 15px en algún formulario).
+   - Sin flash gris al tocar (tap highlight) y sin el retraso de
+     ~300ms antes de registrar un tap (touch-action: manipulation),
+     que es lo que hace que una web "se sienta" nativa al tocar.
+   - .mf-tap: pequeño "bounce" al presionar, igual que los controles
+     nativos de iOS.
+   - .mf-push-in / .mf-fade-in: transiciones de entrada para pantallas
+     que se sienten como "empujadas" desde la derecha (estilo
+     UINavigationController) o que solo necesitan una entrada suave.
+   ------------------------------------------------------------------ */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+.mf-tap {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.mf-tap:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+@keyframes mfPushIn {
+  from {
+    transform: translateX(18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.mf-push-in {
+  animation: mfPushIn 0.26s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes mfFadeIn {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.mf-fade-in {
+  animation: mfFadeIn 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-tap,
+  .mf-push-in,
+  .mf-fade-in {
+    animation: none !important;
+    transition: none !important;
+  }
 }
