@@ -4,6 +4,50 @@ import { getMonthlyTrend } from "@/lib/dashboard";
 import { getVerdict } from "@/lib/verdict";
 import { avatarColorFor, initialsFor, CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "./ActivityRing";
+import OpportunityCopyButton from "./OpportunityCopyButton";
+
+type OpportunityDef = {
+  key: "hasWebsite" | "hasGoogleBusiness" | "hasProfessionalPhotos" | "hasReels";
+  emoji: string;
+  title: string;
+  desc: string;
+  copyText: (name: string) => string;
+};
+
+const OPPORTUNITIES: OpportunityDef[] = [
+  {
+    key: "hasWebsite",
+    emoji: "🌐",
+    title: "Sin página web",
+    desc: "Aún no tiene un sitio web propio.",
+    copyText: (name) =>
+      `Hola, equipo de ${name}. Notamos que aún no cuentan con una página web — podemos ayudarles a crear una sencilla para que más clientes los encuentren. ¿Les interesaría platicarlo?`,
+  },
+  {
+    key: "hasGoogleBusiness",
+    emoji: "📍",
+    title: "Sin Google Mi Negocio",
+    desc: "No tiene ficha en Google Mi Negocio.",
+    copyText: (name) =>
+      `Hola, equipo de ${name}. Vimos que aún no tienen su ficha de Google Mi Negocio configurada — les ayuda a aparecer en búsquedas y mapas. ¿Les interesaría que les ayudemos a crearla?`,
+  },
+  {
+    key: "hasProfessionalPhotos",
+    emoji: "📸",
+    title: "Fotos de producto mejorables",
+    desc: "No cuenta con fotos profesionales de sus platillos.",
+    copyText: (name) =>
+      `Hola, equipo de ${name}. Creemos que unas fotos profesionales de sus platillos podrían ayudarles mucho en redes y el menú digital. ¿Les gustaría que les cotizemos una sesión?`,
+  },
+  {
+    key: "hasReels",
+    emoji: "🎬",
+    title: "Sin reels comerciales",
+    desc: "No tiene contenido de video (reels) promocional.",
+    copyText: (name) =>
+      `Hola, equipo de ${name}. Los reels ayudan mucho a atraer clientes nuevos — ¿les interesaría que platiquemos sobre producir algunos para su negocio?`,
+  },
+];
 
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
@@ -41,7 +85,7 @@ export default function MobileNegocioDetail({ client }: { client: ClientDetail }
         className="flex items-center px-3 py-[14px]"
         style={{ background: "rgba(249,249,251,0.92)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
       >
-        <Link href="/negocios" className="flex items-center gap-0.5 px-1" style={{ color: "#F24444" }}>
+        <Link href="/negocios" className="-my-2.5 -ml-1 flex items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -163,6 +207,47 @@ export default function MobileNegocioDetail({ client }: { client: ClientDetail }
             )}
           </>
         )}
+
+        {client.improvementKeywords.length > 0 && (
+          <>
+            <div className="px-5 pb-2 pt-[22px] text-lg font-bold">Aspectos a mejorar</div>
+            <div className="card mx-5 flex flex-wrap gap-2 p-4">
+              {client.improvementKeywords.map((k) => (
+                <div
+                  key={k.word}
+                  className="rounded-full px-3 py-1.5 text-[13px] font-semibold"
+                  style={{ background: "rgba(242,68,68,0.08)", color: "#F24444" }}
+                >
+                  {k.word} ×{k.count}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {(() => {
+          const pending = OPPORTUNITIES.filter((o) => !client[o.key]);
+          if (pending.length === 0) return null;
+          return (
+            <>
+              <div className="px-5 pb-2 pt-[22px] text-lg font-bold">Oportunidades detectadas</div>
+              <div className="mx-5 space-y-2.5">
+                {pending.map((o) => (
+                  <div key={o.key} className="card flex items-start gap-3 p-4">
+                    <div className="flex-shrink-0 text-[20px]">{o.emoji}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[14.5px] font-semibold">{o.title}</div>
+                      <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                        {o.desc}
+                      </div>
+                    </div>
+                    <OpportunityCopyButton text={o.copyText(client.name)} />
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
 
         <div className="px-5 pb-2 pt-[22px] text-lg font-bold">Historial de visitas</div>
         <div className="card mx-5 overflow-hidden">

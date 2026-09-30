@@ -63,12 +63,20 @@ const ACCENT = "#F24444";
 
 function Star({ filled, onClick }: { filled: boolean; onClick: () => void }) {
   return (
-    <svg onClick={onClick} width="25" height="25" viewBox="0 0 24 24" style={{ cursor: "pointer" }}>
-      <path
-        d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2z"
-        fill={filled ? ACCENT : "rgba(60,60,67,0.15)"}
-      />
-    </svg>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Calificar"
+      className="flex items-center justify-center p-1.5"
+      style={{ cursor: "pointer" }}
+    >
+      <svg width="28" height="28" viewBox="0 0 24 24">
+        <path
+          d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2z"
+          fill={filled ? ACCENT : "rgba(60,60,67,0.15)"}
+        />
+      </svg>
+    </button>
   );
 }
 
@@ -316,11 +324,17 @@ export default function MobileWizard() {
     <div className="md:hidden fixed inset-0 z-40 flex flex-col" style={{ background: "#F2F2F7" }}>
       <div style={{ background: "rgba(249,249,251,0.95)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}>
         <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
-          <div onClick={goBack} className="w-[46px] flex-shrink-0" style={{ cursor: "pointer" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24">
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Atrás"
+            className="-my-3 flex w-[46px] flex-shrink-0 items-center py-3"
+            style={{ cursor: "pointer" }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24">
               <path d="M15 6l-6 6 6 6" stroke={ACCENT} strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </div>
+          </button>
           <div className="flex-1 truncate text-center text-[16px] font-bold">{stepTitle()}</div>
           <div className="w-[46px] flex-shrink-0 text-right text-[12.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
             {step + 1}/{STEPS.length}
@@ -550,7 +564,7 @@ function CategoryRow({
     >
       <div className="max-w-[190px] text-[14.5px] leading-tight">{item.label}</div>
       {item.type === "star" && (
-        <div className="flex gap-[3px]">
+        <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <Star
               key={n}

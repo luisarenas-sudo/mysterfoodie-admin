@@ -51,8 +51,17 @@ export type VisitDetail = {
   shopperName: string | null;
   overallScore: number;
   createdAt: string;
+  comments: string | null;
   ratings: { key: string; label: string; score: number }[];
 };
+
+/**
+ * Palabra recurrente en los comentarios de las visitas de un negocio
+ * (ej. "lento" x2): se usa para armar la nube de "Aspectos a mejorar"
+ * en el detalle del negocio, a partir de comentarios reales del
+ * mystery shopper -- nunca texto generado o inventado.
+ */
+export type ImprovementKeyword = { word: string; count: number };
 
 export type ClientDetail = {
   id: string;
@@ -60,22 +69,69 @@ export type ClientDetail = {
   type: string;
   city: string | null;
   instagramHandle: string | null;
+  /** Banderas de oportunidad de venta, capturadas al dar de alta el negocio (ver "Nuevo negocio"). */
+  hasWebsite: boolean;
+  hasGoogleBusiness: boolean;
+  hasProfessionalPhotos: boolean;
+  hasReels: boolean;
+  autoEmailEnabled: boolean;
   visits: VisitDetail[];
+  improvementKeywords: ImprovementKeyword[];
 };
+
+const KEYWORD_STOPWORDS = new Set([
+  "el","la","los","las","de","del","un","una","unos","unas","y","o","en","a","que","es","muy","poco","mas","con",
+  "sin","no","si","fue","fueron","estaba","estuvo","pero","por","para","se","su","sus","lo","al","como","tambien",
+  "este","esta","estos","estas","hay","habia","nos","les","le","hubo","era","eran","les","mas","todo","toda",
+  "todos","todas","fue","ser","esta","estan","estuvieron","bien","mal","algo","cosas","cosa",
+]);
+
+function normalizeKeyword(word: string): string {
+  return word
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Extrae palabras que se repiten en los comentarios de varias visitas
+ * (o varias veces en el mismo comentario) para armar "Aspectos a
+ * mejorar". Solo palabras con >=2 menciones entre todos los
+ * comentarios del negocio, para no mostrar ruido de una sola visita.
+ */
+export function extractImprovementKeywords(comments: (string | null)[], limit = 6): ImprovementKeyword[] {
+  const counts = new Map<string, number>();
+  for (const text of comments) {
+    if (!text) continue;
+    const words = text
+      .split(/[^a-zA-Záéíóúñ]+/i)
+      .map(normalizeKeyword)
+      .filter((w) => w.length >= 4 && !KEYWORD_STOPWORDS.has(w));
+    for (const w of words) counts.set(w, (counts.get(w) || 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([word, count]) => ({ word, count }));
+}
 
 export async function getClientDetail(id: string): Promise<ClientDetail | null> {
   const db = getSupabaseServiceClient();
 
   const { data: client } = await db
     .from("clients")
-    .select("id, name, type, city, instagram_handle")
+    .select(
+      "id, name, type, city, instagram_handle, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
+    )
     .eq("id", id)
     .maybeSingle();
   if (!client) return null;
 
   const { data: forms } = await db
     .from("forms")
-    .select("id, short_code, shopper_name, overall_score, created_at")
+    .select("id, short_code, shopper_name, overall_score, created_at, comments")
     .eq("client_id", id)
     .order("created_at", { ascending: true });
 
@@ -102,6 +158,7 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
       shopperName: f.shopper_name,
       overallScore: f.overall_score,
       createdAt: f.created_at,
+      comments: f.comments ?? null,
       ratings: scores.map((c) => ({ key: c.key, label: c.label, score: c.average })),
     };
   });
@@ -112,7 +169,13 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     type: client.type,
     city: client.city,
     instagramHandle: client.instagram_handle,
+    hasWebsite: Boolean(client.has_website),
+    hasGoogleBusiness: Boolean(client.has_google_business),
+    hasProfessionalPhotos: Boolean(client.has_professional_photos),
+    hasReels: Boolean(client.has_reels),
+    autoEmailEnabled: client.auto_email_enabled ?? true,
     visits,
+    improvementKeywords: extractImprovementKeywords(visits.map((v) => v.comments)),
   };
 }
 

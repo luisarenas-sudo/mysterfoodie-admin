@@ -25,6 +25,16 @@ export default function MobileNegociosList({
           </div>
           <div className="heading text-[34px] font-bold">Negocios</div>
         </div>
+        <Link
+          href="/negocios/nuevo"
+          aria-label="Nuevo negocio"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-white"
+          style={{ background: "#F24444" }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.3" fill="none" strokeLinecap="round" />
+          </svg>
+        </Link>
       </div>
 
       <div className="px-5 pb-3.5 pt-1.5">

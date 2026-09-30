@@ -29,6 +29,8 @@ export async function createPaymentPreference(opts: {
   failureUrl: string;
   pendingUrl: string;
   notificationUrl: string;
+  /** Precarga nombre/correo en el checkout de MercadoPago si el comprador ya los escribió en /r/[shortCode]. */
+  payer?: { name?: string; email?: string };
 }): Promise<CreatePreferenceResult> {
   const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
   if (!accessToken) {
@@ -52,6 +54,10 @@ export async function createPaymentPreference(opts: {
           },
         ],
         external_reference: opts.externalReference,
+        payer:
+          opts.payer && (opts.payer.name || opts.payer.email)
+            ? { name: opts.payer.name || undefined, email: opts.payer.email || undefined }
+            : undefined,
         back_urls: {
           success: opts.successUrl,
           failure: opts.failureUrl,
