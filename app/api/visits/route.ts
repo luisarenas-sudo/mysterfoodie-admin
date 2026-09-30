@@ -182,12 +182,17 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const missingRatings = STAR_ITEMS.filter(
-    (item) => !body.ratings || !(item.key in body.ratings)
+  // Los indicadores tipo estrella son opcionales: si no se le "pica" una
+  // estrella, ese indicador simplemente no se considera en el promedio de
+  // su categoría ni en el promedio general (ver overallScore/categoryScores
+  // en lib/scoring.ts). Solo se exige calificar al menos un indicador en
+  // toda la visita para que el reporte no quede vacío.
+  const hasAnyRating = Boolean(
+    body.ratings && Object.values(body.ratings).some((v) => typeof v === "number" && v > 0)
   );
-  if (missingRatings.length > 0) {
+  if (!hasAnyRating) {
     return NextResponse.json(
-      { error: "Faltan indicadores por calificar", missing: missingRatings.map((i) => i.key) },
+      { error: "Califica al menos un indicador para poder guardar la visita" },
       { status: 400 }
     );
   }
@@ -299,7 +304,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const dmMessage = buildDmMessage({ businessName: business.name, score, reportUrl });
+  const dmMessage = buildDmMessage({
+    businessName: business.name,
+    score,
+    reportUrl,
+    waiterName: body.waiterName?.trim() || null,
+  });
   const dmLink = business.instagramHandle
     ? buildInstagramDmLink(business.instagramHandle)
     : null;

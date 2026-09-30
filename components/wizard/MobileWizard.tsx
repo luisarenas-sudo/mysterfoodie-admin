@@ -183,9 +183,12 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     setBusiness((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Los indicadores tipo estrella son opcionales: se puede avanzar sin
+  // "picar" todas las estrellas de la categoría -- el indicador que no se
+  // califica simplemente no entra en el promedio (ver lib/scoring.ts). Los
+  // selects (ej. tipo de menú) sí siguen siendo obligatorios.
   function categoryComplete(category: Category) {
     return category.items.every((item) => {
-      if (item.type === "star") return (ratings[item.key] || 0) > 0;
       if (item.type === "select") return Boolean(selects[item.key]);
       return true;
     });

@@ -2,14 +2,14 @@ export function buildDmMessage(params: {
   businessName: string;
   score: number;
   reportUrl: string;
+  waiterName?: string | null;
 }): string {
-  const { businessName, score, reportUrl } = params;
+  const { businessName, score, reportUrl, waiterName } = params;
+  const waiterPart = waiterName?.trim() ? ` Nos atendió ${waiterName.trim()}.` : "";
   return (
-    `Hola equipo de ${businessName}, el día de hoy los visitamos y sin compromiso ` +
-    `hicimos un Mystery Shopper aprovechando que ya disfrutamos de ${businessName}, ` +
-    `donde encontramos varias cosas super interesantes y ${score} estrellas como promedio. ` +
-    `Si gustan saber el reporte completo, aquí pueden verlo: ${reportUrl} y conocer más ` +
-    `de los indicadores líderes en la industria evaluados por MysterFoodie.`
+    `Hola equipo de ${businessName}, hoy los visitamos e hicimos un Mystery Shopper.` +
+    `${waiterPart} Obtuvimos ${score} estrellas de promedio. ` +
+    `Aquí puedes ver el reporte completo: ${reportUrl}`
   );
 }
 
