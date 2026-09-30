@@ -171,3 +171,128 @@ export async function sendVisitAssignmentEmail(
     return { status: "failed", error: err instanceof Error ? err.message : String(err) };
   }
 }
+
+// ============================================================
+// Automatizaciones: correo de seguimiento (plantilla editable) y
+// confirmación de asesoría agendada (ver /automatizaciones y
+// /agendar/[shortCode]).
+// ============================================================
+
+export type SendTemplatedEmailParams = {
+  to: string;
+  subject: string;
+  /** Texto plano ya renderizado (variables {{...}} ya reemplazadas). */
+  bodyText: string;
+};
+
+function renderPlainEmailHtml(bodyText: string): string {
+  const escaped = bodyText
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
+      <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
+      <div style="white-space: pre-line; font-size: 15px; line-height: 1.6;">${escaped}</div>
+    </div>
+  `;
+}
+
+/** Envía un correo a partir de una plantilla de Automatizaciones ya renderizada. */
+export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "reportes@mysterfoodie.com";
+
+  if (!apiKey) {
+    return { status: "skipped_no_api_key" };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: fromAddress,
+      to: params.to,
+      subject: params.subject,
+      html: renderPlainEmailHtml(params.bodyText),
+    });
+
+    if (result.error) {
+      return { status: "failed", error: result.error.message };
+    }
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export type SendBookingConfirmationParams = {
+  to: string;
+  businessName: string;
+  slotStart: Date;
+  slotEnd: Date;
+  /** true para el correo que le llega al admin (Luis), false/omitido para el del negocio. */
+  isForAdmin?: boolean;
+};
+
+function formatSlot(start: Date, end: Date): string {
+  const dateFmt = new Intl.DateTimeFormat("es-MX", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "America/Mexico_City",
+  });
+  const timeFmt = new Intl.DateTimeFormat("es-MX", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "America/Mexico_City",
+  });
+  return `${dateFmt.format(start)}, ${timeFmt.format(start)} a ${timeFmt.format(end)} (hora CDMX)`;
+}
+
+function renderBookingConfirmationHtml(params: SendBookingConfirmationParams): string {
+  const { businessName, slotStart, slotEnd, isForAdmin } = params;
+  const when = formatSlot(slotStart, slotEnd);
+  const intro = isForAdmin
+    ? `<strong>${businessName}</strong> agendó una asesoría gratuita contigo.`
+    : `Tu asesoría gratuita con MysterFoodie quedó agendada.`;
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
+      <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
+      <h2 style="color: #222222; margin-top: 4px;">Asesoría confirmada</h2>
+      <p>${intro}</p>
+      <p style="font-size: 18px; font-weight: bold; color: #f24444; margin: 16px 0;">${when}</p>
+      <p style="color: #57534e;">Llega una invitación de Google Calendar por separado con el enlace de la llamada.</p>
+    </div>
+  `;
+}
+
+/** Confirma por correo una cita agendada en /agendar/[shortCode] (al negocio y/o al admin). */
+export async function sendBookingConfirmationEmail(
+  params: SendBookingConfirmationParams
+): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "reportes@mysterfoodie.com";
+
+  if (!apiKey) {
+    return { status: "skipped_no_api_key" };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: fromAddress,
+      to: params.to,
+      subject: `Asesoría confirmada: ${params.businessName}`,
+      html: renderBookingConfirmationHtml(params),
+    });
+
+    if (result.error) {
+      return { status: "failed", error: result.error.message };
+    }
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}

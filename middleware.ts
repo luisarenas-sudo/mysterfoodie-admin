@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/set-password" || pathname === "/forgot-password") return true;
   if (pathname.startsWith("/r/")) return true;
+  if (pathname.startsWith("/agendar/")) return true;
   // Las rutas de API validan su propia sesión con requireRole().
   if (pathname.startsWith("/api/")) return true;
   return false;
@@ -65,7 +66,7 @@ export async function middleware(request: NextRequest) {
   const role = (profile?.role as "admin" | "agente" | "cliente" | "sibarita" | undefined) ?? "cliente";
 
   // /admin es exclusivo del administrador (Master Chef).
-  const adminOnly = pathname.startsWith("/admin");
+  const adminOnly = pathname.startsWith("/admin") || pathname.startsWith("/automatizaciones");
   // /negocios lo puede usar admin o sibarita (dar de alta negocios).
   const negociosAccess = pathname.startsWith("/negocios");
   // Operativa diaria: admin, agente (Foodie) y sibarita.

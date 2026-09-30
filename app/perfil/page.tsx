@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import { initialsFor } from "@/lib/ring";
+import Link from "next/link";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 
 export const dynamic = "force-dynamic";
@@ -156,6 +157,21 @@ export default async function PerfilPage() {
       </div>
 
       {profile.role === "admin" && <MobileInviteForm />}
+
+      {profile.role === "admin" && (
+        <Link
+          href="/automatizaciones"
+          className="card mx-5 mt-4 flex items-center justify-between p-4"
+        >
+          <div>
+            <div className="text-[14.5px] font-bold">Automatizaciones</div>
+            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Correos automáticos y agenda de asesorías
+            </div>
+          </div>
+          <span style={{ color: "rgba(60,60,67,0.35)" }}>&rsaquo;</span>
+        </Link>
+      )}
 
       <div
         className="mx-5 mt-5 rounded-[18px] p-5"

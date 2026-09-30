@@ -165,3 +165,65 @@ create policy "profiles: leer la propia o si eres admin" on profiles
 -- los cambios de rol/negocio y las invitaciones se hacen siempre desde
 -- el servidor con la service role key (bypassa RLS), asi que no se
 -- agregan policies de insert/update/delete para el anon/authenticated key.
+
+-- ============================================================
+-- Automatizaciones: correos automáticos editables (ej. asesoría
+-- gratuita post-visita) y agenda de citas vía Google Calendar.
+-- ============================================================
+
+-- Plantillas editables de cada automatización (ver /automatizaciones).
+-- "asesoria_gratuita": correo que se manda al día siguiente de la
+-- visita (8am hora CDMX) ofreciendo 20 min gratis para platicar del
+-- negocio, con link a /agendar/[shortCode].
+create table if not exists automations (
+  key text primary key,
+  enabled boolean not null default true,
+  subject_template text not null,
+  body_template text not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into automations (key, enabled, subject_template, body_template)
+values (
+  'asesoria_gratuita',
+  true,
+  'Hablemos de {{negocio}} — 20 min gratis',
+  E'Hola equipo de {{negocio}},\n\nAyer los visitamos con un Mystery Shopper y nos encantaría platicar un poco más sobre los resultados y algunas ideas para mejorar.\n\n¿Te gustaría agendar 20 minutos gratis para platicarlo? Elige el horario que mejor te convenga aquí:\n{{link_agenda}}\n\nSaludos,\nMysterFoodie'
+)
+on conflict (key) do nothing;
+
+-- Evita mandar el correo de seguimiento mas de una vez por visita.
+alter table forms add column if not exists followup_sent_at timestamptz;
+
+-- Tokens de Google Calendar del admin (Luis), para leer su
+-- disponibilidad (eventos "Face2Face") y crear el evento al agendar.
+-- Una sola fila (id=1) -- se reemplaza si se reconecta.
+create table if not exists google_calendar_tokens (
+  id int primary key default 1,
+  connected_email text,
+  refresh_token text not null,
+  access_token text,
+  access_token_expires_at timestamptz,
+  calendar_id text not null default 'primary',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint google_calendar_tokens_single_row check (id = 1)
+);
+
+-- Citas de asesoría gratuita agendadas desde /agendar/[shortCode].
+create table if not exists consultation_bookings (
+  id uuid primary key default gen_random_uuid(),
+  form_id uuid references forms(id) on delete set null,
+  client_id uuid references clients(id) on delete set null,
+  business_name text not null,
+  contact_email text not null,
+  contact_name text,
+  contact_phone text,
+  slot_start timestamptz not null,
+  slot_end timestamptz not null,
+  calendar_event_id text,
+  status text not null default 'confirmada',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists consultation_bookings_form_id_idx on consultation_bookings(form_id);
