@@ -53,7 +53,13 @@ function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-export default function MobileNegocioDetail({ client }: { client: ClientDetail }) {
+export default function MobileNegocioDetail({
+  client,
+  canAssign = false,
+}: {
+  client: ClientDetail;
+  canAssign?: boolean;
+}) {
   const visits = client.visits;
   const latest = visits[visits.length - 1];
   const previous = visits.length > 1 ? visits[visits.length - 2] : null;
@@ -143,7 +149,7 @@ export default function MobileNegocioDetail({ client }: { client: ClientDetail }
           </div>
         </div>
 
-        <div className="px-5 pt-4">
+        <div className="px-5 pt-4 space-y-2.5">
           <Link
             href="/nueva-visita"
             className="mf-tap block rounded-[14px] py-3.5 text-center text-[16px] font-bold text-white"
@@ -151,6 +157,15 @@ export default function MobileNegocioDetail({ client }: { client: ClientDetail }
           >
             Nueva visita a este negocio
           </Link>
+          {canAssign && (
+            <Link
+              href={`/negocios/${client.id}/asignar`}
+              className="mf-tap block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
+              style={{ background: "#fff", color: "#F24444", border: "1.5px solid rgba(242,68,68,0.3)" }}
+            >
+              Asignar visita a un Foodie
+            </Link>
+          )}
         </div>
 
         {monthly.length > 1 && (

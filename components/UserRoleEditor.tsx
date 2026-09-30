@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type RoleOption = "admin" | "agente" | "cliente";
+type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
 
 // Nombres visibles de los rangos (ver "Tu rango" en /perfil): el valor
 // interno del rol (admin/agente/cliente) no cambia -- sigue siendo lo
@@ -13,6 +13,7 @@ const ROLE_LABELS: Record<RoleOption, string> = {
   admin: "Master Chef",
   agente: "Foodie",
   cliente: "Cliente",
+  sibarita: "Sibarita",
 };
 
 export default function UserRoleEditor({
@@ -91,6 +92,7 @@ export default function UserRoleEditor({
         autoFocus
       >
         <option value="admin">Master Chef</option>
+        <option value="sibarita">Sibarita</option>
         <option value="agente">Foodie</option>
         <option value="cliente">Cliente</option>
       </select>

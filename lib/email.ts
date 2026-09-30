@@ -106,3 +106,68 @@ export async function sendResultEmail(
     return { status: "failed", error: err instanceof Error ? err.message : String(err) };
   }
 }
+export type SendVisitAssignmentEmailParams = {
+  to: string;
+  foodieName?: string | null;
+  businessName: string;
+  businessType?: string;
+  city?: string | null;
+  note?: string | null;
+  appUrl: string;
+};
+
+function renderAssignmentEmailHtml(params: SendVisitAssignmentEmailParams): string {
+  const { foodieName, businessName, businessType, city, note, appUrl } = params;
+  const greeting = foodieName ? `Hola ${foodieName}` : "Hola";
+  const location = [businessType, city].filter(Boolean).join(" · ");
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
+      <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
+      <h2 style="color: #222222; margin-top: 4px;">Tienes una nueva visita asignada</h2>
+      <p>${greeting},</p>
+      <p>
+        Se te asignó una visita Mystery Shopper a <strong>${businessName}</strong>${location ? ` (${location})` : ""}.
+      </p>
+      ${note ? `<p style="background:#F2F2F7; border-radius:8px; padding:10px 14px; color:#44403c; font-size:14px;">${note}</p>` : ""}
+      <p>
+        <a href="${appUrl}/nueva-visita" style="background-color: #f24444; background-image: linear-gradient(180deg, #f24444, #f25631); color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+          Ver mis visitas asignadas
+        </a>
+      </p>
+      <p style="font-size: 12px; color: #78716c; margin-top: 32px;">
+        MysterFoodie - evaluaciones Mystery Shopper para restaurantes y bares.
+      </p>
+    </div>
+  `;
+}
+
+/** Notifica por correo a un Foodie cuando el admin le asigna una visita (ver /api/asignaciones). */
+export async function sendVisitAssignmentEmail(
+  params: SendVisitAssignmentEmailParams
+): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "reportes@mysterfoodie.com";
+
+  if (!apiKey) {
+    return { status: "skipped_no_api_key" };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: fromAddress,
+      to: params.to,
+      subject: `Nueva visita asignada: ${params.businessName}`,
+      html: renderAssignmentEmailHtml(params),
+    });
+
+    if (result.error) {
+      return { status: "failed", error: result.error.message };
+    }
+
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}

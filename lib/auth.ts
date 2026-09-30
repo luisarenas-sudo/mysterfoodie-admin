@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseServiceClient } from "./supabase";
 
-export type Role = "admin" | "agente" | "cliente";
+export type Role = "admin" | "agente" | "cliente" | "sibarita";
 
 export type SessionProfile = {
   userId: string;

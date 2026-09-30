@@ -62,10 +62,14 @@ export async function middleware(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
 
-  const role = (profile?.role as "admin" | "agente" | "cliente" | undefined) ?? "cliente";
+  const role = (profile?.role as "admin" | "agente" | "cliente" | "sibarita" | undefined) ?? "cliente";
 
-  const adminOnly = pathname.startsWith("/negocios") || pathname.startsWith("/admin");
-  const agenteOAdmin =
+  // /admin es exclusivo del administrador (Master Chef).
+  const adminOnly = pathname.startsWith("/admin");
+  // /negocios lo puede usar admin o sibarita (dar de alta negocios).
+  const negociosAccess = pathname.startsWith("/negocios");
+  // Operativa diaria: admin, agente (Foodie) y sibarita.
+  const operativo =
     pathname === "/" ||
     pathname.startsWith("/mis-visitas") ||
     pathname.startsWith("/visitas") ||
@@ -76,7 +80,10 @@ export async function middleware(request: NextRequest) {
   if (adminOnly && role !== "admin") {
     return NextResponse.redirect(new URL("/", request.url));
   }
-  if (agenteOAdmin && role !== "admin" && role !== "agente") {
+  if (negociosAccess && role !== "admin" && role !== "sibarita") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  if (operativo && role !== "admin" && role !== "agente" && role !== "sibarita") {
     return NextResponse.redirect(new URL("/mi-negocio", request.url));
   }
   if (clienteOnly && role !== "cliente") {

@@ -37,6 +37,31 @@ const EMPTY_BUSINESS: Business = {
   city: "",
 };
 
+export type BoundAssignment = {
+  assignmentId: string;
+  client: {
+    id: string;
+    name: string;
+    type: string;
+    instagramHandle: string | null;
+    email: string | null;
+    city: string | null;
+  };
+};
+
+function businessFromAssignment(a: BoundAssignment): Business {
+  return {
+    name: a.client.name,
+    type: a.client.type,
+    contactName: "",
+    phone: "",
+    instagramHandle: a.client.instagramHandle || "",
+    email: a.client.email || "",
+    address: "",
+    city: a.client.city || "",
+  };
+}
+
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
 type EmailOutcome = { status: string; error?: string };
 type SubmitResult = {
@@ -132,10 +157,13 @@ const inputStyle: React.CSSProperties = {
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
 
-export default function MobileWizard() {
+export default function MobileWizard({ boundAssignment }: { boundAssignment?: BoundAssignment } = {}) {
   const router = useRouter();
+  const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
-  const [business, setBusiness] = useState<Business>(EMPTY_BUSINESS);
+  const [business, setBusiness] = useState<Business>(
+    boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS
+  );
   const [shopperName, setShopperName] = useState("");
   const [waiterName, setWaiterName] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
@@ -147,8 +175,8 @@ export default function MobileWizard() {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const current = STEPS[step];
-  const progressPct = Math.round(((step + 1) / STEPS.length) * 100);
+  const current = steps[step];
+  const progressPct = Math.round(((step + 1) / steps.length) * 100);
 
   function updateBusiness<K extends keyof Business>(key: K, value: Business[K]) {
     setBusiness((prev) => ({ ...prev, [key]: value }));
@@ -172,7 +200,7 @@ export default function MobileWizard() {
     if (step > 0) {
       setStep((s) => s - 1);
     } else {
-      router.push("/");
+      router.push(boundAssignment ? "/nueva-visita" : "/");
     }
   }
 
@@ -180,10 +208,13 @@ export default function MobileWizard() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const payload = boundAssignment
+        ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
+        : { business, shopperName, ratings, flags, selects, comments, waiterName };
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business, shopperName, ratings, flags, selects, comments, waiterName }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -343,9 +374,16 @@ export default function MobileWizard() {
               <path d="M15 6l-6 6 6 6" stroke={ACCENT} strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <div className="flex-1 truncate text-center text-[16px] font-bold">{stepTitle()}</div>
+          <div className="flex-1 truncate text-center">
+            <div className="truncate text-[16px] font-bold">{stepTitle()}</div>
+            {boundAssignment && (
+              <div className="truncate text-[11.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
+                {boundAssignment.client.name}
+              </div>
+            )}
+          </div>
           <div className="w-[46px] flex-shrink-0 text-right text-[12.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
-            {step + 1}/{STEPS.length}
+            {step + 1}/{steps.length}
           </div>
         </div>
         <div className="mx-4 mb-3 h-1 overflow-hidden rounded-full" style={{ background: "rgba(60,60,67,0.1)" }}>
@@ -550,7 +588,7 @@ export default function MobileWizard() {
         >
           Atrás
         </button>
-        {step < STEPS.length - 1 ? (
+        {step < steps.length - 1 ? (
           <button
             type="button"
             onClick={() => setStep((s) => s + 1)}

@@ -31,7 +31,9 @@ export function HeaderVisibility({
   role: Role | null;
   children: React.ReactNode;
 }) {
-  const hideOnMobile = Boolean(role && (role === "admin" || role === "agente"));
+  const hideOnMobile = Boolean(
+    role && (role === "admin" || role === "agente" || role === "sibarita")
+  );
   return <div className={hideOnMobile ? "hidden md:block" : ""}>{children}</div>;
 }
 
@@ -44,12 +46,16 @@ export function MobileChromeBody({
 }) {
   const pathname = usePathname();
   const overlay = isOverlayRoute(pathname);
-  const showTabBar = Boolean(role && (role === "admin" || role === "agente") && !overlay);
+  const showTabBar = Boolean(
+    role && (role === "admin" || role === "agente" || role === "sibarita") && !overlay
+  );
 
   return (
     <>
       <div className={showTabBar ? "pb-24 md:pb-0" : ""}>{children}</div>
-      {role && (role === "admin" || role === "agente") && !overlay && <MobileTabBar role={role} />}
+      {role && (role === "admin" || role === "agente" || role === "sibarita") && !overlay && (
+        <MobileTabBar role={role} />
+      )}
     </>
   );
 }

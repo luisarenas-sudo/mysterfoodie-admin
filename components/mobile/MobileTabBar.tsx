@@ -18,7 +18,9 @@ export default function MobileTabBar({ role }: { role: Role }) {
 
   const tabs = [
     { href: "/", label: "Inicio", key: "home" as const },
-    ...(role === "admin" ? [{ href: "/negocios", label: "Negocios", key: "negocios" as const }] : []),
+    ...(role === "admin" || role === "sibarita"
+      ? [{ href: "/negocios", label: "Negocios", key: "negocios" as const }]
+      : []),
     { href: "/mis-visitas", label: "Reportes", key: "reportes" as const },
     { href: "/perfil", label: "Perfil", key: "perfil" as const },
   ];
@@ -46,7 +48,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
         </span>
       </Link>
 
-      {role === "admin" && (
+      {(role === "admin" || role === "sibarita") && (
         <Link href="/negocios" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
           <svg width="25" height="25" viewBox="0 0 24 24">
             <path

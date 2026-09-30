@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type Client = { id: string; name: string };
-type RoleOption = "admin" | "agente" | "cliente";
+type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
 
 export default function InviteUserForm({ clients }: { clients: Client[] }) {
   const router = useRouter();
@@ -76,6 +76,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
           className="input mt-1"
         >
           <option value="agente">Foodie (mystery shopper)</option>
+          <option value="sibarita">Sibarita</option>
           <option value="cliente">Cliente (dueño de negocio)</option>
           <option value="admin">Master Chef</option>
         </select>

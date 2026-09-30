@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import { initialsFor } from "@/lib/ring";
+import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ const ROLE_LABEL: Record<string, string> = {
   admin: "Administrador",
   agente: "Mystery shopper",
   cliente: "Dueño de negocio",
+  sibarita: "Sibarita",
 };
 
 const RANKS = [
@@ -29,7 +31,7 @@ const RANKS = [
     key: "sibarita",
     emoji: "🍷",
     label: "Sibarita",
-    desc: "Próximamente: coordina e invita a nuevos Foodies a levantar evaluaciones.",
+    desc: "Da de alta negocios y levanta visitas Mystery Shopper libremente.",
   },
   {
     key: "foodie",
@@ -40,8 +42,9 @@ const RANKS = [
 ] as const;
 
 export default async function PerfilPage() {
-  const profile = await requireRole("admin", "agente");
-  const visits = profile.role === "admin" ? await getAllVisits() : await getVisitsByAgent(profile.userId);
+  const profile = await requireRole("admin", "agente", "sibarita");
+  const visits =
+    profile.role === "admin" ? await getAllVisits() : await getVisitsByAgent(profile.userId);
 
   const now = new Date();
   const visitasMes = visits.filter((v) => {
@@ -50,7 +53,8 @@ export default async function PerfilPage() {
   }).length;
 
   const displayName = profile.fullName || profile.email;
-  const currentRank = profile.role === "admin" ? RANKS[0] : RANKS[2];
+  const currentRank =
+    profile.role === "admin" ? RANKS[0] : profile.role === "sibarita" ? RANKS[1] : RANKS[2];
 
   return (
     <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
@@ -149,6 +153,8 @@ export default async function PerfilPage() {
           </div>
         </div>
       </div>
+
+      {profile.role === "admin" && <MobileInviteForm />}
 
       <div
         className="mx-5 mt-5 rounded-[18px] p-5"

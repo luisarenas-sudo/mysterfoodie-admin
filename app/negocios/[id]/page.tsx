@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getSessionProfile } from "@/lib/auth";
 import { getClientDetail } from "@/lib/dashboard";
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
@@ -12,6 +13,8 @@ export default async function NegocioDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const profile = await getSessionProfile();
+  const canAssign = profile?.role === "admin";
 
   let client;
   try {
@@ -32,6 +35,11 @@ export default async function NegocioDetailPage({
       <main className="mx-auto max-w-5xl px-6 py-10">
         <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
         <p className="mt-2 text-sm text-stone-500">Este negocio aún no tiene visitas registradas.</p>
+        {canAssign && (
+          <Link href={`/negocios/${client.id}/asignar`} className="btn-secondary mt-4 inline-flex text-sm">
+            Asignar visita a un Foodie
+          </Link>
+        )}
       </main>
     );
   }
@@ -40,7 +48,7 @@ export default async function NegocioDetailPage({
 
   return (
     <>
-      <MobileNegocioDetail client={client} />
+      <MobileNegocioDetail client={client} canAssign={canAssign} />
 
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
         <Link href="/negocios" className="text-sm text-stone-500 hover:text-brand-500">

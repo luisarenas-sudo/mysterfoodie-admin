@@ -15,7 +15,7 @@ function formatDateLong(iso: string) {
 }
 
 export default async function MisVisitasPage() {
-  const profile = await requireRole("agente", "admin");
+  const profile = await requireRole("agente", "admin", "sibarita");
   const visits = profile.role === "admin" ? await getAllVisits() : await getVisitsByAgent(profile.userId);
 
   return (

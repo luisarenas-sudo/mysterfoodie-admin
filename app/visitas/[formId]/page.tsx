@@ -28,7 +28,7 @@ export default async function VisitaDetailPage({
 }: {
   params: Promise<{ formId: string }>;
 }) {
-  const profile = await requireRole("admin", "agente");
+  const profile = await requireRole("admin", "agente", "sibarita");
   const { formId } = await params;
 
   let visit;
@@ -46,8 +46,10 @@ export default async function VisitaDetailPage({
 
   if (!visit) return notFound();
 
-  const backHref = profile.role === "admin" ? `/negocios/${visit.clientId}` : "/mis-visitas";
-  const backLabel = profile.role === "admin" ? visit.clientName : "Mis visitas";
+  const backHref =
+    profile.role === "admin" || profile.role === "sibarita" ? `/negocios/${visit.clientId}` : "/mis-visitas";
+  const backLabel =
+    profile.role === "admin" || profile.role === "sibarita" ? visit.clientName : "Mis visitas";
 
   return (
     <>

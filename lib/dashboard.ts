@@ -333,7 +333,7 @@ export type AdminStats = {
   totalNegocios: number;
   negociosUltimoMes: number;
   totalUsuarios: number;
-  usuariosPorRol: { admin: number; agente: number; cliente: number };
+  usuariosPorRol: { admin: number; agente: number; cliente: number; sibarita: number };
   totalVisitas: number;
   visitasUltimoMes: number;
 };
@@ -360,7 +360,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     db.from("forms").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
   ]);
 
-  const usuariosPorRol = { admin: 0, agente: 0, cliente: 0 };
+  const usuariosPorRol = { admin: 0, agente: 0, cliente: 0, sibarita: 0 };
   (profiles || []).forEach((p) => {
     const role = p.role as keyof typeof usuariosPorRol;
     if (role in usuariosPorRol) usuariosPorRol[role] += 1;
@@ -547,4 +547,125 @@ export function getMonthlyTrend(
       arrowColor,
     };
   });
+}
+// ============================================================
+// Asignación de visitas (Sibarita/Foodie): admin asigna un negocio a
+// un Foodie (rol "agente"), que solo puede levantar visitas que le
+// hayan sido asignadas -- ver /api/asignaciones y /nueva-visita.
+// ============================================================
+
+export type Foodie = {
+  id: string;
+  fullName: string | null;
+  email: string;
+};
+
+/** Usuarios con rol "agente" (Foodie), para el selector de "Asignar visita". */
+export async function getFoodies(): Promise<Foodie[]> {
+  const db = getSupabaseServiceClient();
+  const { data } = await db
+    .from("profiles")
+    .select("id, full_name, email")
+    .eq("role", "agente")
+    .order("full_name");
+
+  return (data || []).map((p) => ({
+    id: p.id,
+    fullName: p.full_name,
+    email: p.email,
+  }));
+}
+
+export type PendingAssignment = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientType: string;
+  note: string | null;
+  createdAt: string;
+};
+
+/** Visitas asignadas y pendientes (status="pendiente") para un Foodie, en "/nueva-visita". */
+export async function getPendingAssignmentsFor(userId: string): Promise<PendingAssignment[]> {
+  const db = getSupabaseServiceClient();
+
+  const { data: assignments } = await db
+    .from("visit_assignments")
+    .select("id, client_id, note, created_at")
+    .eq("assigned_to", userId)
+    .eq("status", "pendiente")
+    .order("created_at", { ascending: false });
+
+  if (!assignments || assignments.length === 0) return [];
+
+  const { data: clients } = await db
+    .from("clients")
+    .select("id, name, type")
+    .in("id", assignments.map((a) => a.client_id));
+
+  const clientById = new Map((clients || []).map((c) => [c.id, c]));
+
+  return assignments
+    .map((a) => {
+      const client = clientById.get(a.client_id);
+      if (!client) return null;
+      return {
+        id: a.id,
+        clientId: client.id,
+        clientName: client.name,
+        clientType: client.type,
+        note: a.note,
+        createdAt: a.created_at,
+      };
+    })
+    .filter((a): a is PendingAssignment => a !== null);
+}
+
+export type AssignmentWithClient = {
+  id: string;
+  status: string;
+  clientId: string;
+  assignedTo: string;
+  client: {
+    id: string;
+    name: string;
+    type: string;
+    instagramHandle: string | null;
+    email: string | null;
+    city: string | null;
+  };
+};
+
+/** Una asignación puntual + los datos del negocio, para precargar el wizard al abrirla. */
+export async function getAssignmentDetail(assignmentId: string): Promise<AssignmentWithClient | null> {
+  const db = getSupabaseServiceClient();
+
+  const { data: assignment } = await db
+    .from("visit_assignments")
+    .select("id, status, client_id, assigned_to")
+    .eq("id", assignmentId)
+    .maybeSingle();
+  if (!assignment) return null;
+
+  const { data: client } = await db
+    .from("clients")
+    .select("id, name, type, instagram_handle, email, city")
+    .eq("id", assignment.client_id)
+    .maybeSingle();
+  if (!client) return null;
+
+  return {
+    id: assignment.id,
+    status: assignment.status,
+    clientId: assignment.client_id,
+    assignedTo: assignment.assigned_to,
+    client: {
+      id: client.id,
+      name: client.name,
+      type: client.type,
+      instagramHandle: client.instagram_handle,
+      email: client.email,
+      city: client.city,
+    },
+  };
 }

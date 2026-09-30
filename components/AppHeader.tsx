@@ -20,6 +20,11 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
     { href: "/", label: "Nueva evaluación" },
     { href: "/mis-visitas", label: "Mis visitas" },
   ],
+  sibarita: [
+    { href: "/", label: "Nueva evaluación" },
+    { href: "/negocios", label: "Negocios" },
+    { href: "/mis-visitas", label: "Mis visitas" },
+  ],
   cliente: [{ href: "/mi-negocio", label: "Mi negocio" }],
 };
 

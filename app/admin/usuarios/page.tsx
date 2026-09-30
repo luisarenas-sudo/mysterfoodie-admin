@@ -6,7 +6,7 @@ import UserRoleEditor from "@/components/UserRoleEditor";
 
 export const dynamic = "force-dynamic";
 
-type Role = "admin" | "agente" | "cliente";
+type Role = "admin" | "agente" | "cliente" | "sibarita";
 
 type ProfileRow = {
   id: string;
@@ -72,7 +72,7 @@ export default async function UsuariosPage() {
         <StatCard
           label="Usuarios totales"
           value={stats.totalUsuarios}
-          sublabel={`${stats.usuariosPorRol.admin} admin · ${stats.usuariosPorRol.agente} agentes · ${stats.usuariosPorRol.cliente} clientes`}
+          sublabel={`${stats.usuariosPorRol.admin} admin · ${stats.usuariosPorRol.sibarita} sibaritas · ${stats.usuariosPorRol.agente} foodies · ${stats.usuariosPorRol.cliente} clientes`}
         />
         <StatCard
           label="Visitas registradas"

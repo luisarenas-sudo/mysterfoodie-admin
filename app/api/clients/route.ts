@@ -26,7 +26,7 @@ type Body = {
  */
 export async function POST(req: NextRequest) {
   try {
-    await requireRole("admin");
+    await requireRole("admin", "sibarita");
   } catch {
     return NextResponse.json(
       { error: "Necesitas iniciar sesión como admin para dar de alta un negocio" },

@@ -8,17 +8,22 @@ import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from 
 import { sendResultEmail } from "@/lib/email";
 import { createShortLink } from "@/lib/shortio";
 
+type Business = {
+  name: string;
+  type: string;
+  contactName?: string;
+  phone?: string;
+  instagramHandle?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+};
+
 type Body = {
-  business: {
-    name: string;
-    type: string;
-    contactName?: string;
-    phone?: string;
-    instagramHandle?: string;
-    email?: string;
-    address?: string;
-    city?: string;
-  };
+  /** Alta libre de negocio (admin/sibarita): ver "Nueva visita" sin asignación. */
+  business?: Business;
+  /** Visita a partir de una asignación (Foodie): ver /nueva-visita/[assignmentId]. */
+  assignmentId?: string;
   shopperName?: string;
   ratings: Ratings;
   flags: Record<string, boolean>;
@@ -30,10 +35,10 @@ type Body = {
 export async function POST(req: NextRequest) {
   let profile;
   try {
-    profile = await requireRole("admin", "agente");
+    profile = await requireRole("admin", "agente", "sibarita");
   } catch {
     return NextResponse.json(
-      { error: "Necesitas iniciar sesión como agente o admin para registrar una visita" },
+      { error: "Necesitas iniciar sesión como Foodie, Sibarita o admin para registrar una visita" },
       { status: 401 }
     );
   }
@@ -45,8 +50,108 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  if (!body.business?.name?.trim()) {
-    return NextResponse.json({ error: "Falta el nombre del negocio" }, { status: 400 });
+  // Un Foodie (agente) ya no puede levantar visitas libres: solo puede
+  // completar una visita que le hayan asignado explícitamente (ver
+  // "añade ... foodies, solo pueden hacer visitas asignadas").
+  if (profile.role === "agente" && !body.assignmentId) {
+    return NextResponse.json(
+      { error: "Como Foodie solo puedes registrar visitas que te hayan sido asignadas" },
+      { status: 403 }
+    );
+  }
+
+  let db;
+  try {
+    db = getSupabaseServiceClient();
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Supabase no configurado" },
+      { status: 500 }
+    );
+  }
+
+  // ------------------------------------------------------------
+  // Resolver el negocio: o viene de una asignación (Foodie), o se
+  // da de alta / reutiliza a partir del formulario libre (admin/sibarita).
+  // ------------------------------------------------------------
+  let clientId: string;
+  let business: Business;
+  let assignmentId: string | null = null;
+
+  if (body.assignmentId) {
+    const { data: assignment } = await db
+      .from("visit_assignments")
+      .select("id, client_id, assigned_to, status")
+      .eq("id", body.assignmentId)
+      .maybeSingle();
+
+    if (!assignment || assignment.assigned_to !== profile.userId) {
+      return NextResponse.json({ error: "Asignación no encontrada" }, { status: 404 });
+    }
+    if (assignment.status !== "pendiente") {
+      return NextResponse.json({ error: "Esta visita ya fue completada o cancelada" }, { status: 400 });
+    }
+
+    const { data: client } = await db
+      .from("clients")
+      .select("id, name, type, instagram_handle, email, city")
+      .eq("id", assignment.client_id)
+      .maybeSingle();
+    if (!client) {
+      return NextResponse.json({ error: "Negocio no encontrado" }, { status: 404 });
+    }
+
+    assignmentId = assignment.id;
+    clientId = client.id;
+    business = {
+      name: client.name,
+      type: client.type,
+      instagramHandle: client.instagram_handle || undefined,
+      email: client.email || undefined,
+      city: client.city || undefined,
+    };
+  } else {
+    if (!body.business?.name?.trim()) {
+      return NextResponse.json({ error: "Falta el nombre del negocio" }, { status: 400 });
+    }
+    business = body.business;
+
+    let existingId: string | null = null;
+    if (business.instagramHandle) {
+      const { data: existing } = await db
+        .from("clients")
+        .select("id")
+        .eq("instagram_handle", business.instagramHandle)
+        .maybeSingle();
+      if (existing) existingId = existing.id;
+    }
+
+    if (existingId) {
+      clientId = existingId;
+    } else {
+      const { data: newClient, error: clientError } = await db
+        .from("clients")
+        .insert({
+          name: business.name,
+          type: business.type || "restaurante",
+          contact_name: business.contactName || null,
+          phone: business.phone || null,
+          instagram_handle: business.instagramHandle || null,
+          email: business.email || null,
+          address: business.address || null,
+          city: business.city || null,
+        })
+        .select("id")
+        .single();
+
+      if (clientError || !newClient) {
+        return NextResponse.json(
+          { error: clientError?.message || "No se pudo crear el negocio" },
+          { status: 500 }
+        );
+      }
+      clientId = newClient.id;
+    }
   }
 
   const missingRatings = STAR_ITEMS.filter(
@@ -69,54 +174,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let db;
-  try {
-    db = getSupabaseServiceClient();
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Supabase no configurado" },
-      { status: 500 }
-    );
-  }
-
   const score = overallScore(body.ratings);
   const catScores = categoryScores(body.ratings);
   const shortCode = nanoid(8);
-
-  let clientId: string | null = null;
-  if (body.business.instagramHandle) {
-    const { data: existing } = await db
-      .from("clients")
-      .select("id")
-      .eq("instagram_handle", body.business.instagramHandle)
-      .maybeSingle();
-    if (existing) clientId = existing.id;
-  }
-
-  if (!clientId) {
-    const { data: newClient, error: clientError } = await db
-      .from("clients")
-      .insert({
-        name: body.business.name,
-        type: body.business.type || "restaurante",
-        contact_name: body.business.contactName || null,
-        phone: body.business.phone || null,
-        instagram_handle: body.business.instagramHandle || null,
-        email: body.business.email || null,
-        address: body.business.address || null,
-        city: body.business.city || null,
-      })
-      .select("id")
-      .single();
-
-    if (clientError || !newClient) {
-      return NextResponse.json(
-        { error: clientError?.message || "No se pudo crear el negocio" },
-        { status: 500 }
-      );
-    }
-    clientId = newClient.id;
-  }
 
   const menuTipo = SELECT_ITEMS.length > 0 ? body.selects?.[SELECT_ITEMS[0].key] || null : null;
 
@@ -141,6 +201,13 @@ export async function POST(req: NextRequest) {
       { error: formError?.message || "No se pudo guardar la evaluación" },
       { status: 500 }
     );
+  }
+
+  if (assignmentId) {
+    await db
+      .from("visit_assignments")
+      .update({ status: "completada", completed_form_id: form.id })
+      .eq("id", assignmentId);
   }
 
   const ratingRows = STAR_ITEMS.map((item) => ({
@@ -172,7 +239,7 @@ export async function POST(req: NextRequest) {
   // respaldo para que el flujo nunca se rompa.
   let reportUrl = internalReportUrl;
   const shortLink = await createShortLink(internalReportUrl, {
-    title: `${body.business.name} - ${score}/5`,
+    title: `${business.name} - ${score}/5`,
   });
   if (shortLink.ok) {
     reportUrl = shortLink.shortURL;
@@ -180,14 +247,14 @@ export async function POST(req: NextRequest) {
 
   await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
 
-  const recipientEmail = body.business.email || process.env.ADMIN_EMAIL || "";
+  const recipientEmail = business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
   if (recipientEmail) {
     emailOutcome = await sendResultEmail({
       to: recipientEmail,
-      businessName: body.business.name,
-      businessType: businessTypePhrase(body.business.type),
+      businessName: business.name,
+      businessType: businessTypePhrase(business.type),
       waiterName: body.waiterName?.trim() || null,
       score,
       reportUrl,
@@ -204,12 +271,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const dmMessage = buildDmMessage({ businessName: body.business.name, score, reportUrl });
-  const dmLink = body.business.instagramHandle
-    ? buildInstagramDmLink(body.business.instagramHandle)
+  const dmMessage = buildDmMessage({ businessName: business.name, score, reportUrl });
+  const dmLink = business.instagramHandle
+    ? buildInstagramDmLink(business.instagramHandle)
     : null;
-  const profileLink = body.business.instagramHandle
-    ? buildInstagramProfileLink(body.business.instagramHandle)
+  const profileLink = business.instagramHandle
+    ? buildInstagramProfileLink(business.instagramHandle)
     : null;
 
   return NextResponse.json({

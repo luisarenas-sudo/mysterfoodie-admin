@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!email) {
     return NextResponse.json({ error: "Falta el correo" }, { status: 400 });
   }
-  if (!role || !["admin", "agente", "cliente"].includes(role)) {
+  if (!role || !["admin", "agente", "cliente", "sibarita"].includes(role)) {
     return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
   }
   if (role === "cliente" && !body.clientId) {
@@ -99,7 +99,7 @@ export async function PATCH(req: NextRequest) {
 
   const { id, role } = body;
 
-  if (!id || !role || !["admin", "agente", "cliente"].includes(role)) {
+  if (!id || !role || !["admin", "agente", "cliente", "sibarita"].includes(role)) {
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 

@@ -14,7 +14,7 @@ import { sendResultEmail } from "@/lib/email";
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ formId: string }> }) {
   try {
-    await requireRole("admin", "agente");
+    await requireRole("admin", "agente", "sibarita");
   } catch {
     return NextResponse.json(
       { error: "Necesitas iniciar sesión como agente o admin para reenviar el correo" },
