@@ -5,9 +5,13 @@ import { useRouter } from "next/navigation";
 
 type RoleOption = "admin" | "agente" | "cliente";
 
+// Nombres visibles de los rangos (ver "Tu rango" en /perfil): el valor
+// interno del rol (admin/agente/cliente) no cambia -- sigue siendo lo
+// que usan middleware.ts, requireRole() y la base de datos -- solo se
+// renombra la etiqueta que ve la persona.
 const ROLE_LABELS: Record<RoleOption, string> = {
-  admin: "Admin",
-  agente: "Agente",
+  admin: "Master Chef",
+  agente: "Foodie",
   cliente: "Cliente",
 };
 
@@ -86,8 +90,8 @@ export default function UserRoleEditor({
         disabled={saving}
         autoFocus
       >
-        <option value="admin">Admin</option>
-        <option value="agente">Agente</option>
+        <option value="admin">Master Chef</option>
+        <option value="agente">Foodie</option>
         <option value="cliente">Cliente</option>
       </select>
       <button
