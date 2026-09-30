@@ -85,17 +85,36 @@ export default async function PerfilPage() {
       <div className="mx-5 mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
         Tu rango
       </div>
-      <div className="card mx-5 mb-2.5 flex items-center gap-3 px-4 py-3.5">
-        <div
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
-          style={{ background: "rgba(242,68,68,0.12)" }}
-        >
-          {currentRank.emoji}
+      <div className="card mx-5 mb-2.5 px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
+            style={{ background: "rgba(242,68,68,0.12)" }}
+          >
+            {currentRank.emoji}
+          </div>
+          <div>
+            <div className="text-[17px] font-bold">{currentRank.label}</div>
+            <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              {ROLE_LABEL[profile.role] ?? profile.role}
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="text-[17px] font-bold">{currentRank.label}</div>
-          <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-            {ROLE_LABEL[profile.role] ?? profile.role}
+        <div className="mt-3.5 flex pt-3.5" style={{ borderTop: "1px solid rgba(60,60,67,0.08)" }}>
+          <div className="flex-1 text-center">
+            <div className="text-[18px] font-bold">{visits.length}</div>
+            <div className="mt-0.5 text-[10.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Visitas totales
+            </div>
+          </div>
+          <div className="w-px" style={{ background: "rgba(60,60,67,0.08)" }} />
+          <div className="flex-1 text-center">
+            <div className="text-[18px] font-bold" style={{ color: "#F24444" }}>
+              {visitasMes}
+            </div>
+            <div className="mt-0.5 text-[10.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Este mes
+            </div>
           </div>
         </div>
       </div>
@@ -136,36 +155,23 @@ export default async function PerfilPage() {
         })}
       </div>
 
-      <div className="card mx-5 flex p-3.5">
-        <div className="flex-1 text-center">
-          <div className="text-[18px] font-bold">{visits.length}</div>
-          <div className="mt-0.5 text-[10.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-            Visitas totales
-          </div>
-        </div>
-        <div className="w-px" style={{ background: "rgba(60,60,67,0.08)" }} />
-        <div className="flex-1 text-center">
-          <div className="text-[18px] font-bold" style={{ color: "#F24444" }}>
-            {visitasMes}
-          </div>
-          <div className="mt-0.5 text-[10.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-            Este mes
-          </div>
-        </div>
-      </div>
-
       {profile.role === "admin" && <MobileInviteForm />}
 
       <div
         className="mx-5 mt-5 rounded-[18px] p-5"
         style={{ background: "#1C1C1E" }}
       >
-        <div className="mb-2.5 flex items-center gap-2">
-          <svg width="17" height="17" viewBox="0 0 24 24">
-            <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
-            <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <div className="heading text-[11.5px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+        <div className="mb-3 flex items-center gap-2.5">
+          <div
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(242,68,68,0.18)" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
+              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="heading text-[19px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
         </div>
         <div className="text-[14px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
           &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;

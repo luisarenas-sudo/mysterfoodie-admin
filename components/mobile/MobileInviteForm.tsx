@@ -59,7 +59,7 @@ export default function MobileInviteForm() {
       >
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg"
-          style={{ background: "rgba(242,68,68,0.12)" }}
+          style={{ background: "rgba(0,122,255,0.12)" }}
         >
           ✉️
         </div>
@@ -137,8 +137,8 @@ export default function MobileInviteForm() {
                 onClick={() => setRole(opt.value)}
                 className="mf-tap flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left"
                 style={{
-                  background: role === opt.value ? "rgba(242,68,68,0.1)" : "#F2F2F7",
-                  border: role === opt.value ? "1.5px solid #F24444" : "1.5px solid transparent",
+                  background: role === opt.value ? "rgba(0,122,255,0.1)" : "#F2F2F7",
+                  border: role === opt.value ? "1.5px solid #007AFF" : "1.5px solid transparent",
                 }}
               >
                 <div className="min-w-0 flex-1">
@@ -149,7 +149,7 @@ export default function MobileInviteForm() {
                 </div>
                 {role === opt.value && (
                   <svg width="20" height="20" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" fill="#F24444" />
+                    <circle cx="12" cy="12" r="10" fill="#007AFF" />
                     <path d="M8 12.5l2.5 2.5L16 9" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
@@ -168,7 +168,7 @@ export default function MobileInviteForm() {
           type="submit"
           disabled={submitting}
           className="mf-tap w-full rounded-[14px] py-3.5 text-center text-[15px] font-bold text-white disabled:opacity-50"
-          style={{ background: "#F24444" }}
+          style={{ background: "#007AFF" }}
         >
           {submitting ? "Enviando..." : "Enviar invitación"}
         </button>
