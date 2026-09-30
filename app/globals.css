@@ -110,3 +110,10 @@ body {
   background-image: linear-gradient(180deg, #f24444 0%, #f25631 100%);
   color: #ffffff;
 }
+
+.mf-scroll::-webkit-scrollbar {
+  display: none;
+}
+.mf-scroll {
+  scrollbar-width: none;
+}

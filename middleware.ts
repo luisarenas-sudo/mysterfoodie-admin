@@ -66,7 +66,11 @@ export async function middleware(request: NextRequest) {
 
   const adminOnly = pathname.startsWith("/negocios") || pathname.startsWith("/admin");
   const agenteOAdmin =
-    pathname === "/" || pathname.startsWith("/mis-visitas") || pathname.startsWith("/visitas");
+    pathname === "/" ||
+    pathname.startsWith("/mis-visitas") ||
+    pathname.startsWith("/visitas") ||
+    pathname.startsWith("/nueva-visita") ||
+    pathname.startsWith("/perfil");
   const clienteOnly = pathname.startsWith("/mi-negocio");
 
   if (adminOnly && role !== "admin") {

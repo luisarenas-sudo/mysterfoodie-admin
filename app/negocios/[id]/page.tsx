@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClientDetail } from "@/lib/dashboard";
 import ClientScoreboard from "@/components/ClientScoreboard";
+import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 
 export const dynamic = "force-dynamic";
 
@@ -38,28 +39,32 @@ export default async function NegocioDetailPage({
   const latest = client.visits[client.visits.length - 1];
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <Link href="/negocios" className="text-sm text-stone-500 hover:text-brand-500">
-        Negocios
-      </Link>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="heading text-3xl text-ink">{client.name}</h1>
-          <p className="text-sm text-stone-500">
-            {client.city || "Sin ciudad"}
-            {client.instagramHandle ? ` - @${client.instagramHandle}` : ""}
-          </p>
-        </div>
-        <Link
-          href={`/r/${latest.shortCode}`}
-          target="_blank"
-          className="btn-secondary text-sm"
-        >
-          Ver reporte público
-        </Link>
-      </div>
+    <>
+      <MobileNegocioDetail client={client} />
 
-      <ClientScoreboard client={client} canManageEmail />
-    </main>
+      <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
+        <Link href="/negocios" className="text-sm text-stone-500 hover:text-brand-500">
+          Negocios
+        </Link>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="heading text-3xl text-ink">{client.name}</h1>
+            <p className="text-sm text-stone-500">
+              {client.city || "Sin ciudad"}
+              {client.instagramHandle ? ` - @${client.instagramHandle}` : ""}
+            </p>
+          </div>
+          <Link
+            href={`/r/${latest.shortCode}`}
+            target="_blank"
+            className="btn-secondary text-sm"
+          >
+            Ver reporte público
+          </Link>
+        </div>
+
+        <ClientScoreboard client={client} canManageEmail />
+      </main>
+    </>
   );
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, Fredoka } from "next/font/google";
 import AppHeader from "@/components/AppHeader";
+import { HeaderVisibility, MobileChromeBody } from "@/components/mobile/MobileChrome";
+import { getSessionProfile } from "@/lib/auth";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -24,16 +26,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const profile = await getSessionProfile();
+
   return (
     <html lang="es" className={`${poppins.variable} ${fredoka.variable}`}>
       <body className="font-sans">
-        <AppHeader />
-        {children}
+        <HeaderVisibility>
+          <AppHeader />
+        </HeaderVisibility>
+        <MobileChromeBody role={profile?.role ?? null}>{children}</MobileChromeBody>
       </body>
     </html>
   );

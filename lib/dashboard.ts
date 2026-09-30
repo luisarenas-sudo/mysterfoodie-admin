@@ -293,3 +293,176 @@ export async function getAdminStats(): Promise<AdminStats> {
     visitasUltimoMes: visitasUltimoMes ?? 0,
   };
 }
+
+// ============================================================
+// Helpers para las pantallas móviles (Inicio, Reportes, tendencia
+// mensual de un negocio) añadidos al aplicar el rediseño mobile.
+// ============================================================
+
+import { getVerdict } from "./verdict";
+import { avatarColorFor, initialsFor } from "./ring";
+
+export type HomeActivityItem = {
+  id: string;
+  negocioId: string;
+  negocioNombre: string;
+  fecha: string;
+  score: number;
+  verdictLabel: string;
+  verdictColor: string;
+  initial: string;
+  avatarColor: string;
+};
+
+export type HomeSummary = {
+  visitasMes: number;
+  promedioGeneral: number | null;
+  actividadReciente: HomeActivityItem[];
+};
+
+function formatShortDate(iso: string) {
+  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
+/** Estadísticas + actividad reciente para "Inicio" (móvil). Sin agentId = alcance global (admin). */
+export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<HomeSummary> {
+  const db = getSupabaseServiceClient();
+
+  let query = db
+    .from("forms")
+    .select("id, client_id, overall_score, created_at")
+    .order("created_at", { ascending: false })
+    .limit(60);
+  if (scope.agentId) query = query.eq("created_by", scope.agentId);
+
+  const { data: forms } = await query;
+  const allForms = forms || [];
+
+  if (allForms.length === 0) {
+    return { visitasMes: 0, promedioGeneral: null, actividadReciente: [] };
+  }
+
+  const clientIds = Array.from(new Set(allForms.map((f) => f.client_id)));
+  const { data: clients } = await db.from("clients").select("id, name").in("id", clientIds);
+  const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+
+  const now = new Date();
+  const visitasMes = allForms.filter((f) => {
+    const d = new Date(f.created_at);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+
+  const promedioGeneral =
+    allForms.length > 0
+      ? Math.round((allForms.reduce((sum, f) => sum + (f.overall_score || 0), 0) / allForms.length) * 10) / 10
+      : null;
+
+  const actividadReciente = allForms.slice(0, 8).map((f) => {
+    const nombre = nameById.get(f.client_id) ?? "Negocio";
+    const verdict = getVerdict(f.overall_score);
+    return {
+      id: f.id,
+      negocioId: f.client_id,
+      negocioNombre: nombre,
+      fecha: formatShortDate(f.created_at),
+      score: f.overall_score,
+      verdictLabel: verdict.label,
+      verdictColor: verdict.color,
+      initial: initialsFor(nombre),
+      avatarColor: avatarColorFor(nombre),
+    };
+  });
+
+  return { visitasMes, promedioGeneral, actividadReciente };
+}
+
+export type ReyNegocio = { id: string; nombre: string; scoreLabel: string } | null;
+
+/** El negocio mejor evaluado (para el banner "El Rey" de Inicio). Solo se muestra si hay un destacado claro (>=4). */
+export async function getReyNegocio(): Promise<ReyNegocio> {
+  const clients = await getClientsSummary();
+  const withScore = clients.filter((c) => c.lastScore !== null && c.visitCount > 0);
+  if (withScore.length === 0) return null;
+  const top = withScore.reduce((best, c) => ((c.lastScore ?? 0) > (best.lastScore ?? 0) ? c : best));
+  if (!top.lastScore || top.lastScore < 4) return null;
+  return { id: top.id, nombre: top.name, scoreLabel: String(top.lastScore) };
+}
+
+/** Todas las visitas registradas (cualquier agente), para el tab Reportes cuando lo ve un admin. */
+export async function getAllVisits(): Promise<AgentVisit[]> {
+  const db = getSupabaseServiceClient();
+
+  const { data: forms } = await db
+    .from("forms")
+    .select("id, short_code, overall_score, created_at, client_id")
+    .order("created_at", { ascending: false });
+
+  if (!forms || forms.length === 0) return [];
+
+  const { data: clients } = await db
+    .from("clients")
+    .select("id, name")
+    .in("id", forms.map((f) => f.client_id));
+
+  const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+
+  return forms.map((f) => ({
+    id: f.id,
+    shortCode: f.short_code,
+    overallScore: f.overall_score,
+    createdAt: f.created_at,
+    clientId: f.client_id,
+    clientName: nameById.get(f.client_id) ?? "Negocio",
+  }));
+}
+
+export type MonthlyTrendPoint = {
+  mesLabel: string;
+  count: number;
+  avgLabel: string;
+  arrow: string;
+  arrowColor: string;
+};
+
+/** Agrupa las visitas de un negocio por mes para "Tendencia mensual" en el detalle móvil. */
+export function getMonthlyTrend(
+  visits: { createdAt: string; overallScore: number }[]
+): MonthlyTrendPoint[] {
+  const byMonth = new Map<string, { label: string; scores: number[] }>();
+  visits.forEach((v) => {
+    const d = new Date(v.createdAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    const label = d.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+    if (!byMonth.has(key)) byMonth.set(key, { label, scores: [] });
+    byMonth.get(key)!.scores.push(v.overallScore);
+  });
+
+  const months = Array.from(byMonth.entries()).sort(([a], [b]) => (a > b ? 1 : -1));
+
+  return months.map(([, m], idx) => {
+    const avg = Math.round((m.scores.reduce((s, v) => s + v, 0) / m.scores.length) * 10) / 10;
+    const prevScores = idx > 0 ? months[idx - 1][1].scores : null;
+    const prevAvg =
+      prevScores && prevScores.length > 0
+        ? Math.round((prevScores.reduce((s, v) => s + v, 0) / prevScores.length) * 10) / 10
+        : null;
+    let arrow = "—";
+    let arrowColor = "rgba(60,60,67,0.4)";
+    if (prevAvg !== null) {
+      if (avg > prevAvg) {
+        arrow = "▲";
+        arrowColor = "#34C759";
+      } else if (avg < prevAvg) {
+        arrow = "▼";
+        arrowColor = "#FF3B30";
+      }
+    }
+    return {
+      mesLabel: m.label.charAt(0).toUpperCase() + m.label.slice(1),
+      count: m.scores.length,
+      avgLabel: String(avg),
+      arrow,
+      arrowColor,
+    };
+  });
+}
