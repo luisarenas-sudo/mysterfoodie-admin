@@ -20,8 +20,10 @@ type Business = {
 };
 
 type Body = {
-  /** Alta libre de negocio (admin/sibarita): ver "Nueva visita" sin asignación. */
+  /** Alta libre de negocio (sin usar el formulario "Nuevo negocio"): flujo antiguo, ya sin ruta activa. */
   business?: Business;
+  /** Visita directa a un negocio ya existente (admin/sibarita): ver /nueva-visita/negocio/[id]. */
+  clientId?: string;
   /** Visita a partir de una asignación (Foodie): ver /nueva-visita/[assignmentId]. */
   assignmentId?: string;
   shopperName?: string;
@@ -71,8 +73,9 @@ export async function POST(req: NextRequest) {
   }
 
   // ------------------------------------------------------------
-  // Resolver el negocio: o viene de una asignación (Foodie), o se
-  // da de alta / reutiliza a partir del formulario libre (admin/sibarita).
+  // Resolver el negocio: de una asignación (Foodie), de un negocio ya
+  // existente elegido directamente (admin/sibarita), o se da de alta /
+  // reutiliza a partir del formulario libre (compatibilidad).
   // ------------------------------------------------------------
   let clientId: string;
   let business: Business;
@@ -102,6 +105,31 @@ export async function POST(req: NextRequest) {
     }
 
     assignmentId = assignment.id;
+    clientId = client.id;
+    business = {
+      name: client.name,
+      type: client.type,
+      instagramHandle: client.instagram_handle || undefined,
+      email: client.email || undefined,
+      city: client.city || undefined,
+    };
+  } else if (body.clientId) {
+    if (profile.role === "agente") {
+      return NextResponse.json(
+        { error: "Como Foodie solo puedes registrar visitas que te hayan sido asignadas" },
+        { status: 403 }
+      );
+    }
+
+    const { data: client } = await db
+      .from("clients")
+      .select("id, name, type, instagram_handle, email, city")
+      .eq("id", body.clientId)
+      .maybeSingle();
+    if (!client) {
+      return NextResponse.json({ error: "Negocio no encontrado" }, { status: 404 });
+    }
+
     clientId = client.id;
     business = {
       name: client.name,

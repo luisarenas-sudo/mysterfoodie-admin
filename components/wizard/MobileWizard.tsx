@@ -38,7 +38,8 @@ const EMPTY_BUSINESS: Business = {
 };
 
 export type BoundAssignment = {
-  assignmentId: string;
+  /** Presente cuando la visita viene de una asignación de Foodie; ausente cuando admin/sibarita visitan un negocio directamente. */
+  assignmentId?: string;
   client: {
     id: string;
     name: string;
@@ -199,8 +200,14 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
   function goBack() {
     if (step > 0) {
       setStep((s) => s - 1);
+      return;
+    }
+    if (boundAssignment?.assignmentId) {
+      router.push("/nueva-visita");
+    } else if (boundAssignment) {
+      router.push(`/negocios/${boundAssignment.client.id}`);
     } else {
-      router.push(boundAssignment ? "/nueva-visita" : "/");
+      router.push("/");
     }
   }
 
@@ -209,7 +216,9 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     setSubmitError(null);
     try {
       const payload = boundAssignment
-        ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
+        ? boundAssignment.assignmentId
+          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
+          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments, waiterName }
         : { business, shopperName, ratings, flags, selects, comments, waiterName };
       const res = await fetch("/api/visits", {
         method: "POST",
@@ -347,7 +356,15 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
         >
           <button
             type="button"
-            onClick={() => router.push("/")}
+            onClick={() => {
+              if (boundAssignment?.assignmentId) {
+                router.push("/nueva-visita");
+              } else if (boundAssignment) {
+                router.push(`/negocios/${boundAssignment.client.id}`);
+              } else {
+                router.push("/");
+              }
+            }}
             className="mf-tap w-full rounded-2xl py-[15px] text-center text-[16px] font-bold text-white"
             style={{ background: ACCENT }}
           >

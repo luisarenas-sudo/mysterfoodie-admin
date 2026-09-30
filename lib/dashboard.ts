@@ -45,6 +45,54 @@ export async function getClientsSummary(): Promise<ClientSummary[]> {
     });
 }
 
+export type VisitPickerClient = {
+  id: string;
+  name: string;
+  type: string;
+  city: string | null;
+  createdAt: string;
+  visitCount: number;
+  lastVisitAt: string | null;
+  lastScore: number | null;
+};
+
+/**
+ * Negocios para el selector de "Nueva visita" (admin/sibarita): a
+ * diferencia de getClientsSummary() (que ordena por última visita, y
+ * manda los negocios sin visitas al final), aquí siempre va primero
+ * el negocio más recién agregado -- así uno recién creado aparece de
+ * inmediato hasta arriba, listo para su primera visita.
+ */
+export async function getClientsForVisitPicker(): Promise<VisitPickerClient[]> {
+  const db = getSupabaseServiceClient();
+
+  const { data: clients, error: clientsError } = await db
+    .from("clients")
+    .select("id, name, type, city, created_at")
+    .order("created_at", { ascending: false });
+  if (clientsError || !clients) return [];
+
+  const { data: forms } = await db
+    .from("forms")
+    .select("client_id, overall_score, created_at")
+    .order("created_at", { ascending: false });
+
+  return clients.map((client) => {
+    const clientForms = (forms || []).filter((f) => f.client_id === client.id);
+    const last = clientForms[0];
+    return {
+      id: client.id,
+      name: client.name,
+      type: client.type,
+      city: client.city,
+      createdAt: client.created_at,
+      visitCount: clientForms.length,
+      lastVisitAt: last?.created_at ?? null,
+      lastScore: last?.overall_score ?? null,
+    };
+  });
+}
+
 export type VisitDetail = {
   id: string;
   shortCode: string;
@@ -69,6 +117,7 @@ export type ClientDetail = {
   type: string;
   city: string | null;
   instagramHandle: string | null;
+  email: string | null;
   /** Banderas de oportunidad de venta, capturadas al dar de alta el negocio (ver "Nuevo negocio"). */
   hasWebsite: boolean;
   hasGoogleBusiness: boolean;
@@ -123,7 +172,7 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
   const { data: client } = await db
     .from("clients")
     .select(
-      "id, name, type, city, instagram_handle, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
+      "id, name, type, city, instagram_handle, email, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
     )
     .eq("id", id)
     .maybeSingle();
@@ -169,6 +218,7 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     type: client.type,
     city: client.city,
     instagramHandle: client.instagram_handle,
+    email: client.email,
     hasWebsite: Boolean(client.has_website),
     hasGoogleBusiness: Boolean(client.has_google_business),
     hasProfessionalPhotos: Boolean(client.has_professional_photos),

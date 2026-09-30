@@ -202,7 +202,7 @@ export default function MobileNegocioDetail({
 
         <div className="px-5 pt-4 space-y-2.5">
           <Link
-            href="/nueva-visita"
+            href={`/nueva-visita/negocio/${client.id}`}
             className="mf-tap block rounded-[14px] py-3.5 text-center text-[16px] font-bold text-white"
             style={{ background: "#F24444" }}
           >

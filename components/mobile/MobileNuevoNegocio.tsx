@@ -121,7 +121,6 @@ export default function MobileNuevoNegocio() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ id: string } | null>(null);
 
   async function handleSubmit() {
     if (!name.trim()) {
@@ -152,47 +151,15 @@ export default function MobileNuevoNegocio() {
         setSubmitting(false);
         return;
       }
-      // Solo confirmamos el alta -- no se obliga a asignar el negocio a un
-      // Foodie aquí; eso es un paso aparte y opcional desde el detalle del
-      // negocio (ver "Asignar a un Foodie" en MobileNegocioDetail).
-      setCreated({ id: data.id });
+      // El detalle del negocio recién creado ya confirma el alta (nombre,
+      // "aún sin visitas") y desde ahí se decide el siguiente paso:
+      // visitarlo ahora mismo o asignarlo a un Foodie -- no se obliga
+      // nada aquí.
+      router.push(`/negocios/${data.id}`);
     } catch {
       setError("Error de conexión, intenta de nuevo");
       setSubmitting(false);
     }
-  }
-
-  if (created) {
-    return (
-      <div className="md:hidden fixed inset-0 z-40 flex flex-col items-center justify-center mf-push-in px-8 text-center" style={{ background: "#F2F2F7" }}>
-        <svg width="56" height="56" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" fill="#34C759" />
-          <path d="M8 12.5l2.5 2.5L16 9" stroke="#fff" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <div className="heading mt-3 text-[20px] font-bold">Negocio añadido</div>
-        <div className="mt-1 text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-          {name} ya está dado de alta.
-        </div>
-
-        <div className="mt-8 w-full space-y-2.5">
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="mf-tap w-full rounded-2xl py-3.5 text-center text-[16px] font-bold text-white"
-            style={{ background: ACCENT }}
-          >
-            Listo
-          </button>
-          <Link
-            href={`/negocios/${created.id}`}
-            className="mf-tap block w-full rounded-2xl py-3.5 text-center text-[15px] font-semibold"
-            style={{ color: "rgba(60,60,67,0.6)" }}
-          >
-            Ver negocio
-          </Link>
-        </div>
-      </div>
-    );
   }
 
   return (
