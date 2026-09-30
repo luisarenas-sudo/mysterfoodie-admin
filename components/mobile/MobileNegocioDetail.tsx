@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ClientDetail } from "@/lib/dashboard";
+import type { ClientDetail, PendingAssignmentForClient } from "@/lib/dashboard";
 import { getMonthlyTrend } from "@/lib/dashboard";
 import { getVerdict } from "@/lib/verdict";
 import { avatarColorFor, initialsFor, CATEGORY_EMOJI } from "@/lib/ring";
@@ -49,41 +49,78 @@ const OPPORTUNITIES: OpportunityDef[] = [
   },
 ];
 
+const TYPE_LABEL: Record<string, string> = {
+  restaurante: "Restaurante",
+  bar: "Bar",
+  cafeteria: "Cafetería",
+};
+
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+function AssignedFoodieCard({ assignment }: { assignment: PendingAssignmentForClient }) {
+  return (
+    <div className="card mx-5 mt-4 flex items-center gap-3 px-4 py-3.5">
+      <div
+        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[15px]"
+        style={{ background: "rgba(242,68,68,0.12)" }}
+      >
+        🌱
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11.5px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>
+          Visita asignada a
+        </div>
+        <div className="truncate text-[14.5px] font-bold">
+          {assignment.foodieName || assignment.foodieEmail}
+        </div>
+      </div>
+      <div
+        className="flex-shrink-0 rounded-lg px-2 py-[3px] text-[10px] font-bold"
+        style={{ color: "#FF9500", background: "rgba(255,149,0,0.12)" }}
+      >
+        PENDIENTE
+      </div>
+    </div>
+  );
 }
 
 export default function MobileNegocioDetail({
   client,
   canAssign = false,
+  pendingAssignment = null,
 }: {
   client: ClientDetail;
   canAssign?: boolean;
+  pendingAssignment?: PendingAssignmentForClient | null;
 }) {
   const visits = client.visits;
-  const latest = visits[visits.length - 1];
+  const hasVisits = visits.length > 0;
+  const latest = hasVisits ? visits[visits.length - 1] : null;
   const previous = visits.length > 1 ? visits[visits.length - 2] : null;
-  const verdict = getVerdict(latest.overallScore);
+  const verdict = latest ? getVerdict(latest.overallScore) : null;
   const avatarColor = avatarColorFor(client.name);
 
   const monthly = getMonthlyTrend(visits.map((v) => ({ createdAt: v.createdAt, overallScore: v.overallScore })));
 
-  const categoryTrends = latest.ratings.map((r) => {
-    const prev = previous?.ratings.find((p) => p.key === r.key);
-    const delta = prev ? Math.round((r.score - prev.score) * 10) / 10 : null;
-    let arrow = "—";
-    let arrowColor = "rgba(60,60,67,0.4)";
-    if (delta !== null) {
-      if (delta > 0) {
-        arrow = "▲";
-        arrowColor = "#34C759";
-      } else if (delta < 0) {
-        arrow = "▼";
-        arrowColor = "#FF3B30";
+  const categoryTrends =
+    latest?.ratings.map((r) => {
+      const prev = previous?.ratings.find((p) => p.key === r.key);
+      const delta = prev ? Math.round((r.score - prev.score) * 10) / 10 : null;
+      let arrow = "—";
+      let arrowColor = "rgba(60,60,67,0.4)";
+      if (delta !== null) {
+        if (delta > 0) {
+          arrow = "▲";
+          arrowColor = "#34C759";
+        } else if (delta < 0) {
+          arrow = "▼";
+          arrowColor = "#FF3B30";
+        }
       }
-    }
-    return { ...r, arrow, arrowColor, deltaLabel: delta !== null ? Math.abs(delta).toFixed(1) : "" };
-  });
+      return { ...r, arrow, arrowColor, deltaLabel: delta !== null ? Math.abs(delta).toFixed(1) : "" };
+    }) ?? [];
 
   return (
     <div className="md:hidden mf-push-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
@@ -111,43 +148,57 @@ export default function MobileNegocioDetail({
             <div className="heading text-[22px] font-bold">{client.name}</div>
           </div>
           <div className="mt-0.5 text-sm" style={{ color: "rgba(60,60,67,0.6)" }}>
-            {client.type === "restaurante" ? "Restaurante" : client.type === "bar" ? "Bar" : client.type === "cafeteria" ? "Cafetería" : "Negocio"}
+            {TYPE_LABEL[client.type] ?? "Negocio"}
             {client.city ? ` · ${client.city}` : ""}
           </div>
         </div>
 
-        <div className="flex flex-col items-center pb-1.5 pt-3.5">
-          <ActivityRing value={latest.overallScore} max={5} size={132} strokeWidth={12} color={verdict.color}>
-            <div className="text-[30px] font-bold">{latest.overallScore}</div>
-            <div className="text-[11px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              de 5.0
-            </div>
-          </ActivityRing>
-          <div
-            className="mt-2 rounded-[10px] px-3 py-1 text-[13px] font-bold"
-            style={{ color: verdict.color, background: `${verdict.color}1F` }}
-          >
-            {verdict.label}
-          </div>
-        </div>
-
-        <div className="card mx-5 mt-[18px] p-4">
-          <div className="grid grid-cols-2 gap-x-2.5 gap-y-4">
-            {latest.ratings.map((cs) => (
-              <div key={cs.key} className="flex items-center gap-2.5">
-                <ActivityRing value={cs.score} max={5} size={50} strokeWidth={6} color={verdict.color} trackColor="rgba(60,60,67,0.1)">
-                  <div className="text-[19px]">{CATEGORY_EMOJI[cs.key] ?? "⭐"}</div>
-                </ActivityRing>
-                <div className="min-w-0">
-                  <div className="truncate text-[12.5px] font-semibold">{cs.label}</div>
-                  <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-                    {cs.score}/5
-                  </div>
+        {hasVisits && latest && verdict ? (
+          <>
+            <div className="flex flex-col items-center pb-1.5 pt-3.5">
+              <ActivityRing value={latest.overallScore} max={5} size={132} strokeWidth={12} color={verdict.color}>
+                <div className="text-[30px] font-bold">{latest.overallScore}</div>
+                <div className="text-[11px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                  de 5.0
                 </div>
+              </ActivityRing>
+              <div
+                className="mt-2 rounded-[10px] px-3 py-1 text-[13px] font-bold"
+                style={{ color: verdict.color, background: `${verdict.color}1F` }}
+              >
+                {verdict.label}
               </div>
-            ))}
+            </div>
+
+            <div className="card mx-5 mt-[18px] p-4">
+              <div className="grid grid-cols-2 gap-x-2.5 gap-y-4">
+                {latest.ratings.map((cs) => (
+                  <div key={cs.key} className="flex items-center gap-2.5">
+                    <ActivityRing value={cs.score} max={5} size={50} strokeWidth={6} color={verdict.color} trackColor="rgba(60,60,67,0.1)">
+                      <div className="text-[19px]">{CATEGORY_EMOJI[cs.key] ?? "⭐"}</div>
+                    </ActivityRing>
+                    <div className="min-w-0">
+                      <div className="truncate text-[12.5px] font-semibold">{cs.label}</div>
+                      <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                        {cs.score}/5
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="card mx-5 mt-4 p-5 text-center">
+            <div className="text-[28px]">🆕</div>
+            <div className="mt-1.5 text-[14.5px] font-bold">Aún sin visitas</div>
+            <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Programa la primera evaluación Mystery Shopper para este negocio.
+            </div>
           </div>
-        </div>
+        )}
+
+        {pendingAssignment && <AssignedFoodieCard assignment={pendingAssignment} />}
 
         <div className="px-5 pt-4 space-y-2.5">
           <Link
@@ -163,7 +214,7 @@ export default function MobileNegocioDetail({
               className="mf-tap block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
               style={{ background: "#fff", color: "#F24444", border: "1.5px solid rgba(242,68,68,0.3)" }}
             >
-              Asignar visita a un Foodie
+              {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar a un Foodie"}
             </Link>
           )}
         </div>
@@ -264,29 +315,33 @@ export default function MobileNegocioDetail({
           );
         })()}
 
-        <div className="px-5 pb-2 pt-[22px] text-lg font-bold">Historial de visitas</div>
-        <div className="card mx-5 overflow-hidden">
-          {[...visits].reverse().map((v, idx, arr) => (
-            <div key={v.id}>
-              <Link href={`/visitas/${v.id}`} className="flex items-center justify-between px-4 py-[13px]">
-                <div>
-                  <div className="text-[14.5px]" style={{ color: "rgba(60,60,67,0.7)" }}>
-                    {formatDateLong(v.createdAt)}
-                  </div>
-                  {v.shopperName && (
-                    <div className="mt-0.5 text-[11.5px]" style={{ color: "rgba(60,60,67,0.45)" }}>
-                      {v.shopperName}
+        {hasVisits && (
+          <>
+            <div className="px-5 pb-2 pt-[22px] text-lg font-bold">Historial de visitas</div>
+            <div className="card mx-5 overflow-hidden">
+              {[...visits].reverse().map((v, idx, arr) => (
+                <div key={v.id}>
+                  <Link href={`/visitas/${v.id}`} className="flex items-center justify-between px-4 py-[13px]">
+                    <div>
+                      <div className="text-[14.5px]" style={{ color: "rgba(60,60,67,0.7)" }}>
+                        {formatDateLong(v.createdAt)}
+                      </div>
+                      {v.shopperName && (
+                        <div className="mt-0.5 text-[11.5px]" style={{ color: "rgba(60,60,67,0.45)" }}>
+                          {v.shopperName}
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <div className="text-[15px] font-bold" style={{ color: getVerdict(v.overallScore).color }}>
+                      {v.overallScore}
+                    </div>
+                  </Link>
+                  {idx < arr.length - 1 && <div className="ml-4 h-px" style={{ background: "rgba(60,60,67,0.08)" }} />}
                 </div>
-                <div className="text-[15px] font-bold" style={{ color: getVerdict(v.overallScore).color }}>
-                  {v.overallScore}
-                </div>
-              </Link>
-              {idx < arr.length - 1 && <div className="ml-4 h-px" style={{ background: "rgba(60,60,67,0.08)" }} />}
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

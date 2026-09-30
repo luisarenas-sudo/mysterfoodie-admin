@@ -621,6 +621,46 @@ export async function getPendingAssignmentsFor(userId: string): Promise<PendingA
     .filter((a): a is PendingAssignment => a !== null);
 }
 
+export type PendingAssignmentForClient = {
+  id: string;
+  foodieId: string;
+  foodieName: string | null;
+  foodieEmail: string;
+  note: string | null;
+  createdAt: string;
+};
+
+/** La asignación pendiente (si existe) de un negocio, para mostrar "Asignado a" en su detalle. */
+export async function getPendingAssignmentForClient(clientId: string): Promise<PendingAssignmentForClient | null> {
+  const db = getSupabaseServiceClient();
+
+  const { data: assignment } = await db
+    .from("visit_assignments")
+    .select("id, assigned_to, note, created_at")
+    .eq("client_id", clientId)
+    .eq("status", "pendiente")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!assignment) return null;
+
+  const { data: foodie } = await db
+    .from("profiles")
+    .select("id, full_name, email")
+    .eq("id", assignment.assigned_to)
+    .maybeSingle();
+  if (!foodie) return null;
+
+  return {
+    id: assignment.id,
+    foodieId: foodie.id,
+    foodieName: foodie.full_name,
+    foodieEmail: foodie.email,
+    note: assignment.note,
+    createdAt: assignment.created_at,
+  };
+}
+
 export type AssignmentWithClient = {
   id: string;
   status: string;
