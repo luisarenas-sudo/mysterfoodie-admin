@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -259,6 +260,19 @@ export default function SetPasswordPage() {
         <p className="mt-6 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
           Contraseña guardada. Entrando...
         </p>
+      )}
+
+      {!success && (
+        <div className="mt-6">
+          <div className="flex items-center gap-3 text-xs text-stone-400">
+            <span className="h-px flex-1 bg-stone-200" />
+            o
+            <span className="h-px flex-1 bg-stone-200" />
+          </div>
+          <div className="mt-4">
+            <GoogleSignInButton />
+          </div>
+        </div>
       )}
     </main>
   );

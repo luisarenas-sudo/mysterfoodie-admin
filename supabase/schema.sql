@@ -270,3 +270,26 @@ create table if not exists consultation_bookings (
 );
 
 create index if not exists consultation_bookings_form_id_idx on consultation_bookings(form_id);
+
+-- ============================================================
+-- Cuentas de negocio (self-service): 20 minutos despues de comprar el
+-- reporte completo, se le ofrece al negocio crear su cuenta (correo +
+-- contraseña, o Google) via /api/cron/activar-cuenta-negocio. Desde
+-- ahi puede ver el historial de sus visitas y, a futuro, pedir
+-- visitas programadas y pagarlas directo.
+-- ============================================================
+
+-- Evita invitar al mismo negocio mas de una vez (tenga 1 visita o 10).
+alter table clients add column if not exists account_invited_at timestamptz;
+
+-- Automatización editable del correo de activación (opcional -- si no
+-- se corre este insert, el cron usa un texto por default igual de
+-- funcional, ver app/api/cron/activar-cuenta-negocio/route.ts).
+insert into automations (key, enabled, subject_template, body_template)
+values (
+  'activacion_cuenta_negocio',
+  true,
+  'Activa tu cuenta en MysterFoodie',
+  E'Hola equipo de {{negocio}},\n\nYa puedes crear tu cuenta en MysterFoodie para ver el historial de visitas de tu negocio, pedir nuevas visitas programadas y revisar tus reportes cuando quieras.\n\nEntra aquí para crear tu contraseña (o puedes continuar con tu cuenta de Google desde la misma pantalla):\n{{link_acceso}}\n\nSaludos,\nMysterFoodie'
+)
+on conflict (key) do nothing;

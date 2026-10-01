@@ -79,6 +79,15 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  activacion_cuenta_negocio: {
+    title: "Activación de cuenta (al negocio)",
+    desc: "Se manda 20 minutos después de que el negocio compra el reporte completo, ofreciéndole crear su cuenta (contraseña o Google) para ver su historial de visitas.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "link_acceso", desc: "Enlace para crear la cuenta" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
   instagram_dm: {
     title: "Mensaje de Instagram (DM, primer contacto)",
     desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",

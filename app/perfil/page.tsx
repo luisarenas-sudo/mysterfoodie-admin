@@ -268,9 +268,9 @@ export default async function PerfilPage({
         <div className="mx-5">
           <DeleteButton
             endpoint="/api/admin/reset-demo-data"
-            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento (son datos de prueba) y los reemplaza por 3 negocios de ejemplo con varias visitas, firmadas por Foodies ficticios, solo para poder explicar la app. No se puede deshacer."
+            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento y deja todo vacío, listo para empezar a usar la app en serio. No se puede deshacer."
             redirectTo="/negocios"
-            triggerLabel="Restablecer datos de ejemplo"
+            triggerLabel="Vaciar negocios y visitas"
             variant="mobile"
           />
         </div>
@@ -446,9 +446,9 @@ export default async function PerfilPage({
         <div className="mt-6 border-t border-stone-100 pt-6">
           <DeleteButton
             endpoint="/api/admin/reset-demo-data"
-            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento (son datos de prueba) y los reemplaza por 3 negocios de ejemplo con varias visitas, firmadas por Foodies ficticios, solo para poder explicar la app. No se puede deshacer."
+            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento y deja todo vacío, listo para empezar a usar la app en serio. No se puede deshacer."
             redirectTo="/negocios"
-            triggerLabel="Restablecer datos de ejemplo"
+            triggerLabel="Vaciar negocios y visitas"
             variant="desktop"
           />
         </div>
