@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict } from "@/lib/verdict";
 import { categoryScores, type Ratings } from "@/lib/scoring";
@@ -12,6 +11,7 @@ import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import VerdictBadge from "@/components/VerdictBadge";
 import FlancoCredit from "@/components/FlancoCredit";
 import MobileReportePublico from "@/components/mobile/MobileReportePublico";
+import CheckoutPayerForm from "@/components/CheckoutPayerForm";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -241,7 +241,6 @@ export default async function ReportPage({
   const verdict = getVerdict(form.overall_score);
   const unlocked = Boolean(form.report_unlocked_at);
   const mercadopagoConfigured = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
-  const checkoutUrl = `/api/checkout?shortCode=${shortCode}`;
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const whatsappFallbackLink = contactWhatsapp
     ? `https://wa.me/${contactWhatsapp}?text=${encodeURIComponent(
@@ -346,20 +345,7 @@ export default async function ReportPage({
             evaluados dentro de cada categoría y los comentarios del mystery shopper.
           </p>
           {mercadopagoConfigured ? (
-            <>
-              <a
-                href={checkoutUrl}
-                className="mt-4 inline-block rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-              >
-                Comprar reporte completo - ${FULL_REPORT_PRICE_MXN} MXN
-              </a>
-              <div className="mt-3 flex justify-center">
-                <Image src="/mercadopago-logo.png" alt="Mercado Pago" width={110} height={29} className="opacity-80" />
-              </div>
-              <div className="mt-1.5">
-                <FlancoCredit label="Respaldado por Flanco Izquierdo" className="text-xs" color="#a8a29e" />
-              </div>
-            </>
+            <CheckoutPayerForm shortCode={shortCode} price={FULL_REPORT_PRICE_MXN} />
           ) : whatsappFallbackLink ? (
             <a
               href={whatsappFallbackLink}

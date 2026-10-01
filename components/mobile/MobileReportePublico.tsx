@@ -233,7 +233,7 @@ export default function MobileReportePublico({
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
             <div className="mb-1.5 text-[21px] font-bold">Obtén el reporte completo</div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Más de <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>40 indicadores</span> detallados:
+              Más de <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
               tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro Myster Foodie.
             </div>
           </div>

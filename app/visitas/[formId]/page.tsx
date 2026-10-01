@@ -34,7 +34,10 @@ export default async function VisitaDetailPage({
 
   let visit;
   try {
-    visit = await getVisitDetail(formId);
+    visit = await getVisitDetail(formId, {
+      isAdmin: profile.role === "admin",
+      userId: profile.userId,
+    });
   } catch (err) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-10">

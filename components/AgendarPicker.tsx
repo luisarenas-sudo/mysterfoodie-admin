@@ -43,9 +43,15 @@ export default function AgendarPicker({
   needsPhone: boolean;
   slots: SlotOption[];
 }) {
+  // Copia local de slots: si el POST falla por choque de horario (alguien
+  // más agendó ese mismo slot justo antes), lo quitamos de aquí para que no
+  // se pueda reintentar el mismo horario ya tomado -- antes quedaba
+  // seleccionable y el usuario podía quedarse reintentando en bucle.
+  const [availableSlots, setAvailableSlots] = useState(slots);
+
   const grouped = useMemo(() => {
     const byDay = new Map<string, SlotOption[]>();
-    for (const slot of slots) {
+    for (const slot of availableSlots) {
       const dayKey = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/Mexico_City",
         year: "numeric",
@@ -56,7 +62,7 @@ export default function AgendarPicker({
       byDay.get(dayKey)!.push(slot);
     }
     return Array.from(byDay.entries());
-  }, [slots]);
+  }, [availableSlots]);
 
   const [selected, setSelected] = useState<SlotOption | null>(null);
   const [contactName, setContactName] = useState("");
@@ -91,6 +97,10 @@ export default function AgendarPicker({
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "No se pudo agendar, intenta con otro horario");
+        // Ese horario ya no es válido (lo más común es que alguien más lo
+        // haya tomado) -- lo quitamos de la lista y obligamos a elegir otro.
+        setAvailableSlots((prev) => prev.filter((s) => s.startISO !== selected.startISO));
+        setSelected(null);
         return;
       }
       setConfirmed(true);

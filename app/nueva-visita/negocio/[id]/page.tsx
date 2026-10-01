@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getClientDetail } from "@/lib/dashboard";
 import MobileWizard from "@/components/wizard/MobileWizard";
+import DesktopWizard from "@/components/wizard/DesktopWizard";
 
 export const dynamic = "force-dynamic";
 
@@ -23,18 +24,23 @@ export default async function VisitarNegocioPage({
   const client = await getClientDetail(id);
   if (!client) return notFound();
 
+  const boundAssignment = {
+    client: {
+      id: client.id,
+      name: client.name,
+      type: client.type,
+      instagramHandle: client.instagramHandle,
+      email: client.email,
+      city: client.city,
+    },
+  };
+
   return (
-    <MobileWizard
-      boundAssignment={{
-        client: {
-          id: client.id,
-          name: client.name,
-          type: client.type,
-          instagramHandle: client.instagramHandle,
-          email: client.email,
-          city: client.city,
-        },
-      }}
-    />
+    <>
+      <MobileWizard boundAssignment={boundAssignment} />
+      <div className="hidden md:block">
+        <DesktopWizard boundAssignment={boundAssignment} />
+      </div>
+    </>
   );
 }

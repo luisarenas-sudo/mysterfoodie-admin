@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getAssignmentDetail } from "@/lib/dashboard";
 import MobileWizard from "@/components/wizard/MobileWizard";
+import DesktopWizard from "@/components/wizard/DesktopWizard";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +25,17 @@ export default async function VisitaAsignadaPage({
     redirect("/nueva-visita");
   }
 
+  const boundAssignment = {
+    assignmentId: assignment.id,
+    client: assignment.client,
+  };
+
   return (
-    <MobileWizard
-      boundAssignment={{
-        assignmentId: assignment.id,
-        client: assignment.client,
-      }}
-    />
+    <>
+      <MobileWizard boundAssignment={boundAssignment} />
+      <div className="hidden md:block">
+        <DesktopWizard boundAssignment={boundAssignment} />
+      </div>
+    </>
   );
 }

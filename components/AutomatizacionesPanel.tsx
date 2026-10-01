@@ -41,6 +41,13 @@ function AutomationCard({ automation }: { automation: Automation }) {
   const [enabled, setEnabled] = useState(automation.enabled);
   const [subject, setSubject] = useState(automation.subjectTemplate);
   const [body, setBody] = useState(automation.bodyTemplate);
+  // Lo último efectivamente guardado en el servidor -- NO la prop original.
+  // "dirty" debe compararse contra esto, si no, en cuanto se guarda una vez
+  // queda "sucio" para siempre (la prop automation nunca se actualiza sola)
+  // y el aviso de "Guardado" nunca se alcanza a mostrar.
+  const [savedEnabled, setSavedEnabled] = useState(automation.enabled);
+  const [savedSubject, setSavedSubject] = useState(automation.subjectTemplate);
+  const [savedBody, setSavedBody] = useState(automation.bodyTemplate);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +56,7 @@ function AutomationCard({ automation }: { automation: Automation }) {
   const catalog = AUTOMATION_CATALOG[automation.key] ?? { title: automation.key, desc: "", tags: [] };
   const hasSubject = catalog.hasSubject !== false;
   const enabledLabel = catalog.enabledLabel ?? { on: "Activa", off: "Desactivada" };
-  const dirty = enabled !== automation.enabled || subject !== automation.subjectTemplate || body !== automation.bodyTemplate;
+  const dirty = enabled !== savedEnabled || subject !== savedSubject || body !== savedBody;
 
   async function save(patch: { enabled?: boolean; subjectTemplate?: string; bodyTemplate?: string }) {
     setSaving(true);
@@ -62,6 +69,9 @@ function AutomationCard({ automation }: { automation: Automation }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo guardar");
+      if (patch.enabled !== undefined) setSavedEnabled(patch.enabled);
+      if (patch.subjectTemplate !== undefined) setSavedSubject(patch.subjectTemplate);
+      if (patch.bodyTemplate !== undefined) setSavedBody(patch.bodyTemplate);
       setSavedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar");

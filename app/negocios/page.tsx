@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { getClientsSummary, getReyNegocio } from "@/lib/dashboard";
-import VerdictBadge from "@/components/VerdictBadge";
 import MobileNegociosList from "@/components/mobile/MobileNegociosList";
+import NegociosListDesktop from "@/components/NegociosListDesktop";
 
 export const dynamic = "force-dynamic";
 
@@ -45,31 +44,7 @@ export default async function NegociosPage() {
           </p>
         )}
 
-        <div className="mt-6 grid gap-3">
-          {clients.map((client) => (
-            <Link
-              key={client.id}
-              href={`/negocios/${client.id}`}
-              className="flex items-center justify-between card p-4 transition-colors hover:border-brand-300"
-            >
-              <div>
-                <p className="font-semibold text-ink">{client.name}</p>
-                <p className="text-sm text-stone-500">
-                  {client.city || "Sin ciudad"} - {client.visitCount}{" "}
-                  {client.visitCount === 1 ? "visita" : "visitas"}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {client.lastScore !== null && (
-                  <>
-                    <span className="text-2xl font-bold text-ink">{client.lastScore}</span>
-                    <VerdictBadge score={client.lastScore} size="sm" />
-                  </>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
+        {!configError && clients.length > 0 && <NegociosListDesktop clients={clients} />}
       </main>
     </>
   );

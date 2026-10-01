@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
 import BooleanToggle from "@/components/BooleanToggle";
 import SelectChips from "@/components/SelectChips";
@@ -34,6 +35,32 @@ const EMPTY_BUSINESS: Business = {
   address: "",
   city: "",
 };
+
+export type BoundAssignment = {
+  /** Presente cuando la visita viene de una asignación de Foodie; ausente cuando admin/sibarita visitan un negocio directamente. */
+  assignmentId?: string;
+  client: {
+    id: string;
+    name: string;
+    type: string;
+    instagramHandle: string | null;
+    email: string | null;
+    city: string | null;
+  };
+};
+
+function businessFromAssignment(a: BoundAssignment): Business {
+  return {
+    name: a.client.name,
+    type: a.client.type,
+    contactName: "",
+    phone: "",
+    instagramHandle: a.client.instagramHandle || "",
+    email: a.client.email || "",
+    address: "",
+    city: a.client.city || "",
+  };
+}
 
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
 
@@ -71,9 +98,13 @@ function stepLabel(step: StepDef): string {
   return "Revisar";
 }
 
-export default function DesktopWizard() {
+export default function DesktopWizard({ boundAssignment }: { boundAssignment?: BoundAssignment } = {}) {
+  const router = useRouter();
+  const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
-  const [business, setBusiness] = useState<Business>(EMPTY_BUSINESS);
+  const [business, setBusiness] = useState<Business>(
+    boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS
+  );
   const [shopperName, setShopperName] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
@@ -85,8 +116,8 @@ export default function DesktopWizard() {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const current = STEPS[step];
-  const progressPct = Math.round((step / (STEPS.length - 1)) * 100);
+  const current = steps[step];
+  const progressPct = Math.round((step / (steps.length - 1)) * 100);
 
   function updateBusiness<K extends keyof Business>(key: K, value: Business[K]) {
     setBusiness((prev) => ({ ...prev, [key]: value }));
@@ -106,14 +137,31 @@ export default function DesktopWizard() {
     return true;
   }
 
+  function goBack() {
+    if (step > 0) {
+      setStep((s) => s - 1);
+      return;
+    }
+    if (boundAssignment?.assignmentId) {
+      router.push("/nueva-visita");
+    } else if (boundAssignment) {
+      router.push(`/negocios/${boundAssignment.client.id}`);
+    }
+  }
+
   async function handleSubmit() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const payload = boundAssignment
+        ? boundAssignment.assignmentId
+          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
+          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments, waiterName }
+        : { business, shopperName, ratings, flags, selects, comments, waiterName };
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ business, shopperName, ratings, flags, selects, comments, waiterName }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -229,13 +277,29 @@ export default function DesktopWizard() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={resetAll}
-          className="mt-8 btn-secondary text-sm"
-        >
-          Registrar otra visita
-        </button>
+        {boundAssignment ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (boundAssignment.assignmentId) {
+                router.push("/nueva-visita");
+              } else {
+                router.push(`/negocios/${boundAssignment.client.id}`);
+              }
+            }}
+            className="mt-8 btn-primary text-sm"
+          >
+            Listo
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={resetAll}
+            className="mt-8 btn-secondary text-sm"
+          >
+            Registrar otra visita
+          </button>
+        )}
       </main>
     );
   }
@@ -244,6 +308,9 @@ export default function DesktopWizard() {
     <main className="mx-auto max-w-3xl px-6 py-10">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
       <h1 className="heading mt-2 text-3xl text-ink">Evaluación Mystery Shopper</h1>
+      {boundAssignment && (
+        <p className="mt-1 text-sm text-stone-500">Visitando: {boundAssignment.client.name}</p>
+      )}
 
       <div className="mt-6">
         <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
@@ -438,10 +505,10 @@ export default function DesktopWizard() {
       )}
 
       <div className="mt-8 flex max-w-xl justify-between">
-        {step > 0 ? (
+        {step > 0 || boundAssignment ? (
           <button
             type="button"
-            onClick={() => setStep((s) => s - 1)}
+            onClick={goBack}
             className="btn-secondary text-sm"
           >
             Atrás

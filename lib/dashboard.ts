@@ -263,16 +263,27 @@ export type VisitFullDetail = {
  * controles de reenvío - tanto para una visita recién guardada como
  * para cualquier evaluación anterior.
  */
-export async function getVisitDetail(formId: string): Promise<VisitFullDetail | null> {
+export async function getVisitDetail(
+  formId: string,
+  access?: { isAdmin: boolean; userId: string }
+): Promise<VisitFullDetail | null> {
   const db = getSupabaseServiceClient();
 
-  const { data: form } = await db
+  let query = db
     .from("forms")
     .select(
-      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments"
+      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments, created_by"
     )
-    .eq("id", formId)
-    .maybeSingle();
+    .eq("id", formId);
+  // Un agente/sibarita solo puede ver el detalle de visitas que él mismo
+  // levantó (igual que en /mis-visitas); solo admin ve cualquiera. Sin
+  // esto, cualquiera con el UUID de una visita ajena (aparece en URLs
+  // compartidas, correos, etc.) podía ver comentarios y desglose de otra
+  // evaluación con solo tener sesión de agente/sibarita.
+  if (access && !access.isAdmin) {
+    query = query.eq("created_by", access.userId);
+  }
+  const { data: form } = await query.maybeSingle();
   if (!form) return null;
 
   const { data: client } = await db

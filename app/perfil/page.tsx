@@ -65,6 +65,7 @@ export default async function PerfilPage({
     profile.role === "admin" ? RANKS[0] : profile.role === "sibarita" ? RANKS[1] : RANKS[2];
 
   return (
+    <>
     <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pb-3.5 pt-5">
         <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
@@ -251,5 +252,64 @@ export default async function PerfilPage({
         </button>
       </form>
     </div>
+
+    {/* Esta pantalla es sobre todo móvil (rango, Palabra Foodie, etc.), pero
+       "Conectar cuenta de Google" solo vive aquí y antes no tenía ninguna
+       versión de escritorio -- quien entrara a /perfil desde una
+       computadora veía el header y nada más debajo. Esta versión reducida
+       cubre lo esencial: identidad y la conexión de Google. */}
+    <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
+      <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
+      <h1 className="heading mt-2 text-3xl text-ink">Perfil</h1>
+
+      <div className="mt-6 flex items-center gap-3.5 card p-[18px]">
+        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
+        <div className="min-w-0">
+          <div className="truncate text-base font-bold text-ink">{displayName}</div>
+          <div className="truncate text-sm text-stone-500">
+            {ROLE_LABEL[profile.role] ?? profile.role}
+            {displayName !== profile.email ? ` · ${profile.email}` : ""}
+          </div>
+        </div>
+      </div>
+
+      {google === "conectado" && (
+        <p className="mt-4 rounded-md bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+          Tu cuenta de Google quedó conectada.
+        </p>
+      )}
+      {googleError && (
+        <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {googleError}
+        </p>
+      )}
+
+      <div className="mt-4 card p-[18px]">
+        {profile.hasGoogleIdentity ? (
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-ink">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 0 0 9 18z" />
+              <path fill="#FBBC05" d="M3.95 10.7a5.4 5.4 0 0 1 0-3.4V4.97H.95a9 9 0 0 0 0 8.06l3-2.33z" />
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
+            </svg>
+            Cuenta de Google conectada
+            <span className="ml-auto text-green-700">✓</span>
+          </div>
+        ) : (
+          <>
+            <p className="mb-3 text-sm text-stone-500">
+              Conecta tu cuenta de Google para que tu foto de perfil se vea bien en toda la app.
+            </p>
+            <ConnectGoogleButton />
+          </>
+        )}
+      </div>
+
+      <p className="mt-6 text-sm text-stone-500">
+        Para ver tu rango, estadísticas y el resto del perfil, entra desde el celular.
+      </p>
+    </main>
+    </>
   );
 }
