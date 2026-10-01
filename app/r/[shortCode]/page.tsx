@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict } from "@/lib/verdict";
 import { categoryScores, type Ratings } from "@/lib/scoring";
@@ -352,8 +353,11 @@ export default async function ReportPage({
               >
                 Comprar reporte completo - ${FULL_REPORT_PRICE_MXN} MXN
               </a>
-              <div className="mt-2">
-                <FlancoCredit label="Pago seguro · Respaldado por Flanco Izquierdo" className="text-xs" color="#a8a29e" />
+              <div className="mt-3 flex justify-center">
+                <Image src="/mercadopago-logo.png" alt="Mercado Pago" width={110} height={29} className="opacity-80" />
+              </div>
+              <div className="mt-1.5">
+                <FlancoCredit label="Respaldado por Flanco Izquierdo" className="text-xs" color="#a8a29e" />
               </div>
             </>
           ) : whatsappFallbackLink ? (

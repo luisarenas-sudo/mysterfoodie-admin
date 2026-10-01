@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
@@ -309,14 +310,14 @@ export default function MobileReportePublico({
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-center gap-1.5">
-                  <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                    <rect x="1" y="6" width="10" height="7" rx="1.5" stroke="rgba(60,60,67,0.5)" strokeWidth="1.1" />
-                    <path d="M3.2 6V4C3.2 2.4 4.4 1.2 6 1.2C7.6 1.2 8.8 2.4 8.8 4V6" stroke="rgba(60,60,67,0.5)" strokeWidth="1.1" fill="none" />
-                  </svg>
-                  <div className="text-[11.5px] font-semibold" style={{ color: "rgba(60,60,67,0.55)" }}>
-                    Pago seguro
-                  </div>
+                <div className="mt-3 flex items-center justify-center">
+                  <Image
+                    src="/mercadopago-logo.png"
+                    alt="Mercado Pago"
+                    width={110}
+                    height={29}
+                    className="opacity-80"
+                  />
                 </div>
                 <div className="mt-1 text-center">
                   <FlancoCredit
