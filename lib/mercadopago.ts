@@ -89,6 +89,15 @@ export type MercadoPagoPayment = {
   status: string;
   external_reference?: string;
   transaction_amount?: number;
+  /** Datos del comprador que MercadoPago entrega con el pago - se usa
+   * para mandarle el correo con el PDF del reporte completo (ver
+   * app/api/mercadopago/webhook/route.ts). No se piden datos nuevos: es
+   * lo que MercadoPago ya captura en su propio checkout. */
+  payer?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+  };
 };
 
 /**
