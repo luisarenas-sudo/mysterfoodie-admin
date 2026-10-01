@@ -231,7 +231,7 @@ values
     'instagram_dm',
     true,
     '',
-    'Hola equipo de {{negocio}}, hoy los visitamos e hicimos un Mystery Shopper. Obtuvimos {{promedio}} estrellas de promedio. Aquí puedes ver el reporte completo: {{link_reporte}}'
+    'Hola equipo de {{negocio}}, hoy los visitamos e hicimos un Mystery Shopper.{{mesero_linea}} Obtuvimos {{promedio}} estrellas de promedio. Aquí puedes ver el reporte completo: {{link_reporte}}'
   )
 on conflict (key) do nothing;
 

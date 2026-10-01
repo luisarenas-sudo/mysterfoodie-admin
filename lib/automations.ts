@@ -80,11 +80,12 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
   instagram_dm: {
-    title: "Mensaje de Instagram (DM)",
-    desc: "Texto para copiar y pegar como DM de Instagram al negocio, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",
+    title: "Mensaje de Instagram (DM, primer contacto)",
+    desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
-      { tag: "mesero", desc: "Nombre del mesero que atendió, si se capturó (puede venir vacío)" },
+      { tag: "mesero", desc: "Solo el nombre del mesero que atendió, sin texto alrededor (puede venir vacío)" },
+      { tag: "mesero_linea", desc: "Frase lista (\" Nos atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco si falta el dato" },
       { tag: "promedio", desc: "Promedio general obtenido" },
       { tag: "link_reporte", desc: "Enlace al reporte" },
     ],

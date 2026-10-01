@@ -18,9 +18,13 @@ export function buildDmMessage(
   const { businessName, score, reportUrl, waiterName } = params;
 
   if (customTemplate) {
+    const waiter = waiterName?.trim() || "";
     return renderTemplate(customTemplate, {
       negocio: businessName,
-      mesero: waiterName?.trim() || "",
+      mesero: waiter,
+      // Frase ya armada ("Nos atendió X.") para no dejar un hueco raro
+      // en el mensaje cuando la visita no tiene mesero capturado.
+      mesero_linea: waiter ? ` Nos atendió ${waiter}.` : "",
       promedio: String(score),
       link_reporte: reportUrl,
     });
