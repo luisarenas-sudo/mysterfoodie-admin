@@ -2,17 +2,38 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 function isPublicPath(pathname: string): boolean {
+  // "/auth/" y "/api/" ya se resuelven antes de llegar aquí (ver arriba
+  // en middleware()), así que no hace falta repetirlos.
   if (pathname === "/login" || pathname === "/set-password" || pathname === "/forgot-password") return true;
   if (pathname.startsWith("/r/")) return true;
   if (pathname.startsWith("/agendar/")) return true;
-  // El callback de OAuth (Google) todavia no tiene sesion cuando llega.
-  if (pathname.startsWith("/auth/")) return true;
-  // Las rutas de API validan su propia sesión con requireRole().
-  if (pathname.startsWith("/api/")) return true;
   return false;
 }
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // El callback de OAuth (Google) nunca necesita que el middleware sepa
+  // quién es el usuario: exchangeCodeForSession() ya se encarga de la
+  // sesión por su cuenta (tanto para login nuevo como para linkIdentity()
+  // sobre una sesión existente). El code que manda Google es de un solo
+  // uso (PKCE) - si aquí se crea otro cliente de Supabase y se llama a
+  // getUser() sobre esta misma petición, ese cliente puede terminar
+  // leyendo/escribiendo las cookies de auth (por ejemplo si intenta
+  // refrescar una sesión por expirar) justo mientras el route handler
+  // está intercambiando el code, lo cual puede corromper esa operación
+  // de un solo uso y producir "Unable to exchange external code". Por
+  // eso esta ruta se deja pasar de inmediato, sin tocar Supabase aquí.
+  if (pathname.startsWith("/auth/")) {
+    return NextResponse.next({ request });
+  }
+
+  // Las rutas de API validan su propia sesión con requireRole(); no
+  // necesitan que el middleware llame a getUser() en cada petición.
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -43,8 +64,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
     if (pathname === "/login" && user) {

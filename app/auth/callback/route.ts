@@ -13,6 +13,11 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
  * de GoDaddy el origin de la petición puede resolver a una dirección
  * interna en vez del dominio público.
  */
+// Nunca cachear este route handler: cada code de Google es de un solo
+// uso, así que una respuesta "congelada" por el cache de rutas de
+// Next.js podría servirse para un code distinto al que realmente llegó.
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const code = req.nextUrl.searchParams.get("code");
