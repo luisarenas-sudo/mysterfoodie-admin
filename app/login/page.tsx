@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/auth";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 const ERROR_MESSAGES: Record<string, string> = {
   "Invalid login credentials": "Correo o contraseña incorrectos.",
@@ -78,6 +79,14 @@ export default async function LoginPage({
           Entrar
         </button>
       </form>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-stone-200" />
+        <span className="text-xs font-medium uppercase tracking-wide text-stone-400">o</span>
+        <div className="h-px flex-1 bg-stone-200" />
+      </div>
+
+      <GoogleSignInButton next={next} />
     </main>
   );
 }

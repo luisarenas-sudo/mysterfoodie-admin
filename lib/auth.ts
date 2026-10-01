@@ -8,6 +8,7 @@ export type SessionProfile = {
   userId: string;
   email: string;
   fullName: string | null;
+  avatarUrl: string | null;
   role: Role;
   clientId: string | null;
 };
@@ -56,7 +57,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
   const db = getSupabaseServiceClient();
   const { data: profile } = await db
     .from("profiles")
-    .select("role, full_name, client_id")
+    .select("role, full_name, avatar_url, client_id")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -66,6 +67,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     userId: user.id,
     email: user.email ?? "",
     fullName: profile.full_name,
+    avatarUrl: profile.avatar_url,
     role: profile.role as Role,
     clientId: profile.client_id,
   };

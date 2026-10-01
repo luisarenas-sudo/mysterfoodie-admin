@@ -1,13 +1,15 @@
 import Link from "next/link";
 import type { HomeSummary, ReyNegocio } from "@/lib/dashboard";
-import { initialsFor } from "@/lib/ring";
+import Avatar from "@/components/Avatar";
 
 export default function MobileHome({
   displayName,
+  avatarUrl,
   stats,
   rey,
 }: {
   displayName: string;
+  avatarUrl?: string | null;
   stats: HomeSummary;
   rey: ReyNegocio;
 }) {
@@ -29,12 +31,8 @@ export default function MobileHome({
         </div>
         <div className="flex items-center justify-between">
           <div className="heading text-[34px] font-bold">Inicio</div>
-          <Link
-            href="/perfil"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
-            style={{ background: "#1C1C1E" }}
-          >
-            {initialsFor(displayName)}
+          <Link href="/perfil">
+            <Avatar displayName={displayName} avatarUrl={avatarUrl} />
           </Link>
         </div>
       </div>

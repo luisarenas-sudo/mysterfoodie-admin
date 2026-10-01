@@ -17,7 +17,7 @@ export default async function Page() {
 
   return (
     <>
-      <MobileHome displayName={displayName} stats={stats} rey={rey} />
+      <MobileHome displayName={displayName} avatarUrl={profile?.avatarUrl ?? null} stats={stats} rey={rey} />
       <div className="hidden md:block">
         <DesktopWizard />
       </div>

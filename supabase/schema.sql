@@ -114,6 +114,10 @@ create table if not exists profiles (
 create index if not exists profiles_client_id_idx on profiles(client_id);
 create index if not exists profiles_role_idx on profiles(role);
 
+-- Foto de perfil (Google Sign-In la llena automaticamente via
+-- app/auth/callback/route.ts; tambien se puede dejar vacia).
+alter table profiles add column if not exists avatar_url text;
+
 -- de que agente vino cada visita (para "Mis visitas" y, a futuro,
 -- calcular comisiones)
 alter table forms add column if not exists created_by uuid references profiles(id) on delete set null;

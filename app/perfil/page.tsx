@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
-import { initialsFor } from "@/lib/ring";
 import Link from "next/link";
+import Avatar from "@/components/Avatar";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 
 export const dynamic = "force-dynamic";
@@ -67,12 +67,7 @@ export default async function PerfilPage() {
       </div>
 
       <div className="card mx-5 mb-5 flex items-center gap-3.5 p-[18px]">
-        <div
-          className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold text-white"
-          style={{ background: "#1C1C1E" }}
-        >
-          {initialsFor(displayName)}
-        </div>
+        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
         <div className="min-w-0">
           <div className="truncate text-[17px] font-bold">{displayName}</div>
           {displayName !== profile.email && (

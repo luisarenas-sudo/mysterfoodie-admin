@@ -5,6 +5,8 @@ function isPublicPath(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/set-password" || pathname === "/forgot-password") return true;
   if (pathname.startsWith("/r/")) return true;
   if (pathname.startsWith("/agendar/")) return true;
+  // El callback de OAuth (Google) todavia no tiene sesion cuando llega.
+  if (pathname.startsWith("/auth/")) return true;
   // Las rutas de API validan su propia sesión con requireRole().
   if (pathname.startsWith("/api/")) return true;
   return false;
