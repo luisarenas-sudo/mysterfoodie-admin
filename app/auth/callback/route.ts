@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
@@ -13,6 +14,24 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
  * de GoDaddy el origin de la petición puede resolver a una dirección
  * interna en vez del dominio público.
  */
+/** Borra cualquier cookie de "code verifier" (PKCE) que haya quedado de
+ * un intento anterior fallido - @supabase/ssr guarda una por cada flujo
+ * (sb-<ref>-auth-token-code-verifier, y variantes con sufijo
+ * "-flow-<hash>" para flujos concurrentes) y, si un intento falla antes
+ * de completarse, esa cookie nunca se limpia sola. Dejarlas acumularse
+ * entre reintentos puede hacer crecer el header Cookie lo suficiente
+ * para que algo en el camino (el CDN, el propio servidor) la recorte o
+ * para que el intercambio lea el verifier equivocado - cualquiera de
+ * las dos cosas produce "Unable to exchange external code". Se llama
+ * tanto en éxito como en error para que nunca se acumulen. */
+async function clearStaleCodeVerifierCookies() {
+  const cookieStore = await cookies();
+  for (const { name } of cookieStore.getAll()) {
+    if (name.includes("code-verifier")) {
+      cookieStore.delete(name);
+    }
+  }
+}
 // Nunca cachear este route handler: cada code de Google es de un solo
 // uso, así que una respuesta "congelada" por el cache de rutas de
 // Next.js podría servirse para un code distinto al que realmente llegó.
@@ -31,6 +50,7 @@ export async function GET(req: NextRequest) {
   const errorRedirectPath = next.startsWith("/perfil") ? next.split("?")[0] : "/login";
 
   if (oauthError) {
+    await clearStaleCodeVerifierCookies();
     const qs = new URLSearchParams({ error: oauthError });
     return NextResponse.redirect(new URL(`${errorRedirectPath}?${qs.toString()}`, baseUrl));
   }
@@ -43,6 +63,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
+    await clearStaleCodeVerifierCookies();
     const qs = new URLSearchParams({ error: error?.message || "No se pudo completar la conexión con Google." });
     return NextResponse.redirect(new URL(`${errorRedirectPath}?${qs.toString()}`, baseUrl));
   }
@@ -72,5 +93,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  await clearStaleCodeVerifierCookies();
   return NextResponse.redirect(new URL(next, baseUrl));
 }
