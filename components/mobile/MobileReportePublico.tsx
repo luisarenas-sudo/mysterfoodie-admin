@@ -158,11 +158,9 @@ export default function MobileReportePublico({
 
   return (
     <div className="md:hidden mf-fade-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
-      <div style={{ background: "linear-gradient(180deg,#EDEFF7 0%,#F2F2F7 100%)", padding: "28px 24px 22px 24px", textAlign: "center" }}>
-        <div className="mb-[18px] flex items-center justify-center gap-1.5">
-          <div className="text-[12px] font-bold tracking-[1.4px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-            MYSTERFOODIE
-          </div>
+      <div style={{ background: "linear-gradient(180deg,#EDEFF7 0%,#F2F2F7 100%)", padding: "24px 24px 20px 24px", textAlign: "center" }}>
+        <div className="mb-3.5 flex items-center justify-center">
+          <Image src="/logo-wordmark.png" alt="MysterFoodie" width={88} height={47} priority className="h-7 w-auto opacity-90" />
         </div>
         <div className="mb-1 text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
           Reporte de visita anónima
@@ -210,27 +208,29 @@ export default function MobileReportePublico({
         </div>
       )}
 
-      <div className="px-5 pt-5">
-        <div className="grid grid-cols-2 gap-3">
-          {categories.map((c) => (
-            <div key={c.key} className="card flex items-center gap-2.5 p-3.5">
-              <ActivityRing value={c.average} max={5} size={42} strokeWidth={6} color={getVerdict(c.average).color} trackColor="rgba(60,60,67,0.1)">
-                <div className="text-[16px]">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
-              </ActivityRing>
-              <div className="min-w-0">
-                <div className="truncate text-[12.5px] font-semibold">{c.label}</div>
-                <div className="text-[17px] font-bold">{c.average}</div>
+      {categories.length > 0 && (
+        <div className="px-5 pt-4">
+          <div className="grid grid-cols-2 gap-3">
+            {categories.map((c) => (
+              <div key={c.key} className="card flex items-center gap-2.5 p-3.5">
+                <ActivityRing value={c.average} max={5} size={42} strokeWidth={6} color={getVerdict(c.average).color} trackColor="rgba(60,60,67,0.1)">
+                  <div className="text-[16px]">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
+                </ActivityRing>
+                <div className="min-w-0">
+                  <div className="truncate text-[12.5px] font-semibold">{c.label}</div>
+                  <div className="text-[17px] font-bold">{c.average}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {unlocked ? (
         <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} />
       ) : (
         <>
-          <div className="px-6 pb-1.5 pt-7 text-center">
+          <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
             <div className="mb-1.5 text-[21px] font-bold">Obtén el reporte completo</div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
               Más de <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>40 indicadores</span> detallados:
