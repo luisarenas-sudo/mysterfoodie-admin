@@ -92,11 +92,19 @@ export default function MobileNegocioDetail({
   client,
   canAssign = false,
   canDelete = false,
+  canCreateVisit = true,
+  backHref = "/negocios",
+  backLabel = "Negocios",
   pendingAssignment = null,
 }: {
   client: ClientDetail;
   canAssign?: boolean;
   canDelete?: boolean;
+  /** false para el dueño del negocio (/mi-negocio): no le toca levantar visitas Mystery Shopper. */
+  canCreateVisit?: boolean;
+  /** null cuando esta pantalla no tiene a dónde "regresar" (ej. /mi-negocio, que ya es el nivel superior para ese rol) -- se muestra el nombre sin link. */
+  backHref?: string | null;
+  backLabel?: string;
   pendingAssignment?: PendingAssignmentForClient | null;
 }) {
   const visits = client.visits;
@@ -132,12 +140,16 @@ export default function MobileNegocioDetail({
         className="flex items-center px-3 py-[14px]"
         style={{ background: "rgba(249,249,251,0.92)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
       >
-        <Link href="/negocios" className="mf-tap -my-2.5 -ml-1 flex flex-1 items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="text-[16px]">Negocios</span>
-        </Link>
+        {backHref ? (
+          <Link href={backHref} className="mf-tap -my-2.5 -ml-1 flex flex-1 items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[16px]">{backLabel}</span>
+          </Link>
+        ) : (
+          <span className="flex-1 py-2.5 pl-2 pr-4 text-[16px] font-semibold">{backLabel}</span>
+        )}
         <Link href="/" className="mf-tap -my-2.5 flex items-center py-2.5 pl-2" aria-label="Inicio">
           <Image src="/icon-512.png" alt="" width={26} height={26} className="rounded-md object-contain" />
         </Link>
@@ -207,24 +219,28 @@ export default function MobileNegocioDetail({
 
         {pendingAssignment && <AssignedFoodieCard assignment={pendingAssignment} />}
 
-        <div className="px-5 pt-4 space-y-2.5">
-          <Link
-            href={`/nueva-visita/negocio/${client.id}`}
-            className="mf-tap block rounded-[14px] py-3.5 text-center text-[16px] font-bold text-white"
-            style={{ background: "#F24444" }}
-          >
-            Nueva visita a este negocio
-          </Link>
-          {canAssign && (
-            <Link
-              href={`/negocios/${client.id}/asignar`}
-              className="mf-tap block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
-              style={{ background: "#fff", color: "#F24444", border: "1.5px solid rgba(242,68,68,0.3)" }}
-            >
-              {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar a un Foodie"}
-            </Link>
-          )}
-        </div>
+        {(canCreateVisit || canAssign) && (
+          <div className="px-5 pt-4 space-y-2.5">
+            {canCreateVisit && (
+              <Link
+                href={`/nueva-visita/negocio/${client.id}`}
+                className="mf-tap block rounded-[14px] py-3.5 text-center text-[16px] font-bold text-white"
+                style={{ background: "#F24444" }}
+              >
+                Nueva visita a este negocio
+              </Link>
+            )}
+            {canAssign && (
+              <Link
+                href={`/negocios/${client.id}/asignar`}
+                className="mf-tap block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
+                style={{ background: "#fff", color: "#F24444", border: "1.5px solid rgba(242,68,68,0.3)" }}
+              >
+                {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar a un Foodie"}
+              </Link>
+            )}
+          </div>
+        )}
 
         {canDelete && (
           <div className="px-5">

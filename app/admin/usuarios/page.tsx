@@ -52,8 +52,8 @@ export default async function UsuariosPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <h1 className="heading text-3xl text-brand-500">Usuarios</h1>
+    <main className="mx-auto max-w-4xl px-5 py-8 md:px-6 md:py-10">
+      <h1 className="heading text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
       <p className="mt-1 text-sm text-stone-500">
         Invita agentes y dueños de negocio, y administra sus roles.
       </p>
@@ -86,7 +86,10 @@ export default async function UsuariosPage() {
         <InviteUserForm clients={(clients || []).map((c) => ({ id: c.id, name: c.name }))} />
       </div>
 
-      <div className="mt-8 overflow-x-auto card">
+      {/* Escritorio: tabla. Antes era la única versión y se veía
+         comprimida/con scroll horizontal en celular -- en pantallas chicas
+         se usa la lista de tarjetas de abajo en su lugar. */}
+      <div className="mt-8 hidden overflow-x-auto card md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-left text-stone-500">
@@ -120,6 +123,31 @@ export default async function UsuariosPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Móvil: una tarjeta por usuario en vez de la tabla. */}
+      <div className="mt-8 space-y-3 md:hidden">
+        {rows.map((r) => (
+          <div key={r.id} className="card p-4">
+            <p className="truncate text-sm font-semibold text-ink">{r.email}</p>
+            {r.full_name && <p className="mt-0.5 text-sm text-stone-500">{r.full_name}</p>}
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+              <UserRoleEditor
+                userId={r.id}
+                initialRole={r.role as Role}
+                isSelf={r.id === session.userId}
+              />
+              {r.client_name && (
+                <span className="text-xs text-stone-500">{r.client_name}</span>
+              )}
+            </div>
+          </div>
+        ))}
+        {rows.length === 0 && (
+          <p className="card p-4 text-center text-sm text-stone-400">
+            Aún no hay usuarios invitados.
+          </p>
+        )}
       </div>
     </main>
   );

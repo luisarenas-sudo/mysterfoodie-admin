@@ -14,6 +14,7 @@ import {
 import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "@/components/mobile/ActivityRing";
+import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
 
 type Business = {
   name: string;
@@ -61,6 +62,30 @@ function businessFromAssignment(a: BoundAssignment): Business {
     address: "",
     city: a.client.city || "",
   };
+}
+
+type WizardDraft = {
+  business: Business;
+  shopperName: string;
+  waiterName: string;
+  ratings: Record<string, number>;
+  flags: Record<string, boolean>;
+  selects: Record<string, string>;
+  comments: string;
+  step: number;
+  savedAt: number;
+};
+
+function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName">) {
+  return (
+    Boolean(d.business.name.trim()) ||
+    Boolean(d.shopperName.trim()) ||
+    Boolean(d.waiterName.trim()) ||
+    Boolean(d.comments.trim()) ||
+    Object.keys(d.ratings).length > 0 ||
+    Object.keys(d.flags).length > 0 ||
+    Object.keys(d.selects).length > 0
+  );
 }
 
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
@@ -185,6 +210,53 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Autoguardado: un borrador por visita (assignmentId, o el id del
+  // negocio si se visita directo, o "new" para el wizard en blanco).
+  const draftId = boundAssignment?.assignmentId ?? boundAssignment?.client.id ?? "new";
+  const [draftRestored, setDraftRestored] = useState(false);
+  const draftLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const draft = loadWizardDraft<WizardDraft>(draftId);
+    if (draft) {
+      setBusiness(draft.business);
+      setShopperName(draft.shopperName);
+      setWaiterName(draft.waiterName);
+      setRatings(draft.ratings);
+      setFlags(draft.flags);
+      setSelects(draft.selects);
+      setComments(draft.comments);
+      setStep(Math.min(draft.step, steps.length - 1));
+      setDraftRestored(true);
+    }
+    draftLoadedRef.current = true;
+    // Solo al montar: cada ruta es una visita distinta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!draftLoadedRef.current || result) return;
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, selects, comments, step, savedAt: Date.now() };
+    if (draftHasContent(draft)) {
+      saveWizardDraft(draftId, draft);
+    } else {
+      clearWizardDraft(draftId);
+    }
+  }, [draftId, business, shopperName, waiterName, ratings, flags, selects, comments, step, result]);
+
+  function discardDraft() {
+    clearWizardDraft(draftId);
+    setDraftRestored(false);
+    setBusiness(boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS);
+    setShopperName("");
+    setWaiterName("");
+    setRatings({});
+    setFlags({});
+    setSelects({});
+    setComments("");
+    setStep(0);
+  }
+
   const current = steps[step];
   const progressPct = Math.round(((step + 1) / steps.length) * 100);
 
@@ -242,6 +314,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
         setSubmitError(data.error || "No se pudo guardar la evaluación");
         return;
       }
+      clearWizardDraft(draftId);
       setResult(data);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Error de red");
@@ -424,6 +497,17 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
       </div>
 
       <div ref={scrollRef} className="mf-scroll flex-1 overflow-y-auto px-5 pb-6 pt-[18px]">
+        {draftRestored && (
+          <div
+            className="mb-3.5 flex items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-[12.5px]"
+            style={{ background: "rgba(0,122,255,0.08)", color: "#007AFF" }}
+          >
+            <span>Recuperamos tu progreso de esta visita.</span>
+            <button type="button" onClick={discardDraft} className="mf-tap flex-shrink-0 font-semibold underline">
+              Empezar de nuevo
+            </button>
+          </div>
+        )}
         {current.kind === "business" && (
           <div className="space-y-3.5">
             <MobileField label="Nombre del negocio">

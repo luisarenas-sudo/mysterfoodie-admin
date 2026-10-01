@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
 import BooleanToggle from "@/components/BooleanToggle";
 import SelectChips from "@/components/SelectChips";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
+import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
 import {
   CATEGORIES,
   BUSINESS_TYPES,
@@ -62,6 +63,30 @@ function businessFromAssignment(a: BoundAssignment): Business {
   };
 }
 
+type WizardDraft = {
+  business: Business;
+  shopperName: string;
+  waiterName: string;
+  ratings: Record<string, number>;
+  flags: Record<string, boolean>;
+  selects: Record<string, string>;
+  comments: string;
+  step: number;
+  savedAt: number;
+};
+
+function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName">) {
+  return (
+    Boolean(d.business.name.trim()) ||
+    Boolean(d.shopperName.trim()) ||
+    Boolean(d.waiterName.trim()) ||
+    Boolean(d.comments.trim()) ||
+    Object.keys(d.ratings).length > 0 ||
+    Object.keys(d.flags).length > 0 ||
+    Object.keys(d.selects).length > 0
+  );
+}
+
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
 
 type EmailOutcome = { status: string; error?: string };
@@ -116,6 +141,54 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // Autoguardado: un borrador por visita (assignmentId, o el id del
+  // negocio si se visita directo, o "new" para el wizard en blanco de la
+  // página de inicio).
+  const draftId = boundAssignment?.assignmentId ?? boundAssignment?.client.id ?? "new";
+  const [draftRestored, setDraftRestored] = useState(false);
+  const draftLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const draft = loadWizardDraft<WizardDraft>(draftId);
+    if (draft) {
+      setBusiness(draft.business);
+      setShopperName(draft.shopperName);
+      setWaiterName(draft.waiterName);
+      setRatings(draft.ratings);
+      setFlags(draft.flags);
+      setSelects(draft.selects);
+      setComments(draft.comments);
+      setStep(Math.min(draft.step, steps.length - 1));
+      setDraftRestored(true);
+    }
+    draftLoadedRef.current = true;
+    // Solo al montar: cada ruta es una visita distinta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!draftLoadedRef.current || result) return;
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, selects, comments, step, savedAt: Date.now() };
+    if (draftHasContent(draft)) {
+      saveWizardDraft(draftId, draft);
+    } else {
+      clearWizardDraft(draftId);
+    }
+  }, [draftId, business, shopperName, waiterName, ratings, flags, selects, comments, step, result]);
+
+  function discardDraft() {
+    clearWizardDraft(draftId);
+    setDraftRestored(false);
+    setBusiness(boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS);
+    setShopperName("");
+    setWaiterName("");
+    setRatings({});
+    setFlags({});
+    setSelects({});
+    setComments("");
+    setStep(0);
+  }
+
   const current = steps[step];
   const progressPct = Math.round((step / (steps.length - 1)) * 100);
 
@@ -123,9 +196,13 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
     setBusiness((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Las estrellas son opcionales -- igual que en MobileWizard (ver su
+  // comentario): si una calificación no aplica al negocio, simplemente no
+  // se cuenta para el promedio de esa categoría (ver lib/scoring.ts), así
+  // que no debe bloquear el avance. Los selects sí siguen siendo
+  // obligatorios.
   function categoryComplete(category: Category) {
     return category.items.every((item) => {
-      if (item.type === "star") return (ratings[item.key] || 0) > 0;
       if (item.type === "select") return Boolean(selects[item.key]);
       return true;
     });
@@ -168,6 +245,7 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
         setSubmitError(data.error || "No se pudo guardar la evaluación");
         return;
       }
+      clearWizardDraft(draftId);
       setResult(data);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Error de red");
@@ -311,6 +389,14 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
       {boundAssignment && (
         <p className="mt-1 text-sm text-stone-500">Visitando: {boundAssignment.client.name}</p>
       )}
+      {draftRestored && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-blue-50 px-4 py-2.5 text-sm text-blue-700">
+          <span>Recuperamos tu progreso de esta visita.</span>
+          <button type="button" onClick={discardDraft} className="font-semibold underline">
+            Empezar de nuevo
+          </button>
+        </div>
+      )}
 
       <div className="mt-6">
         <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
@@ -320,7 +406,7 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
           />
         </div>
         <p className="mt-2 text-xs text-stone-500">
-          Paso {step + 1} de {STEPS.length} — {stepLabel(current)}
+          Paso {step + 1} de {steps.length} — {stepLabel(current)}
         </p>
       </div>
 

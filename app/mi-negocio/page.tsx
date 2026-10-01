@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { getClientDetail } from "@/lib/dashboard";
 import ClientScoreboard from "@/components/ClientScoreboard";
+import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 
 export const dynamic = "force-dynamic";
 
@@ -35,30 +36,46 @@ export default async function MiNegocioPage() {
 
   if (client.visits.length === 0) {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
-        <p className="mt-2 text-sm text-stone-500">
-          Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
-          evaluación Mystery Shopper, la verás aquí.
-        </p>
-      </main>
+      <>
+        <MobileNegocioDetail
+          client={client}
+          canCreateVisit={false}
+          backHref={null}
+          backLabel="Mi negocio"
+        />
+        <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
+          <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
+          <p className="mt-2 text-sm text-stone-500">
+            Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
+            evaluación Mystery Shopper, la verás aquí.
+          </p>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <p className="text-sm uppercase tracking-wide text-brand-600">Mi negocio</p>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="heading text-3xl text-ink">{client.name}</h1>
-          <p className="text-sm text-stone-500">
-            {client.city || "Sin ciudad"}
-            {client.instagramHandle ? ` - @${client.instagramHandle}` : ""}
-          </p>
+    <>
+      <MobileNegocioDetail
+        client={client}
+        canCreateVisit={false}
+        backHref={null}
+        backLabel="Mi negocio"
+      />
+      <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
+        <p className="text-sm uppercase tracking-wide text-brand-600">Mi negocio</p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="heading text-3xl text-ink">{client.name}</h1>
+            <p className="text-sm text-stone-500">
+              {client.city || "Sin ciudad"}
+              {client.instagramHandle ? ` - @${client.instagramHandle}` : ""}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <ClientScoreboard client={client} />
-    </main>
+        <ClientScoreboard client={client} />
+      </main>
+    </>
   );
 }
