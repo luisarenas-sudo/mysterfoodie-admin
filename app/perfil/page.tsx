@@ -5,6 +5,7 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import ConnectGoogleButton from "@/components/auth/ConnectGoogleButton";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
+import DeleteButton from "@/components/DeleteButton";
 import FlancoCredit from "@/components/FlancoCredit";
 
 export const dynamic = "force-dynamic";
@@ -246,6 +247,35 @@ export default async function PerfilPage({
         </Link>
       )}
 
+      {profile.role === "admin" && (
+        <Link
+          href="/admin/finanzas"
+          className="card mx-5 mt-4 flex items-center justify-between p-4"
+        >
+          <div>
+            <div className="text-[14.5px] font-bold">Finanzas</div>
+            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Calculadora de reparto de ingresos por visita
+            </div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
+            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      )}
+
+      {profile.role === "admin" && (
+        <div className="mx-5">
+          <DeleteButton
+            endpoint="/api/admin/reset-demo-data"
+            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento (son datos de prueba) y los reemplaza por 3 negocios de ejemplo con varias visitas, firmadas por Foodies ficticios, solo para poder explicar la app. No se puede deshacer."
+            redirectTo="/negocios"
+            triggerLabel="Restablecer datos de ejemplo"
+            variant="mobile"
+          />
+        </div>
+      )}
+
       <div
         className="mx-5 mt-5 rounded-[18px] p-5 text-center"
         style={{ background: "#1C1C1E" }}
@@ -409,6 +439,18 @@ export default async function PerfilPage({
         <div className="mt-5">
           {profile.role === "admin" && <MobileInviteForm />}
           {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
+        </div>
+      )}
+
+      {profile.role === "admin" && (
+        <div className="mt-6 border-t border-stone-100 pt-6">
+          <DeleteButton
+            endpoint="/api/admin/reset-demo-data"
+            confirmText="Esto BORRA todos los negocios y visitas que haya en este momento (son datos de prueba) y los reemplaza por 3 negocios de ejemplo con varias visitas, firmadas por Foodies ficticios, solo para poder explicar la app. No se puede deshacer."
+            redirectTo="/negocios"
+            triggerLabel="Restablecer datos de ejemplo"
+            variant="desktop"
+          />
         </div>
       )}
 
