@@ -72,9 +72,29 @@ export async function GET(req: NextRequest) {
   // la policy de UPDATE en profiles no deja tocar columnas fuera de las
   // suyas desde el cliente). No pisamos un full_name que el usuario ya
   // haya puesto a mano en la app, solo lo rellenamos si está vacío.
+  //
+  // OJO: cuando es un login nuevo, Supabase sí copia el perfil de Google
+  // a user_metadata. Pero cuando es "vincular cuenta existente"
+  // (linkIdentity), Supabase NUNCA mezcla esos datos en user_metadata -
+  // se quedan solo dentro de identities[].identity_data para esa
+  // identidad en particular. Por eso hay que revisar ambos lugares,
+  // o el avatar nunca se copia cuando el usuario ya tenía cuenta y
+  // solo conectó Google desde /perfil.
   const meta = data.user.user_metadata || {};
-  const googleAvatar = (meta.avatar_url as string | undefined) || (meta.picture as string | undefined) || null;
-  const googleName = (meta.full_name as string | undefined) || (meta.name as string | undefined) || null;
+  const googleIdentity = data.user.identities?.find((i) => i.provider === "google");
+  const identityData = googleIdentity?.identity_data || {};
+  const googleAvatar =
+    (meta.avatar_url as string | undefined) ||
+    (meta.picture as string | undefined) ||
+    (identityData.avatar_url as string | undefined) ||
+    (identityData.picture as string | undefined) ||
+    null;
+  const googleName =
+    (meta.full_name as string | undefined) ||
+    (meta.name as string | undefined) ||
+    (identityData.full_name as string | undefined) ||
+    (identityData.name as string | undefined) ||
+    null;
 
   if (googleAvatar || googleName) {
     const db = getSupabaseServiceClient();
