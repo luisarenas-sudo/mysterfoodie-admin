@@ -11,11 +11,17 @@ const ALL_ROLE_OPTIONS: { value: RoleOption; label: string; desc: string }[] = [
 ];
 
 /**
- * Invitar Sibaritas y Foodies directamente desde el Perfil móvil. Admin
- * puede invitar cualquiera de los dos (allowedRoles por defecto); un
- * Sibarita solo puede invitar Foodies (le llega allowedRoles={["agente"]}
- * desde /perfil) -- el endpoint /api/admin/usuarios también lo valida
- * del lado del servidor, esto solo es la UI.
+ * Invitar Sibaritas y Foodies directamente desde el Perfil (móvil y
+ * escritorio). Admin puede invitar cualquiera de los dos (allowedRoles
+ * por defecto); un Sibarita solo puede invitar Foodies (le llega
+ * allowedRoles={["agente"]} desde /perfil) -- el endpoint
+ * /api/admin/usuarios también lo valida del lado del servidor, esto
+ * solo es la UI.
+ *
+ * Sin margen horizontal propio a propósito: quien lo usa (app/perfil)
+ * le da el margen con un wrapper, para que se vea igual de alineado
+ * que el resto de las tarjetas tanto en móvil (mx-5) como en
+ * escritorio (sin margen extra, el <main> ya tiene su padding).
  */
 export default function MobileInviteForm({
   allowedRoles = ["sibarita", "agente"],
@@ -63,7 +69,7 @@ export default function MobileInviteForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mf-tap card mx-5 mb-5 flex w-[calc(100%-40px)] items-center gap-3 px-4 py-3.5 text-left"
+        className="mf-tap card mb-5 flex w-full items-center gap-3 px-4 py-3.5 text-left"
       >
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg"
@@ -85,7 +91,7 @@ export default function MobileInviteForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card mx-5 mb-5 p-[18px]">
+    <form onSubmit={handleSubmit} className="card mb-5 p-[18px]">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-[15px] font-bold">Invitar usuario</div>
         <button

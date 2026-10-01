@@ -205,8 +205,12 @@ export default async function PerfilPage({
       </>
       )}
 
-      {profile.role === "admin" && <MobileInviteForm />}
-      {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
+      {(profile.role === "admin" || profile.role === "sibarita") && (
+        <div className="mx-5">
+          {profile.role === "admin" && <MobileInviteForm />}
+          {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
+        </div>
+      )}
 
       {profile.role === "admin" && (
         <Link
@@ -337,11 +341,82 @@ export default async function PerfilPage({
         )}
       </div>
 
-      <p className="mt-6 text-sm text-stone-500">
-        {isCliente
-          ? "Entra desde el celular para ver el resto de tu perfil."
-          : "Para ver tu rango, estadísticas y el resto del perfil, entra desde el celular."}
-      </p>
+      {!isCliente && currentRank && (
+        <>
+          <div className="mt-8 mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-stone-500">
+            Tu rango
+          </div>
+          <div className="card px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
+                style={{ background: "rgba(242,68,68,0.12)" }}
+              >
+                {currentRank.emoji}
+              </div>
+              <div>
+                <div className="text-base font-bold text-ink">{currentRank.label}</div>
+                <div className="text-sm text-stone-500">{ROLE_LABEL[profile.role] ?? profile.role}</div>
+              </div>
+            </div>
+            <div className="mt-3.5 flex border-t border-stone-100 pt-3.5">
+              <div className="flex-1 text-center">
+                <div className="text-lg font-bold text-ink">{visits.length}</div>
+                <div className="mt-0.5 text-xs text-stone-500">Visitas totales</div>
+              </div>
+              <div className="w-px bg-stone-100" />
+              <div className="flex-1 text-center">
+                <div className="text-lg font-bold text-brand-500">{visitasMes}</div>
+                <div className="mt-0.5 text-xs text-stone-500">Este mes</div>
+              </div>
+            </div>
+          </div>
+          <div className="card mt-2.5 px-4 py-1.5">
+            {RANKS.map((r, idx) => {
+              const isCurrent = r.key === currentRank.key;
+              return (
+                <div
+                  key={r.key}
+                  className="flex items-center gap-3 py-2.5"
+                  style={{
+                    opacity: isCurrent ? 1 : 0.45,
+                    borderBottom: idx < RANKS.length - 1 ? "1px solid rgba(60,60,67,0.08)" : undefined,
+                  }}
+                >
+                  <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-stone-100 text-lg">
+                    {r.emoji}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-ink">{r.label}</div>
+                    <div className="mt-0.5 text-xs leading-snug text-stone-500">{r.desc}</div>
+                  </div>
+                  {isCurrent && (
+                    <div
+                      className="flex-shrink-0 rounded-lg px-2 py-[3px] text-[10px] font-bold"
+                      style={{ color: "#F24444", background: "rgba(242,68,68,0.1)" }}
+                    >
+                      TÚ
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {(profile.role === "admin" || profile.role === "sibarita") && (
+        <div className="mt-5">
+          {profile.role === "admin" && <MobileInviteForm />}
+          {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
+        </div>
+      )}
+
+      {isCliente && (
+        <p className="mt-6 text-sm text-stone-500">
+          Entra desde el celular para ver el resto de tu perfil.
+        </p>
+      )}
     </main>
     </>
   );

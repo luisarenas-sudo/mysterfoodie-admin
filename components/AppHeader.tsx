@@ -14,6 +14,7 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
   admin: [
     { href: "/", label: "Nueva evaluación" },
     { href: "/negocios", label: "Negocios" },
+    { href: "/mis-visitas", label: "Visitas" },
     { href: "/admin/usuarios", label: "Usuarios" },
     { href: "/automatizaciones", label: "Automatizaciones" },
     { href: "/perfil", label: "Perfil" },
@@ -60,9 +61,9 @@ export default async function AppHeader() {
                 {item.label}
               </Link>
             ))}
-            <span className="hidden text-xs text-white/40 sm:inline">
-              {profile.fullName || profile.email}
-            </span>
+            {/* El nombre/correo ya no se repite aquí -- vive dentro de
+               Perfil (con avatar, rango, etc.), que ya está en la nav
+               de arriba para los 4 roles. */}
             <form action={signOut}>
               <button type="submit" className="text-white/60 hover:text-white">
                 Cerrar sesión
