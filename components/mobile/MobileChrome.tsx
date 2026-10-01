@@ -5,15 +5,15 @@ import type { Role } from "@/lib/auth";
 import MobileTabBar from "./MobileTabBar";
 
 /**
- * En móvil, "/nueva-visita" y "/negocios/[id]" se presentan como
- * overlays de pantalla completa (con su propio header de flecha
- * "Atrás"), igual que en las maquetas: ahí se oculta el AppHeader y
- * el tab bar de abajo para que ocupen toda la pantalla.
+ * En móvil, solo "/nueva-visita" (el cuestionario de la visita) se
+ * presenta como overlay de pantalla completa sin el tab bar de abajo:
+ * ahí hay que priorizar la visibilidad de las preguntas. El detalle de
+ * un negocio y el de un reporte/visita puntual SÍ mantienen el dock de
+ * navegación (tienen su propio header con flecha "Atrás" + logo de
+ * inicio, pero no son overlays de pantalla completa).
  */
 function isOverlayRoute(pathname: string) {
   if (pathname.startsWith("/nueva-visita")) return true;
-  if (/^\/negocios\/[^/]+$/.test(pathname)) return true;
-  if (/^\/visitas\/[^/]+$/.test(pathname)) return true;
   return false;
 }
 

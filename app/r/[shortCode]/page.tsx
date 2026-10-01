@@ -320,7 +320,9 @@ export default async function ReportPage({
               <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
                 {c.label}
               </p>
-              <p className="mt-1 text-2xl font-bold text-ink">{c.average}</p>
+              <p className="mt-1 text-2xl font-bold" style={{ color: getVerdict(c.average).color }}>
+                {c.average}
+              </p>
               <p className="text-xs text-stone-400">de 5</p>
             </div>
           ))}
@@ -364,6 +366,21 @@ export default async function ReportPage({
           )}
         </div>
       )}
+
+      <div className="mt-10 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
+        <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra Foodie</h3>
+        <p className="mt-2 text-sm italic leading-relaxed text-white/85">
+          &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-white/55">
+          Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el
+          poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican
+          más de {TOTAL_ITEM_COUNT} indicadores de servicio, sabor, limpieza y experiencia — con total
+          honestidad, Palabra Foodie.
+        </p>
+      </div>
+
+      <p className="mt-6 text-center text-xs text-stone-400">Con el respaldo de Flanco Izquierdo</p>
     </main>
     </>
   );

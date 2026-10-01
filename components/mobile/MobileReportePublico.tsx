@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
-import { CATEGORIES, groupCategoryItems, type CategoryItem } from "@/lib/categories";
+import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
 
@@ -212,7 +212,7 @@ export default function MobileReportePublico({
         <div className="grid grid-cols-2 gap-3">
           {categories.map((c) => (
             <div key={c.key} className="card flex items-center gap-2.5 p-3.5">
-              <ActivityRing value={c.average} max={5} size={42} strokeWidth={6} color={verdict.color} trackColor="rgba(60,60,67,0.1)">
+              <ActivityRing value={c.average} max={5} size={42} strokeWidth={6} color={getVerdict(c.average).color} trackColor="rgba(60,60,67,0.1)">
                 <div className="text-[16px]">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
               </ActivityRing>
               <div className="min-w-0">
@@ -333,16 +333,43 @@ export default function MobileReportePublico({
             </a>
           )}
 
-          <div className="px-6 pb-9 pt-7 text-center">
+          <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
               El costo de este reporte retribuye a nuestros Myster Foodies, quienes visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
-            </div>
-            <div className="mt-3.5 text-[11px]" style={{ color: "rgba(60,60,67,0.35)" }}>
-              Con el respaldo de Flanco Izquierdo
             </div>
           </div>
         </>
       )}
+
+      <div className="mx-5 mt-6 rounded-[18px] p-5" style={{ background: "#1C1C1E" }}>
+        <div className="mb-3 flex items-center gap-2.5">
+          <div
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(242,68,68,0.18)" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
+              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+        </div>
+        <div className="text-[13.5px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
+          &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
+        </div>
+        <div className="mt-3 text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
+          Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el
+          poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican
+          más de {TOTAL_ITEM_COUNT} indicadores de servicio, sabor, limpieza y experiencia — con
+          total honestidad, Palabra Foodie.
+        </div>
+      </div>
+
+      <div className="px-6 pb-9 pt-5 text-center">
+        <div className="text-[11px]" style={{ color: "rgba(60,60,67,0.35)" }}>
+          Con el respaldo de Flanco Izquierdo
+        </div>
+      </div>
     </div>
   );
 }

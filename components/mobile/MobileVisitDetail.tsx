@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { VisitFullDetail } from "@/lib/dashboard";
 import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
@@ -47,11 +48,14 @@ export default function MobileVisitDetail({
         className="flex items-center px-3 py-[14px]"
         style={{ background: "rgba(249,249,251,0.92)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
       >
-        <Link href={backHref} className="mf-tap -my-2.5 -ml-1 flex items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
+        <Link href={backHref} className="mf-tap -my-2.5 -ml-1 flex flex-1 items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="text-[16px]">{backLabel}</span>
+        </Link>
+        <Link href="/" className="mf-tap -my-2.5 flex items-center py-2.5 pl-2" aria-label="Inicio">
+          <Image src="/icon-512.png" alt="" width={26} height={26} className="rounded-md object-contain" />
         </Link>
       </div>
 
@@ -85,7 +89,7 @@ export default function MobileVisitDetail({
           <div className="grid grid-cols-2 gap-x-2.5 gap-y-4">
             {mainCategories.map((cs) => (
               <div key={cs.key} className="flex items-center gap-2.5">
-                <ActivityRing value={cs.average} max={5} size={50} strokeWidth={6} color={verdict.color}>
+                <ActivityRing value={cs.average} max={5} size={50} strokeWidth={6} color={getVerdict(cs.average).color}>
                   <div className="text-[19px]">{CATEGORY_EMOJI[cs.key] ?? "⭐"}</div>
                 </ActivityRing>
                 <div className="min-w-0">
@@ -101,7 +105,7 @@ export default function MobileVisitDetail({
 
         {extraCategory && (
           <div className="card mt-2.5 flex items-center gap-3 p-3.5">
-            <ActivityRing value={extraCategory.average} max={5} size={40} strokeWidth={6} color={verdict.color}>
+            <ActivityRing value={extraCategory.average} max={5} size={40} strokeWidth={6} color={getVerdict(extraCategory.average).color}>
               <div className="text-[15px]">{CATEGORY_EMOJI[extraCategory.key] ?? "⭐"}</div>
             </ActivityRing>
             <div className="flex-1">

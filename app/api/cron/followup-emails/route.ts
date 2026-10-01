@@ -55,10 +55,13 @@ export async function GET(req: NextRequest) {
   const { start, end } = cdmxDayBoundsUTC(yesterdayCdmx);
   void todayCdmx;
 
+  // Solo negocios que compraron el reporte detallado (report_unlocked_at):
+  // la asesoría gratuita es parte de ese servicio, no se ofrece a todos.
   const { data: forms, error } = await db
     .from("forms")
     .select("id, short_code, client_id, created_at")
     .is("followup_sent_at", null)
+    .not("report_unlocked_at", "is", null)
     .gte("created_at", start.toISOString())
     .lt("created_at", end.toISOString());
 

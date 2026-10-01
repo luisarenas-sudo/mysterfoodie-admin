@@ -7,13 +7,19 @@ export type Verdict = {
   color: string;
 };
 
+/**
+ * Esquema de color tipo semáforo para todas las calificaciones
+ * (reporte público e interno): rojo = malo, amarillo = medio,
+ * verde = bueno/excelente (5 estrellas). Se mantienen 4 niveles de
+ * texto para dar matiz, pero el color colapsa a esas 3 familias.
+ */
 export function getVerdict(score: number): Verdict {
   if (score >= 4.5) {
     return {
       level: "excelente",
       label: "Excelente",
       summary: "Está entre los negocios mejor evaluados del sector. Sigan así.",
-      color: "#15803d",
+      color: "#15803D", // verde
     };
   }
   if (score >= 3.5) {
@@ -21,7 +27,7 @@ export function getVerdict(score: number): Verdict {
       level: "bueno",
       label: "Bueno",
       summary: "Va bien, pero hay detalles puntuales que pulir para destacar más.",
-      color: "#ca8a04",
+      color: "#2E9E4F", // verde (más claro)
     };
   }
   if (score >= 2.5) {
@@ -29,13 +35,13 @@ export function getVerdict(score: number): Verdict {
       level: "regular",
       label: "Regular",
       summary: "Hay oportunidades claras de mejora en varios indicadores.",
-      color: "#c2410c",
+      color: "#D97706", // amarillo/ámbar
     };
   }
   return {
     level: "critico",
-    label: "Necesita atencion",
+    label: "Necesita atención",
     summary: "Varios indicadores están por debajo de lo esperado en el sector.",
-    color: "#dc2626",
+    color: "#DC2626", // rojo
   };
 }

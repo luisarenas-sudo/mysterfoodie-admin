@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import SelectChips from "@/components/SelectChips";
@@ -162,6 +162,15 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Cada "Continuar"/"Atrás" cambia de paso: regresamos el scroll hasta
+  // arriba para que el siguiente paso siempre se vea completo desde el
+  // inicio (si no, se quedaba en la posición del paso anterior y podía
+  // parecer que faltaban campos o que el botón estaba "pegado" abajo).
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [step]);
   const [business, setBusiness] = useState<Business>(
     boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS
   );
@@ -414,7 +423,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
         </div>
       </div>
 
-      <div className="mf-scroll flex-1 overflow-y-auto px-5 pb-6 pt-[18px]">
+      <div ref={scrollRef} className="mf-scroll flex-1 overflow-y-auto px-5 pb-6 pt-[18px]">
         {current.kind === "business" && (
           <div className="space-y-3.5">
             <MobileField label="Nombre del negocio">
