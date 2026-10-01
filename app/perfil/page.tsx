@@ -203,7 +203,9 @@ export default async function PerfilPage({
               Correos automáticos y agenda de asesorías
             </div>
           </div>
-          <span style={{ color: "rgba(60,60,67,0.35)" }}>&rsaquo;</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
+            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </Link>
       )}
 
