@@ -8,7 +8,11 @@ import { exchangeCodeForTokens } from "@/lib/googleCalendar";
  * vuelta a /automatizaciones con un mensaje de éxito o error.
  */
 export async function GET(req: NextRequest) {
-  const redirectTo = new URL("/automatizaciones", req.nextUrl.origin);
+  // Usamos APP_URL en vez de req.nextUrl.origin: detrás del proxy de
+  // GoDaddy el origin de la petición puede resolver a una direccion
+  // interna (ej. localhost:PUERTO) en vez del dominio publico.
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const redirectTo = new URL("/automatizaciones", baseUrl);
 
   let profile;
   try {
