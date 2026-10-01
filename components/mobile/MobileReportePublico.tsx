@@ -319,13 +319,6 @@ export default function MobileReportePublico({
                     className="opacity-80"
                   />
                 </div>
-                <div className="mt-1 text-center">
-                  <FlancoCredit
-                    label="Respaldado por Flanco Izquierdo"
-                    className="text-[11px] font-medium"
-                    color="rgba(60,60,67,0.45)"
-                  />
-                </div>
               </>
             )}
           </div>
