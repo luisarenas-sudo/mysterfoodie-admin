@@ -211,10 +211,10 @@ export default async function PerfilPage({
       )}
 
       <div
-        className="mx-5 mt-5 rounded-[18px] p-5"
+        className="mx-5 mt-5 rounded-[18px] p-5 text-center"
         style={{ background: "#1C1C1E" }}
       >
-        <div className="mb-3 flex items-center gap-2.5">
+        <div className="mb-3 flex flex-col items-center gap-2">
           <div
             className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
             style={{ background: "rgba(242,68,68,0.18)" }}
@@ -224,10 +224,17 @@ export default async function PerfilPage({
               <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="heading text-[19px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
         </div>
-        <div className="text-[14px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
+        <div
+          className="mx-auto text-[14.5px] italic leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
+        >
+          &ldquo;Palabra Foodie, orgullo de gordo:
+          <br />
+          la verdad es mi palabra
+          <br />
+          y pongo mi boca en la verdad.&rdquo;
         </div>
       </div>
       <div className="mx-5 mt-2.5 text-center">
