@@ -28,11 +28,13 @@ export default function ConnectGoogleButton() {
       });
 
       if (linkError) {
+        console.error("linkIdentity error:", linkError);
         setError(linkError.message);
         setLoading(false);
       }
       // En éxito Supabase redirige a Google de inmediato.
-    } catch {
+    } catch (err) {
+      console.error("No se pudo iniciar la conexión con Google:", err);
       setError("No se pudo iniciar la conexión con Google. Intenta de nuevo.");
       setLoading(false);
     }

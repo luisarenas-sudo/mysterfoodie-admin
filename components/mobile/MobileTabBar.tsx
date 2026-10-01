@@ -16,15 +16,6 @@ function isActivePath(pathname: string, href: string) {
 export default function MobileTabBar({ role }: { role: Role }) {
   const pathname = usePathname();
 
-  const tabs = [
-    { href: "/", label: "Inicio", key: "home" as const },
-    ...(role === "admin" || role === "sibarita"
-      ? [{ href: "/negocios", label: "Negocios", key: "negocios" as const }]
-      : []),
-    { href: "/mis-visitas", label: "Reportes", key: "reportes" as const },
-    { href: "/perfil", label: "Perfil", key: "perfil" as const },
-  ];
-
   return (
     <nav
       className="md:hidden fixed inset-x-0 bottom-0 z-30 flex pt-2"
@@ -106,7 +97,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
           className="text-[10.5px] font-semibold"
           style={{ color: isActivePath(pathname, "/mis-visitas") ? ACTIVE : INACTIVE }}
         >
-          Reportes
+          Visitas
         </span>
       </Link>
 

@@ -2,9 +2,11 @@ import { getSupabaseServiceClient } from "./supabase";
 
 /**
  * Automatizaciones con plantilla editable (ver /automatizaciones).
- * Por ahora solo existe "asesoria_gratuita": el correo que se manda al
- * día siguiente de una visita ofreciendo 20 min gratis, disparado por
- * /api/cron/followup-emails.
+ * Cada fila en la tabla `automations` es un mensaje que el sistema manda
+ * solo, con texto editable por el admin (Master Chef): el correo de
+ * seguimiento post-visita, el párrafo de intro del correo de resultado,
+ * el correo de asignación a un Foodie, las confirmaciones de asesoría
+ * agendada, y el mensaje de Instagram DM.
  */
 export type Automation = {
   key: string;
@@ -12,6 +14,83 @@ export type Automation = {
   subjectTemplate: string;
   bodyTemplate: string;
   updatedAt: string;
+};
+
+export type AutomationTag = { tag: string; desc: string };
+
+export type AutomationCatalogEntry = {
+  title: string;
+  desc: string;
+  tags: AutomationTag[];
+  /** false = esta automatización no manda correo con asunto propio (ej. el DM de Instagram); oculta el campo "Asunto" en el panel. */
+  hasSubject?: boolean;
+  /** Copy del botón de encendido/apagado cuando no aplica "Activa/Desactivada" tal cual (ej. correos transaccionales que siempre se mandan, donde el toggle solo decide si se usa el texto personalizado o el de MysterFoodie por default). */
+  enabledLabel?: { on: string; off: string };
+};
+
+/** Catálogo central: qué automatizaciones existen, cómo se llaman en el panel y qué tags ({{...}}) acepta cada una. Única fuente de verdad para el UI de Automatizaciones. */
+export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
+  asesoria_gratuita: {
+    title: "Asesoría gratuita (correo de seguimiento)",
+    desc: "Se manda a las 8am (CDMX) del día después de la visita, ofreciendo 20 min gratis para hablar del negocio. Si la desactivas, ese correo deja de mandarse.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "link_agenda", desc: "Enlace para agendar la asesoría" },
+    ],
+  },
+  resultado_visita: {
+    title: "Resultado de la visita (al negocio)",
+    desc: "Correo que recibe el negocio justo después de guardar una visita. Solo el párrafo de introducción es editable; las estrellas, el veredicto, las categorías y el botón se arman solos.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (puede venir vacío)" },
+      { tag: "mesero", desc: "Nombre del mesero que atendió, si se capturó (puede venir vacío)" },
+      { tag: "promedio", desc: "Promedio general obtenido (solo útil en el asunto)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  asignacion_visita: {
+    title: "Visita asignada (a un Foodie)",
+    desc: "Correo que recibe un Foodie cuando el admin le asigna una visita a un negocio.",
+    tags: [
+      { tag: "foodie", desc: "Nombre del Foodie" },
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "ubicacion", desc: "Tipo de negocio y ciudad (puede venir vacío)" },
+      { tag: "nota", desc: "Nota que dejó el admin al asignar (puede venir vacío)" },
+      { tag: "link_visitas", desc: "Enlace a sus visitas asignadas" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  confirmacion_cita_negocio: {
+    title: "Asesoría confirmada (al negocio)",
+    desc: "Correo que recibe el negocio al agendar su asesoría gratuita desde el reporte.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "fecha_hora", desc: "Fecha y hora de la cita" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  confirmacion_cita_admin: {
+    title: "Asesoría confirmada (a ti)",
+    desc: "Correo que te llega a ti (admin) cuando un negocio agenda su asesoría.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "fecha_hora", desc: "Fecha y hora de la cita" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  instagram_dm: {
+    title: "Mensaje de Instagram (DM)",
+    desc: "Texto para copiar y pegar como DM de Instagram al negocio, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "mesero", desc: "Nombre del mesero que atendió, si se capturó (puede venir vacío)" },
+      { tag: "promedio", desc: "Promedio general obtenido" },
+      { tag: "link_reporte", desc: "Enlace al reporte" },
+    ],
+    hasSubject: false,
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
 };
 
 export async function listAutomations(): Promise<Automation[]> {

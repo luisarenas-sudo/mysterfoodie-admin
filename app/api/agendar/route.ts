@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { isSlotStillFree, createCalendarEvent } from "@/lib/googleCalendar";
-import { sendBookingConfirmationEmail } from "@/lib/email";
+import { sendTemplatedEmail, formatSlot } from "@/lib/email";
+import { getAutomation, renderTemplate } from "@/lib/automations";
 
 type Body = {
   shortCode?: string;
@@ -110,22 +111,60 @@ export async function POST(req: NextRequest) {
     await db.from("clients").update({ phone: contactPhone.trim() }).eq("id", client.id);
   }
 
+  const fechaHora = formatSlot(start, end);
+  const templateVars = { negocio: client.name, fecha_hora: fechaHora };
+
+  const [negocioAutomation, adminAutomation] = await Promise.all([
+    getAutomation("confirmacion_cita_negocio"),
+    getAutomation("confirmacion_cita_admin"),
+  ]);
+
+  const defaultSubject = `Asesoría confirmada: ${client.name}`;
+  const defaultNegocioBody =
+    `Hola equipo de ${client.name},
+
+Tu asesoría gratuita con MysterFoodie quedó agendada para:
+
+${fechaHora}
+
+` +
+    `Te llega una invitación de Google Calendar por separado con el enlace de la videollamada.
+
+Saludos,
+MysterFoodie`;
+  const defaultAdminBody =
+    `${client.name} agendó una asesoría gratuita contigo para:
+
+${fechaHora}
+
+` +
+    `Te llega una invitación de Google Calendar por separado con el enlace de la videollamada.
+
+Saludos,
+MysterFoodie`;
+
+  const negocioSubject =
+    negocioAutomation?.enabled && negocioAutomation.subjectTemplate
+      ? renderTemplate(negocioAutomation.subjectTemplate, templateVars)
+      : defaultSubject;
+  const negocioBody =
+    negocioAutomation?.enabled && negocioAutomation.bodyTemplate
+      ? renderTemplate(negocioAutomation.bodyTemplate, templateVars)
+      : defaultNegocioBody;
+  const adminSubject =
+    adminAutomation?.enabled && adminAutomation.subjectTemplate
+      ? renderTemplate(adminAutomation.subjectTemplate, templateVars)
+      : defaultSubject;
+  const adminBody =
+    adminAutomation?.enabled && adminAutomation.bodyTemplate
+      ? renderTemplate(adminAutomation.bodyTemplate, templateVars)
+      : defaultAdminBody;
+
   const adminEmail = process.env.ADMIN_EMAIL;
   await Promise.all([
-    sendBookingConfirmationEmail({
-      to: contactEmail,
-      businessName: client.name,
-      slotStart: start,
-      slotEnd: end,
-    }),
+    sendTemplatedEmail({ to: contactEmail, subject: negocioSubject, bodyText: negocioBody }),
     adminEmail
-      ? sendBookingConfirmationEmail({
-          to: adminEmail,
-          businessName: client.name,
-          slotStart: start,
-          slotEnd: end,
-          isForAdmin: true,
-        })
+      ? sendTemplatedEmail({ to: adminEmail, subject: adminSubject, bodyText: adminBody })
       : Promise.resolve(),
   ]);
 

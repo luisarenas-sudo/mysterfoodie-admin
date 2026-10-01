@@ -5,6 +5,7 @@ import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import ConnectGoogleButton from "@/components/auth/ConnectGoogleButton";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
+import FlancoCredit from "@/components/FlancoCredit";
 
 export const dynamic = "force-dynamic";
 
@@ -228,6 +229,9 @@ export default async function PerfilPage({
         <div className="text-[14px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
           &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
         </div>
+      </div>
+      <div className="mx-5 mt-2.5 text-center">
+        <FlancoCredit />
       </div>
 
       <form action={signOut} className="mx-5 mt-6 mb-8">

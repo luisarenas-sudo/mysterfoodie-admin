@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { businessTypePhrase } from "@/lib/categories";
-import { sendVisitAssignmentEmail } from "@/lib/email";
+import { sendTemplatedEmail } from "@/lib/email";
+import { getAutomation, renderTemplate } from "@/lib/automations";
 
 type Body = {
   clientId?: string;
@@ -91,15 +92,51 @@ export async function POST(req: NextRequest) {
   }
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const linkVisitas = `${baseUrl}/nueva-visita`;
+  const ubicacion = [businessTypePhrase(client.type), client.city].filter(Boolean).join(" · ");
+  const templateVars = {
+    foodie: foodie.full_name || "",
+    negocio: client.name,
+    ubicacion,
+    nota: note || "",
+    link_visitas: linkVisitas,
+  };
 
-  const emailOutcome = await sendVisitAssignmentEmail({
+  const automation = await getAutomation("asignacion_visita");
+  const defaultSubject = `Nueva visita asignada: ${client.name}`;
+  const defaultBody =
+    `Hola${foodie.full_name ? ` ${foodie.full_name}` : ""},
+
+` +
+    `Se te asignó una nueva visita Mystery Shopper:
+
+` +
+    `Negocio: ${client.name}
+` +
+    `Ubicación: ${ubicacion}
+` +
+    (note ? `Nota: ${note}
+
+` : `
+`) +
+    `Ve tus visitas asignadas aquí:
+${linkVisitas}
+
+Saludos,
+MysterFoodie`;
+  const subject =
+    automation?.enabled && automation.subjectTemplate
+      ? renderTemplate(automation.subjectTemplate, templateVars)
+      : defaultSubject;
+  const bodyText =
+    automation?.enabled && automation.bodyTemplate
+      ? renderTemplate(automation.bodyTemplate, templateVars)
+      : defaultBody;
+
+  const emailOutcome = await sendTemplatedEmail({
     to: foodie.email,
-    foodieName: foodie.full_name,
-    businessName: client.name,
-    businessType: businessTypePhrase(client.type),
-    city: client.city,
-    note,
-    appUrl: baseUrl,
+    subject,
+    bodyText,
   });
 
   if (emailOutcome.status === "sent") {

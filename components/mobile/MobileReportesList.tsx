@@ -21,7 +21,7 @@ export default function MobileReportesList({ visits }: { visits: ReportRow[] }) 
         <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
           MYSTERFOODIE
         </div>
-        <div className="heading text-[34px] font-bold">Reportes</div>
+        <div className="heading text-[34px] font-bold">Visitas</div>
       </div>
 
       {visits.length === 0 ? (

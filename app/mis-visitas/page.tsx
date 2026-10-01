@@ -23,13 +23,11 @@ export default async function MisVisitasPage() {
       <MobileReportesList visits={visits} />
 
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
-        <h1 className="heading text-3xl text-brand-500">
-          {profile.role === "admin" ? "Reportes" : "Mis visitas"}
-        </h1>
+        <h1 className="heading text-3xl text-brand-500">Visitas</h1>
         <p className="mt-1 text-sm text-stone-500">
           {profile.role === "admin"
-            ? "Todas las evaluaciones registradas."
-            : "Evaluaciones que has registrado."}
+            ? "Todas las visitas registradas por el equipo."
+            : "Visitas que has registrado."}
         </p>
 
         {visits.length === 0 && (

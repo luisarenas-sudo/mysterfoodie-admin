@@ -5,13 +5,13 @@ import type { CategoryScore } from "./scoring";
 export type SendResultEmailParams = {
   to: string;
   businessName: string;
-  /** Frase en lenguaje natural del tipo de negocio, ej. "cafetería" (ver businessTypePhrase en lib/categories.ts). */
-  businessType?: string;
-  /** Nombre del mesero que atendió la visita, capturado al final del formulario. */
-  waiterName?: string | null;
   score: number;
   reportUrl: string;
   categoryScores: CategoryScore[];
+  /** Asunto ya renderizado (plantilla de Automatizaciones "resultado_visita" o el texto por default). */
+  subject: string;
+  /** Párrafo de introducción ya renderizado (plantilla de Automatizaciones "resultado_visita" o el texto por default). Variables ya sustituidas. */
+  introText: string;
 };
 
 export type SendEmailOutcome = {
@@ -19,6 +19,13 @@ export type SendEmailOutcome = {
   providerId?: string;
   error?: string;
 };
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
 function renderCategoryRows(categoryScores: CategoryScore[]): string {
   return categoryScores
@@ -35,22 +42,15 @@ function renderCategoryRows(categoryScores: CategoryScore[]): string {
 }
 
 function renderEmailHtml(params: SendResultEmailParams): string {
-  const { businessName, businessType, waiterName, score, reportUrl, categoryScores } = params;
+  const { businessName, introText, score, reportUrl, categoryScores } = params;
   const verdict = getVerdict(score);
-  const visitLocation = businessType ? `tu ${businessType}` : "tu establecimiento";
-  const waiterMention = waiterName
-    ? `, donde nos atendió <strong>${waiterName}</strong>`
-    : "";
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
       <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
       <h2 style="color: #222222; margin-top: 4px;">Resultado de tu evaluación Mystery Shopper</h2>
-      <p>Hola equipo de <strong>${businessName}</strong>,</p>
-      <p>
-        Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso
-        a ${visitLocation}${waiterMention}. El promedio general obtenido fue:
-      </p>
+      <p>Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
+      <p style="white-space: pre-line;">${escapeHtml(introText)}</p>
       <p style="font-size: 28px; font-weight: bold; color: #f24444; margin-bottom: 4px;">${score} de 5 estrellas</p>
       <p style="display: inline-block; font-size: 12px; font-weight: bold; color: ${verdict.color}; border: 1px solid ${verdict.color}; border-radius: 999px; padding: 4px 12px; margin-top: 0;">
         ${verdict.label}
@@ -78,6 +78,10 @@ function renderEmailHtml(params: SendResultEmailParams): string {
   `;
 }
 
+/** Correo con el resultado de una visita, mandado al negocio. El párrafo
+ * introductorio (y el asunto) son editables desde Automatizaciones (clave
+ * "resultado_visita"); el resto del correo (estrellas, veredicto, tabla de
+ * categorías, botón) siempre se arma igual. */
 export async function sendResultEmail(
   params: SendResultEmailParams
 ): Promise<SendEmailOutcome> {
@@ -93,7 +97,7 @@ export async function sendResultEmail(
     const result = await resend.emails.send({
       from: fromAddress,
       to: params.to,
-      subject: `Resultado de tu evaluación Mystery Shopper - ${params.score} estrellas`,
+      subject: params.subject,
       html: renderEmailHtml(params),
     });
 
@@ -106,76 +110,14 @@ export async function sendResultEmail(
     return { status: "failed", error: err instanceof Error ? err.message : String(err) };
   }
 }
-export type SendVisitAssignmentEmailParams = {
-  to: string;
-  foodieName?: string | null;
-  businessName: string;
-  businessType?: string;
-  city?: string | null;
-  note?: string | null;
-  appUrl: string;
-};
-
-function renderAssignmentEmailHtml(params: SendVisitAssignmentEmailParams): string {
-  const { foodieName, businessName, businessType, city, note, appUrl } = params;
-  const greeting = foodieName ? `Hola ${foodieName}` : "Hola";
-  const location = [businessType, city].filter(Boolean).join(" · ");
-
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
-      <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
-      <h2 style="color: #222222; margin-top: 4px;">Tienes una nueva visita asignada</h2>
-      <p>${greeting},</p>
-      <p>
-        Se te asignó una visita Mystery Shopper a <strong>${businessName}</strong>${location ? ` (${location})` : ""}.
-      </p>
-      ${note ? `<p style="background:#F2F2F7; border-radius:8px; padding:10px 14px; color:#44403c; font-size:14px;">${note}</p>` : ""}
-      <p>
-        <a href="${appUrl}/nueva-visita" style="background-color: #f24444; background-image: linear-gradient(180deg, #f24444, #f25631); color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
-          Ver mis visitas asignadas
-        </a>
-      </p>
-      <p style="font-size: 12px; color: #78716c; margin-top: 32px;">
-        MysterFoodie - evaluaciones Mystery Shopper para restaurantes y bares.
-      </p>
-    </div>
-  `;
-}
-
-/** Notifica por correo a un Foodie cuando el admin le asigna una visita (ver /api/asignaciones). */
-export async function sendVisitAssignmentEmail(
-  params: SendVisitAssignmentEmailParams
-): Promise<SendEmailOutcome> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "reportes@mysterfoodie.com";
-
-  if (!apiKey) {
-    return { status: "skipped_no_api_key" };
-  }
-
-  try {
-    const resend = new Resend(apiKey);
-    const result = await resend.emails.send({
-      from: fromAddress,
-      to: params.to,
-      subject: `Nueva visita asignada: ${params.businessName}`,
-      html: renderAssignmentEmailHtml(params),
-    });
-
-    if (result.error) {
-      return { status: "failed", error: result.error.message };
-    }
-
-    return { status: "sent", providerId: result.data?.id };
-  } catch (err) {
-    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
-  }
-}
 
 // ============================================================
-// Automatizaciones: correo de seguimiento (plantilla editable) y
-// confirmación de asesoría agendada (ver /automatizaciones y
-// /agendar/[shortCode]).
+// Automatizaciones: todas las plantillas editables (asesoría de
+// seguimiento, resultado de visita, asignación a un Foodie,
+// confirmación de asesoría agendada, DM de Instagram) usan el mismo
+// mecanismo: texto plano ya renderizado (variables {{...}} ya
+// sustituidas vía renderTemplate, ver lib/automations.ts) envuelto en
+// el mismo wrapper visual simple. Ver /automatizaciones.
 // ============================================================
 
 export type SendTemplatedEmailParams = {
@@ -186,10 +128,7 @@ export type SendTemplatedEmailParams = {
 };
 
 function renderPlainEmailHtml(bodyText: string): string {
-  const escaped = bodyText
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const escaped = escapeHtml(bodyText);
   return `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
       <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
@@ -225,16 +164,8 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
   }
 }
 
-export type SendBookingConfirmationParams = {
-  to: string;
-  businessName: string;
-  slotStart: Date;
-  slotEnd: Date;
-  /** true para el correo que le llega al admin (Luis), false/omitido para el del negocio. */
-  isForAdmin?: boolean;
-};
-
-function formatSlot(start: Date, end: Date): string {
+/** Formatea un rango de horario en español (CDMX), ej. "lunes 15 de septiembre, 10:00 a 10:20 (hora CDMX)". */
+export function formatSlot(start: Date, end: Date): string {
   const dateFmt = new Intl.DateTimeFormat("es-MX", {
     weekday: "long",
     day: "numeric",
@@ -248,51 +179,4 @@ function formatSlot(start: Date, end: Date): string {
     timeZone: "America/Mexico_City",
   });
   return `${dateFmt.format(start)}, ${timeFmt.format(start)} a ${timeFmt.format(end)} (hora CDMX)`;
-}
-
-function renderBookingConfirmationHtml(params: SendBookingConfirmationParams): string {
-  const { businessName, slotStart, slotEnd, isForAdmin } = params;
-  const when = formatSlot(slotStart, slotEnd);
-  const intro = isForAdmin
-    ? `<strong>${businessName}</strong> agendó una asesoría gratuita contigo.`
-    : `Tu asesoría gratuita con MysterFoodie quedó agendada.`;
-
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
-      <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #f24444; text-transform: uppercase;">MysterFoodie</p>
-      <h2 style="color: #222222; margin-top: 4px;">Asesoría confirmada</h2>
-      <p>${intro}</p>
-      <p style="font-size: 18px; font-weight: bold; color: #f24444; margin: 16px 0;">${when}</p>
-      <p style="color: #57534e;">Llega una invitación de Google Calendar por separado con el enlace de la llamada.</p>
-    </div>
-  `;
-}
-
-/** Confirma por correo una cita agendada en /agendar/[shortCode] (al negocio y/o al admin). */
-export async function sendBookingConfirmationEmail(
-  params: SendBookingConfirmationParams
-): Promise<SendEmailOutcome> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "reportes@mysterfoodie.com";
-
-  if (!apiKey) {
-    return { status: "skipped_no_api_key" };
-  }
-
-  try {
-    const resend = new Resend(apiKey);
-    const result = await resend.emails.send({
-      from: fromAddress,
-      to: params.to,
-      subject: `Asesoría confirmada: ${params.businessName}`,
-      html: renderBookingConfirmationHtml(params),
-    });
-
-    if (result.error) {
-      return { status: "failed", error: result.error.message };
-    }
-    return { status: "sent", providerId: result.data?.id };
-  } catch (err) {
-    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
-  }
 }

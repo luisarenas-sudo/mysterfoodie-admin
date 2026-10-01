@@ -142,24 +142,45 @@ export default function MobileVisitDetail({
           />
         </div>
 
-        <button
-          type="button"
-          onClick={share}
-          className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[16px] font-bold text-white"
-          style={{ background: "#F24444" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path
-              d="M12 3v12M12 3l-4 4M12 3l4 4M5 14v5a1 1 0 001 1h12a1 1 0 001-1v-5"
-              stroke="#fff"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Compartir
-        </button>
+        <div className="mt-3.5 flex gap-2.5">
+          <Link
+            href={visit.reportUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-bold"
+            style={{ background: "#fff", color: "#F24444", border: "1.5px solid #F24444" }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24">
+              <path
+                d="M14 4h6v6M10 14L20 4M19 13v6a1 1 0 01-1 1H6a1 1 0 01-1-1V6a1 1 0 011-1h6"
+                stroke="#F24444"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Reporte público
+          </Link>
+          <button
+            type="button"
+            onClick={share}
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-bold text-white"
+            style={{ background: "#F24444" }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24">
+              <path
+                d="M12 3v12M12 3l-4 4M12 3l4 4M5 14v5a1 1 0 001 1h12a1 1 0 001-1v-5"
+                stroke="#fff"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Compartir
+          </button>
+        </div>
       </div>
     </div>
   );

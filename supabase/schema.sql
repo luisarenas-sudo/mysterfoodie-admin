@@ -196,6 +196,45 @@ values (
 )
 on conflict (key) do nothing;
 
+-- Automatizaciones agregadas para exponer como plantilla editable TODOS
+-- los mensajes automáticos de la app (no solo el de seguimiento), con
+-- "enabled" controlando si se usa el texto personalizado o el texto
+-- original de MysterFoodie -- ver AUTOMATION_CATALOG en lib/automations.ts
+-- para la lista de {{tags}} de cada una.
+insert into automations (key, enabled, subject_template, body_template)
+values
+  (
+    'resultado_visita',
+    true,
+    'Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas',
+    'Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a {{negocio}}. El promedio general obtenido fue:'
+  ),
+  (
+    'asignacion_visita',
+    true,
+    'Nueva visita asignada: {{negocio}}',
+    E'Hola {{foodie}},\n\nSe te asignó una nueva visita Mystery Shopper:\n\nNegocio: {{negocio}}\nUbicación: {{ubicacion}}\nNota: {{nota}}\n\nVe tus visitas asignadas aquí:\n{{link_visitas}}\n\nSaludos,\nMysterFoodie'
+  ),
+  (
+    'confirmacion_cita_negocio',
+    true,
+    'Asesoría confirmada: {{negocio}}',
+    E'Hola equipo de {{negocio}},\n\nTu asesoría gratuita con MysterFoodie quedó agendada para:\n\n{{fecha_hora}}\n\nTe llega una invitación de Google Calendar por separado con el enlace de la videollamada.\n\nSaludos,\nMysterFoodie'
+  ),
+  (
+    'confirmacion_cita_admin',
+    true,
+    'Asesoría confirmada: {{negocio}}',
+    E'{{negocio}} agendó una asesoría gratuita contigo para:\n\n{{fecha_hora}}\n\nTe llega una invitación de Google Calendar por separado con el enlace de la videollamada.\n\nSaludos,\nMysterFoodie'
+  ),
+  (
+    'instagram_dm',
+    true,
+    '',
+    'Hola equipo de {{negocio}}, hoy los visitamos e hicimos un Mystery Shopper. Obtuvimos {{promedio}} estrellas de promedio. Aquí puedes ver el reporte completo: {{link_reporte}}'
+  )
+on conflict (key) do nothing;
+
 -- Evita mandar el correo de seguimiento mas de una vez por visita.
 alter table forms add column if not exists followup_sent_at timestamptz;
 

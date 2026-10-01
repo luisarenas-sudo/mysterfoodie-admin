@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { businessTypePhrase } from "@/lib/categories";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import { sendResultEmail } from "@/lib/email";
+import { getAutomation, renderTemplate } from "@/lib/automations";
 
 /**
  * Reenvia el correo de resultado de una evaluacion ya guardada, o lo
@@ -88,11 +89,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const reportUrl = form.report_url || `${baseUrl}/r/${form.short_code}`;
 
+  const templateVars = {
+    negocio: client.name,
+    tipo_negocio: businessTypePhrase(client.type) || "",
+    mesero: form.waiter_name || "",
+    promedio: String(form.overall_score),
+  };
+  const resultadoAutomation = await getAutomation("resultado_visita");
+  const defaultSubject = `Resultado de tu evaluación Mystery Shopper - ${form.overall_score} estrellas`;
+  const defaultIntro = `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${client.name}. El promedio general obtenido fue:`;
+  const subject =
+    resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
+      ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)
+      : defaultSubject;
+  const introText =
+    resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
+      ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
+      : defaultIntro;
+
   const emailOutcome = await sendResultEmail({
     to: recipientEmail,
     businessName: client.name,
-    businessType: businessTypePhrase(client.type),
-    waiterName: form.waiter_name,
+    subject,
+    introText,
     score: form.overall_score,
     reportUrl,
     categoryScores: catScores,
@@ -101,7 +120,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   await db.from("email_confirmations").insert({
     form_id: form.id,
     recipient_email: recipientEmail,
-    subject: `Resultado de tu evaluación Mystery Shopper - ${form.overall_score} estrellas`,
+    subject,
     status: emailOutcome.status,
     provider_id: emailOutcome.providerId || null,
     error: emailOutcome.error || null,

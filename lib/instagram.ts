@@ -1,10 +1,31 @@
-export function buildDmMessage(params: {
-  businessName: string;
-  score: number;
-  reportUrl: string;
-  waiterName?: string | null;
-}): string {
+import { renderTemplate } from "./automations";
+
+/**
+ * Arma el mensaje de DM de Instagram. Si se pasa `customTemplate` (la
+ * plantilla editable de Automatizaciones, clave "instagram_dm"), se usa
+ * esa en vez del texto por default -- ver {{tags}} disponibles en
+ * AUTOMATION_CATALOG.instagram_dm.
+ */
+export function buildDmMessage(
+  params: {
+    businessName: string;
+    score: number;
+    reportUrl: string;
+    waiterName?: string | null;
+  },
+  customTemplate?: string
+): string {
   const { businessName, score, reportUrl, waiterName } = params;
+
+  if (customTemplate) {
+    return renderTemplate(customTemplate, {
+      negocio: businessName,
+      mesero: waiterName?.trim() || "",
+      promedio: String(score),
+      link_reporte: reportUrl,
+    });
+  }
+
   const waiterPart = waiterName?.trim() ? ` Nos atendió ${waiterName.trim()}.` : "";
   return (
     `Hola equipo de ${businessName}, hoy los visitamos e hicimos un Mystery Shopper.` +

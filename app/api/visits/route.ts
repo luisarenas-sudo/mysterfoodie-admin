@@ -6,6 +6,7 @@ import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhr
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
+import { getAutomation, renderTemplate } from "@/lib/automations";
 import { createShortLink } from "@/lib/shortio";
 
 type Business = {
@@ -280,6 +281,28 @@ export async function POST(req: NextRequest) {
 
   await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
 
+  const waiterName = body.waiterName?.trim() || null;
+  const templateVars = {
+    negocio: business.name,
+    tipo_negocio: businessTypePhrase(business.type) || "",
+    mesero: waiterName || "",
+    promedio: String(score),
+  };
+  const [resultadoAutomation, dmAutomation] = await Promise.all([
+    getAutomation("resultado_visita"),
+    getAutomation("instagram_dm"),
+  ]);
+  const defaultSubject = `Resultado de tu evaluación Mystery Shopper - ${score} estrellas`;
+  const defaultIntro = `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${business.name}. El promedio general obtenido fue:`;
+  const resultSubject =
+    resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
+      ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)
+      : defaultSubject;
+  const resultIntro =
+    resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
+      ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
+      : defaultIntro;
+
   const recipientEmail = business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
@@ -287,8 +310,8 @@ export async function POST(req: NextRequest) {
     emailOutcome = await sendResultEmail({
       to: recipientEmail,
       businessName: business.name,
-      businessType: businessTypePhrase(business.type),
-      waiterName: body.waiterName?.trim() || null,
+      subject: resultSubject,
+      introText: resultIntro,
       score,
       reportUrl,
       categoryScores: catScores,
@@ -297,19 +320,22 @@ export async function POST(req: NextRequest) {
     await db.from("email_confirmations").insert({
       form_id: form.id,
       recipient_email: recipientEmail,
-      subject: `Resultado de tu evaluación Mystery Shopper - ${score} estrellas`,
+      subject: resultSubject,
       status: emailOutcome.status,
       provider_id: emailOutcome.providerId || null,
       error: emailOutcome.error || null,
     });
   }
 
-  const dmMessage = buildDmMessage({
-    businessName: business.name,
-    score,
-    reportUrl,
-    waiterName: body.waiterName?.trim() || null,
-  });
+  const dmMessage = buildDmMessage(
+    {
+      businessName: business.name,
+      score,
+      reportUrl,
+      waiterName,
+    },
+    dmAutomation?.enabled && dmAutomation.bodyTemplate ? dmAutomation.bodyTemplate : undefined
+  );
   const dmLink = business.instagramHandle
     ? buildInstagramDmLink(business.instagramHandle)
     : null;
