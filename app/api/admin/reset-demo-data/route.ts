@@ -22,6 +22,11 @@ import { overallScore, type Ratings } from "@/lib/scoring";
  *
  * Irreversible -- por eso vive detras de DeleteButton (confirmacion
  * de dos pasos) en vez de ser un boton de un solo clic.
+ *
+ * Borra en el mismo orden "a mano" que ya usa DELETE
+ * /api/clients/[id] (la base no tiene cascada real en producción,
+ * aunque supabase/schema.sql diga "on delete cascade" en varias
+ * tablas -- ver ese endpoint para la referencia de este orden).
  */
 
 type DemoVisit = {
@@ -94,10 +99,33 @@ export async function DELETE() {
     );
   }
 
-  // Borra todos los negocios que haya hoy. El cascade de la base
-  // (forms, form_ratings, form_flags, report_payments,
-  // email_confirmations) se encarga de todo lo relacionado;
-  // consultation_bookings solo pierde la referencia (on delete set null).
+  // La base NO borra en cascada en la práctica (ver DELETE
+  // /api/clients/[id], que borra todo a mano en este mismo orden) así
+  // que aquí se replica el mismo orden: primero lo que depende de
+  // "forms", luego "forms", luego lo que depende directo de
+  // "clients", y al final "clients" -- para nunca violar una foreign
+  // key al borrar TODOS los negocios de un jalón.
+  const { data: allForms } = await db.from("forms").select("id");
+  const allFormIds = (allForms || []).map((f) => f.id);
+
+  if (allFormIds.length > 0) {
+    await db.from("form_ratings").delete().in("form_id", allFormIds);
+    await db.from("form_flags").delete().in("form_id", allFormIds);
+    await db.from("email_confirmations").delete().in("form_id", allFormIds);
+    await db.from("report_payments").delete().in("form_id", allFormIds);
+    await db.from("consultation_bookings").delete().in("form_id", allFormIds);
+  }
+
+  await db.from("visit_assignments").delete().not("id", "is", null);
+  await db.from("consultation_bookings").delete().not("id", "is", null);
+
+  if (allFormIds.length > 0) {
+    const { error: formsDeleteError } = await db.from("forms").delete().in("id", allFormIds);
+    if (formsDeleteError) {
+      return NextResponse.json({ error: formsDeleteError.message }, { status: 500 });
+    }
+  }
+
   const { error: deleteError } = await db.from("clients").delete().not("id", "is", null);
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
