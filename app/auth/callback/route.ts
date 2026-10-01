@@ -19,21 +19,27 @@ export async function GET(req: NextRequest) {
   const next = req.nextUrl.searchParams.get("next") || "/";
   const oauthError = req.nextUrl.searchParams.get("error_description");
 
+  // Si "next" apunta a /perfil, este callback viene del botón "Conecta tu
+  // cuenta a Google" (un usuario ya logueado vinculando su identidad, no
+  // un inicio de sesión) - en ese caso un error debe regresar a /perfil,
+  // no mandar a alguien con sesión activa a la pantalla de /login.
+  const errorRedirectPath = next.startsWith("/perfil") ? next.split("?")[0] : "/login";
+
   if (oauthError) {
     const qs = new URLSearchParams({ error: oauthError });
-    return NextResponse.redirect(new URL(`/login?${qs.toString()}`, baseUrl));
+    return NextResponse.redirect(new URL(`${errorRedirectPath}?${qs.toString()}`, baseUrl));
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login", baseUrl));
+    return NextResponse.redirect(new URL(errorRedirectPath, baseUrl));
   }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
-    const qs = new URLSearchParams({ error: error?.message || "No se pudo iniciar sesión con Google." });
-    return NextResponse.redirect(new URL(`/login?${qs.toString()}`, baseUrl));
+    const qs = new URLSearchParams({ error: error?.message || "No se pudo completar la conexión con Google." });
+    return NextResponse.redirect(new URL(`${errorRedirectPath}?${qs.toString()}`, baseUrl));
   }
 
   // Copiamos foto y nombre de Google al perfil (con service role porque

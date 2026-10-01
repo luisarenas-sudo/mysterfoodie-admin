@@ -9,6 +9,8 @@ export type SessionProfile = {
   email: string;
   fullName: string | null;
   avatarUrl: string | null;
+  /** true si el usuario ya tiene a Google como identidad vinculada (login o conectar cuenta). */
+  hasGoogleIdentity: boolean;
   role: Role;
   clientId: string | null;
 };
@@ -68,6 +70,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     email: user.email ?? "",
     fullName: profile.full_name,
     avatarUrl: profile.avatar_url,
+    hasGoogleIdentity: (user.identities ?? []).some((i) => i.provider === "google"),
     role: profile.role as Role,
     clientId: profile.client_id,
   };
