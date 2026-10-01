@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { requireRole } from "@/lib/auth";
 import MobileNuevoNegocio from "@/components/mobile/MobileNuevoNegocio";
 
-export default function NuevoNegocioPage() {
+export default async function NuevoNegocioPage() {
+  await requireRole("admin", "sibarita");
+
   return (
     <>
       <MobileNuevoNegocio />

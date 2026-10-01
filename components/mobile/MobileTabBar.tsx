@@ -16,6 +16,62 @@ function isActivePath(pathname: string, href: string) {
 export default function MobileTabBar({ role }: { role: Role }) {
   const pathname = usePathname();
 
+  // El dueño de negocio (cliente) no levanta visitas ni administra la
+  // red de Mystery Shoppers -- su tab bar queda reducido a lo que sí le
+  // toca: ver su negocio y su perfil.
+  if (role === "cliente") {
+    return (
+      <nav
+        className="md:hidden fixed inset-x-0 bottom-0 z-30 flex pt-2"
+        style={{
+          background: "rgba(249,249,251,0.92)",
+          backdropFilter: "blur(10px)",
+          borderTop: "1px solid rgba(60,60,67,0.12)",
+          paddingBottom: "env(safe-area-inset-bottom, 8px)",
+          height: 83,
+        }}
+      >
+        <Link href="/mi-negocio" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
+          <svg width="25" height="25" viewBox="0 0 24 24">
+            <path
+              d="M4 11.5L12 4l8 7.5V20a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1v-8.5z"
+              fill={isActivePath(pathname, "/mi-negocio") ? ACTIVE : INACTIVE}
+            />
+          </svg>
+          <span
+            className="text-[10.5px] font-semibold"
+            style={{ color: isActivePath(pathname, "/mi-negocio") ? ACTIVE : INACTIVE }}
+          >
+            Mi negocio
+          </span>
+        </Link>
+
+        <Link href="/perfil" className="mf-tap flex flex-1 flex-col items-center gap-[3px]">
+          <svg width="25" height="25" viewBox="0 0 24 24">
+            <circle
+              cx="12"
+              cy="8"
+              r="3.6"
+              stroke={isActivePath(pathname, "/perfil") ? ACTIVE : INACTIVE}
+              strokeWidth="1.8"
+              fill="none"
+            />
+            <path
+              d="M4.5 20c1.2-4 4.2-6 7.5-6s6.3 2 7.5 6"
+              stroke={isActivePath(pathname, "/perfil") ? ACTIVE : INACTIVE}
+              strokeWidth="1.8"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="text-[10.5px] font-semibold" style={{ color: isActivePath(pathname, "/perfil") ? ACTIVE : INACTIVE }}>
+            Perfil
+          </span>
+        </Link>
+      </nav>
+    );
+  }
+
   return (
     <nav
       className="md:hidden fixed inset-x-0 bottom-0 z-30 flex pt-2"

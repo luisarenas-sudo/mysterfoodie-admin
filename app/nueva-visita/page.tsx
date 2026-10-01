@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { getPendingAssignmentsFor, getClientsForVisitPicker } from "@/lib/dashboard";
 import MobileVisitasAsignadas from "@/components/mobile/MobileVisitasAsignadas";
@@ -18,6 +19,11 @@ export const dynamic = "force-dynamic";
  */
 export default async function NuevaVisitaPage() {
   const profile = await getSessionProfile();
+
+  // El dueño de negocio (cliente) no da de alta visitas libremente.
+  if (profile?.role === "cliente") {
+    redirect("/mi-negocio");
+  }
 
   if (profile?.role === "agente") {
     const assignments = await getPendingAssignmentsFor(profile.userId);

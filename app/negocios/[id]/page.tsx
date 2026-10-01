@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { getClientDetail, getPendingAssignmentForClient } from "@/lib/dashboard";
 import ClientScoreboard from "@/components/ClientScoreboard";
@@ -15,7 +15,15 @@ export default async function NegocioDetailPage({
 }) {
   const { id } = await params;
   const profile = await getSessionProfile();
+
+  // El dueño de negocio (cliente) ve su negocio en /mi-negocio, no en
+  // este listado general de negocios evaluados.
+  if (profile?.role === "cliente") {
+    redirect("/mi-negocio");
+  }
+
   const canAssign = profile?.role === "admin";
+  const canCreateVisit = profile?.role === "admin" || profile?.role === "sibarita";
 
   let client;
   try {
@@ -41,6 +49,7 @@ export default async function NegocioDetailPage({
           client={client}
           canAssign={canAssign}
           canDelete={canAssign}
+          canCreateVisit={canCreateVisit}
           pendingAssignment={pendingAssignment}
         />
         <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
@@ -74,6 +83,7 @@ export default async function NegocioDetailPage({
         client={client}
         canAssign={canAssign}
         canDelete={canAssign}
+        canCreateVisit={canCreateVisit}
         pendingAssignment={pendingAssignment}
       />
 

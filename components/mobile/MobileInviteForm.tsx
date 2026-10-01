@@ -5,22 +5,30 @@ import { useRouter } from "next/navigation";
 
 type RoleOption = "sibarita" | "agente";
 
-const ROLE_OPTIONS: { value: RoleOption; label: string; desc: string }[] = [
+const ALL_ROLE_OPTIONS: { value: RoleOption; label: string; desc: string }[] = [
   { value: "sibarita", label: "Sibarita", desc: "Da de alta negocios y hace visitas libremente." },
   { value: "agente", label: "Foodie", desc: "Solo hace las visitas que le asignes." },
 ];
 
 /**
- * Invitar Sibaritas y Foodies directamente desde el Perfil móvil (solo
- * admin). Reusa el mismo endpoint /api/admin/usuarios que el panel de
- * escritorio en /admin/usuarios.
+ * Invitar Sibaritas y Foodies directamente desde el Perfil móvil. Admin
+ * puede invitar cualquiera de los dos (allowedRoles por defecto); un
+ * Sibarita solo puede invitar Foodies (le llega allowedRoles={["agente"]}
+ * desde /perfil) -- el endpoint /api/admin/usuarios también lo valida
+ * del lado del servidor, esto solo es la UI.
  */
-export default function MobileInviteForm() {
+export default function MobileInviteForm({
+  allowedRoles = ["sibarita", "agente"],
+}: {
+  allowedRoles?: RoleOption[];
+}) {
   const router = useRouter();
+  const roleOptions = ALL_ROLE_OPTIONS.filter((opt) => allowedRoles.includes(opt.value));
+  const onlyFoodie = allowedRoles.length === 1 && allowedRoles[0] === "agente";
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<RoleOption>("sibarita");
+  const [role, setRole] = useState<RoleOption>(roleOptions[0]?.value ?? "agente");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
@@ -64,7 +72,7 @@ export default function MobileInviteForm() {
           ✉️
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-bold">Invitar Sibarita o Foodie</div>
+          <div className="text-[15px] font-bold">{onlyFoodie ? "Invitar Foodie" : "Invitar Sibarita o Foodie"}</div>
           <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
             Envía una invitación por correo
           </div>
@@ -125,12 +133,13 @@ export default function MobileInviteForm() {
           />
         </label>
 
+        {roleOptions.length > 1 && (
         <div>
           <span className="text-[13px] font-medium" style={{ color: "rgba(60,60,67,0.6)" }}>
             Rol
           </span>
           <div className="mt-1.5 space-y-2">
-            {ROLE_OPTIONS.map((opt) => (
+            {roleOptions.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
@@ -157,6 +166,7 @@ export default function MobileInviteForm() {
             ))}
           </div>
         </div>
+        )}
 
         {message && (
           <p className="text-[13px]" style={{ color: message.type === "ok" ? "#34C759" : "#FF3B30" }}>

@@ -16,17 +16,23 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
     { href: "/negocios", label: "Negocios" },
     { href: "/admin/usuarios", label: "Usuarios" },
     { href: "/automatizaciones", label: "Automatizaciones" },
+    { href: "/perfil", label: "Perfil" },
   ],
   agente: [
     { href: "/", label: "Nueva evaluación" },
     { href: "/mis-visitas", label: "Mis visitas" },
+    { href: "/perfil", label: "Perfil" },
   ],
   sibarita: [
     { href: "/", label: "Nueva evaluación" },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Mis visitas" },
+    { href: "/perfil", label: "Perfil" },
   ],
-  cliente: [{ href: "/mi-negocio", label: "Mi negocio" }],
+  cliente: [
+    { href: "/mi-negocio", label: "Mi negocio" },
+    { href: "/perfil", label: "Perfil" },
+  ],
 };
 
 export default async function AppHeader() {

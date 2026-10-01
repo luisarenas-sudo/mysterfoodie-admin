@@ -49,10 +49,14 @@ export default async function PerfilPage({
 }: {
   searchParams: Promise<{ google?: string; error?: string }>;
 }) {
-  const profile = await requireRole("admin", "agente", "sibarita");
+  const profile = await requireRole("admin", "agente", "sibarita", "cliente");
   const { google, error: googleError } = await searchParams;
-  const visits =
-    profile.role === "admin" ? await getAllVisits() : await getVisitsByAgent(profile.userId);
+  const isCliente = profile.role === "cliente";
+  const visits = isCliente
+    ? []
+    : profile.role === "admin"
+    ? await getAllVisits()
+    : await getVisitsByAgent(profile.userId);
 
   const now = new Date();
   const visitasMes = visits.filter((v) => {
@@ -61,8 +65,13 @@ export default async function PerfilPage({
   }).length;
 
   const displayName = profile.fullName || profile.email;
-  const currentRank =
-    profile.role === "admin" ? RANKS[0] : profile.role === "sibarita" ? RANKS[1] : RANKS[2];
+  const currentRank = isCliente
+    ? null
+    : profile.role === "admin"
+    ? RANKS[0]
+    : profile.role === "sibarita"
+    ? RANKS[1]
+    : RANKS[2];
 
   return (
     <>
@@ -119,6 +128,8 @@ export default async function PerfilPage({
         )}
       </div>
 
+      {!isCliente && currentRank && (
+      <>
       <div className="mx-5 mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
         Tu rango
       </div>
@@ -191,8 +202,28 @@ export default async function PerfilPage({
           );
         })}
       </div>
+      </>
+      )}
 
       {profile.role === "admin" && <MobileInviteForm />}
+      {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
+
+      {profile.role === "admin" && (
+        <Link
+          href="/admin/usuarios"
+          className="card mx-5 mt-4 flex items-center justify-between p-4"
+        >
+          <div>
+            <div className="text-[14.5px] font-bold">Usuarios</div>
+            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Administra Sibaritas, Foodies y sus roles
+            </div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
+            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      )}
 
       {profile.role === "admin" && (
         <Link
@@ -307,7 +338,9 @@ export default async function PerfilPage({
       </div>
 
       <p className="mt-6 text-sm text-stone-500">
-        Para ver tu rango, estadísticas y el resto del perfil, entra desde el celular.
+        {isCliente
+          ? "Entra desde el celular para ver el resto de tu perfil."
+          : "Para ver tu rango, estadísticas y el resto del perfil, entra desde el celular."}
       </p>
     </main>
     </>

@@ -18,11 +18,11 @@ function isOverlayRoute(pathname: string) {
 }
 
 /**
- * Para admin/agente, todas las pantallas móviles tienen su propio
- * encabezado (título + tab bar abajo), así que el AppHeader de
- * escritorio (barra negra con nav) se oculta en móvil siempre que haya
- * sesión de admin/agente, igual que en las maquetas (pantallas de app
- * nativa, sin chrome de navegador).
+ * Para cualquier rol con sesión (admin/agente/sibarita/cliente), todas
+ * las pantallas móviles tienen su propio encabezado (título + tab bar
+ * abajo), así que el AppHeader de escritorio (barra negra con nav) se
+ * oculta en móvil siempre que haya sesión, igual que en las maquetas
+ * (pantallas de app nativa, sin chrome de navegador).
  */
 export function HeaderVisibility({
   role,
@@ -31,9 +31,7 @@ export function HeaderVisibility({
   role: Role | null;
   children: React.ReactNode;
 }) {
-  const hideOnMobile = Boolean(
-    role && (role === "admin" || role === "agente" || role === "sibarita")
-  );
+  const hideOnMobile = Boolean(role);
   return <div className={hideOnMobile ? "hidden md:block" : ""}>{children}</div>;
 }
 
@@ -46,16 +44,12 @@ export function MobileChromeBody({
 }) {
   const pathname = usePathname();
   const overlay = isOverlayRoute(pathname);
-  const showTabBar = Boolean(
-    role && (role === "admin" || role === "agente" || role === "sibarita") && !overlay
-  );
+  const showTabBar = Boolean(role && !overlay);
 
   return (
     <>
       <div className={showTabBar ? "pb-24 md:pb-0" : ""}>{children}</div>
-      {role && (role === "admin" || role === "agente" || role === "sibarita") && !overlay && (
-        <MobileTabBar role={role} />
-      )}
+      {role && !overlay && <MobileTabBar role={role} />}
     </>
   );
 }

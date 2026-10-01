@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import { getClientsSummary, getReyNegocio } from "@/lib/dashboard";
 import MobileNegociosList from "@/components/mobile/MobileNegociosList";
 import NegociosListDesktop from "@/components/NegociosListDesktop";
@@ -5,6 +6,8 @@ import NegociosListDesktop from "@/components/NegociosListDesktop";
 export const dynamic = "force-dynamic";
 
 export default async function NegociosPage() {
+  await requireRole("admin", "sibarita");
+
   let clients: Awaited<ReturnType<typeof getClientsSummary>> = [];
   let configError: string | null = null;
 

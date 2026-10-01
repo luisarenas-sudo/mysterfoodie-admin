@@ -15,8 +15,9 @@ type PatchBody = {
 };
 
 export async function POST(req: NextRequest) {
+  let requester;
   try {
-    await requireRole("admin");
+    requester = await requireRole("admin", "sibarita");
   } catch {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -36,6 +37,15 @@ export async function POST(req: NextRequest) {
   }
   if (!role || !["admin", "agente", "cliente", "sibarita"].includes(role)) {
     return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
+  }
+  // Un Sibarita solo puede invitar Foodies (agente); admin puede invitar
+  // cualquier rol. Esto refuerza del lado del servidor lo que ya limita
+  // la UI de MobileInviteForm con su prop allowedRoles.
+  if (requester.role === "sibarita" && role !== "agente") {
+    return NextResponse.json(
+      { error: "Como Sibarita solo puedes invitar Foodies" },
+      { status: 403 }
+    );
   }
   if (role === "cliente" && !body.clientId) {
     return NextResponse.json(
