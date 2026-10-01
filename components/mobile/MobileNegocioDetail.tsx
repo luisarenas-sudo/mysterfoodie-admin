@@ -6,6 +6,7 @@ import { getVerdict } from "@/lib/verdict";
 import { avatarColorFor, initialsFor, CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "./ActivityRing";
 import OpportunityCopyButton from "./OpportunityCopyButton";
+import DeleteButton from "@/components/DeleteButton";
 
 type OpportunityDef = {
   key: "hasWebsite" | "hasGoogleBusiness" | "hasProfessionalPhotos" | "hasReels";
@@ -90,10 +91,12 @@ function AssignedFoodieCard({ assignment }: { assignment: PendingAssignmentForCl
 export default function MobileNegocioDetail({
   client,
   canAssign = false,
+  canDelete = false,
   pendingAssignment = null,
 }: {
   client: ClientDetail;
   canAssign?: boolean;
+  canDelete?: boolean;
   pendingAssignment?: PendingAssignmentForClient | null;
 }) {
   const visits = client.visits;
@@ -222,6 +225,22 @@ export default function MobileNegocioDetail({
             </Link>
           )}
         </div>
+
+        {canDelete && (
+          <div className="px-5">
+            <DeleteButton
+              variant="mobile"
+              endpoint={`/api/clients/${client.id}`}
+              confirmText={
+                visits.length > 0
+                  ? `¿Eliminar "${client.name}" y sus ${visits.length} visita${visits.length === 1 ? "" : "s"}? Esto no se puede deshacer.`
+                  : `¿Eliminar "${client.name}"? Esto no se puede deshacer.`
+              }
+              redirectTo="/negocios"
+              triggerLabel="Eliminar negocio"
+            />
+          </div>
+        )}
 
         {monthly.length > 1 && (
           <>

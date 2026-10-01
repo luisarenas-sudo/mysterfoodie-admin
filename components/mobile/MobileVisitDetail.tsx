@@ -7,6 +7,7 @@ import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "./ActivityRing";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
+import DeleteButton from "@/components/DeleteButton";
 
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
@@ -16,10 +17,12 @@ export default function MobileVisitDetail({
   visit,
   backHref,
   backLabel,
+  canDelete = false,
 }: {
   visit: VisitFullDetail;
   backHref: string;
   backLabel: string;
+  canDelete?: boolean;
 }) {
   const verdict = getVerdict(visit.overallScore);
   const mainCategories = visit.categoryScores.filter((c) => c.key !== "accesibilidad");
@@ -181,6 +184,16 @@ export default function MobileVisitDetail({
             Compartir
           </button>
         </div>
+
+        {canDelete && (
+          <DeleteButton
+            variant="mobile"
+            endpoint={`/api/forms/${visit.id}`}
+            confirmText={`¿Eliminar esta visita a "${visit.clientName}"? Esto no se puede deshacer.`}
+            redirectTo={backHref}
+            triggerLabel="Eliminar visita"
+          />
+        )}
       </div>
     </div>
   );

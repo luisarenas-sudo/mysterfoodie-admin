@@ -5,6 +5,7 @@ import { getVisitDetail } from "@/lib/dashboard";
 import VerdictBadge from "@/components/VerdictBadge";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import MobileVisitDetail from "@/components/mobile/MobileVisitDetail";
+import DeleteButton from "@/components/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,12 @@ export default async function VisitaDetailPage({
 
   return (
     <>
-      <MobileVisitDetail visit={visit} backHref={backHref} backLabel={backLabel} />
+      <MobileVisitDetail
+        visit={visit}
+        backHref={backHref}
+        backLabel={backLabel}
+        canDelete={profile.role === "admin"}
+      />
 
       <main className="mx-auto hidden max-w-3xl px-6 py-10 md:block">
         <Link href={backHref} className="text-sm text-stone-500 hover:text-brand-500">
@@ -81,6 +87,14 @@ export default async function VisitaDetailPage({
             >
               Ver reporte público
             </Link>
+            {profile.role === "admin" && (
+              <DeleteButton
+                endpoint={`/api/forms/${visit.id}`}
+                confirmText={`¿Eliminar esta visita a "${visit.clientName}"? Esto no se puede deshacer.`}
+                redirectTo={backHref}
+                triggerLabel="Eliminar visita"
+              />
+            )}
           </div>
         </div>
 
