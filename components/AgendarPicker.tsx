@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import FlancoCredit from "@/components/FlancoCredit";
 
 export type SlotOption = { startISO: string; endISO: string };
 
@@ -216,6 +217,9 @@ export default function AgendarPicker({
               ? "Agendando..."
               : `Confirmar ${dayLabel(selected.startISO)}, ${timeLabel(selected.startISO)}`}
           </button>
+          <div className="text-center">
+            <FlancoCredit label="Tus datos solo se usan para esta llamada · Respaldado por Flanco Izquierdo" className="text-[11px]" />
+          </div>
         </form>
       )}
     </div>

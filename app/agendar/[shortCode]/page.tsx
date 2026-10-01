@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { isCalendarConnected, getAvailableSlots } from "@/lib/googleCalendar";
 import AgendarPicker, { type SlotOption } from "@/components/AgendarPicker";
+import FlancoCredit from "@/components/FlancoCredit";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,10 @@ export default async function AgendarPage({
           slots={slots}
         />
       )}
+
+      <div className="mx-auto mt-8 max-w-sm px-5 text-center">
+        <FlancoCredit />
+      </div>
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { CATEGORY_EMOJI } from "@/lib/ring";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
+import FlancoCredit from "@/components/FlancoCredit";
 
 const ACCENT = "#F24444";
 
@@ -317,6 +318,13 @@ export default function MobileReportePublico({
                     Pago seguro
                   </div>
                 </div>
+                <div className="mt-1 text-center">
+                  <FlancoCredit
+                    label="Respaldado por Flanco Izquierdo"
+                    className="text-[11px] font-medium"
+                    color="rgba(60,60,67,0.45)"
+                  />
+                </div>
               </>
             )}
           </div>
@@ -366,9 +374,7 @@ export default function MobileReportePublico({
       </div>
 
       <div className="px-6 pb-9 pt-5 text-center">
-        <div className="text-[11px]" style={{ color: "rgba(60,60,67,0.35)" }}>
-          Con el respaldo de Flanco Izquierdo
-        </div>
+        <FlancoCredit />
       </div>
     </div>
   );

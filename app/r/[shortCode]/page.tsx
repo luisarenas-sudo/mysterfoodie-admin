@@ -9,6 +9,7 @@ import {
 } from "@/lib/categories";
 import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import VerdictBadge from "@/components/VerdictBadge";
+import FlancoCredit from "@/components/FlancoCredit";
 import MobileReportePublico from "@/components/mobile/MobileReportePublico";
 import { notFound } from "next/navigation";
 
@@ -344,12 +345,17 @@ export default async function ReportPage({
             evaluados dentro de cada categoría y los comentarios del mystery shopper.
           </p>
           {mercadopagoConfigured ? (
-            <a
-              href={checkoutUrl}
-              className="mt-4 inline-block rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-            >
-              Comprar reporte completo - ${FULL_REPORT_PRICE_MXN} MXN
-            </a>
+            <>
+              <a
+                href={checkoutUrl}
+                className="mt-4 inline-block rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Comprar reporte completo - ${FULL_REPORT_PRICE_MXN} MXN
+              </a>
+              <div className="mt-2">
+                <FlancoCredit label="Pago seguro · Respaldado por Flanco Izquierdo" className="text-xs" color="#a8a29e" />
+              </div>
+            </>
           ) : whatsappFallbackLink ? (
             <a
               href={whatsappFallbackLink}
@@ -380,7 +386,9 @@ export default async function ReportPage({
         </p>
       </div>
 
-      <p className="mt-6 text-center text-xs text-stone-400">Con el respaldo de Flanco Izquierdo</p>
+      <p className="mt-6 text-center">
+        <FlancoCredit className="text-xs" color="#a8a29e" />
+      </p>
     </main>
     </>
   );
