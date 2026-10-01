@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import FlancoCredit from "@/components/FlancoCredit";
 
 /**
  * Versión de escritorio del bloque "nombre/correo" que ya existía en
@@ -10,6 +9,11 @@ import FlancoCredit from "@/components/FlancoCredit";
  * con ?nombre=&email= para precargar al comprador). Antes el botón de
  * escritorio era un <a href="/api/checkout?shortCode=..."> fijo, sin pedir
  * estos datos -- esta versión iguala el comportamiento.
+ *
+ * No repite el crédito de Flanco Izquierdo aquí: la página
+ * (app/r/[shortCode]/page.tsx) ya pone un <FlancoCredit /> hasta abajo,
+ * después de "Palabra Foodie", y tenerlo duplicado justo debajo del
+ * botón de compra se veía mal.
  */
 export default function CheckoutPayerForm({
   shortCode,
@@ -54,9 +58,6 @@ export default function CheckoutPayerForm({
       </a>
       <div className="mt-3 flex justify-center">
         <Image src="/mercadopago-logo.png" alt="Mercado Pago" width={110} height={29} className="opacity-80" />
-      </div>
-      <div className="mt-1.5">
-        <FlancoCredit label="Respaldado por Flanco Izquierdo" className="text-xs" color="#a8a29e" />
       </div>
     </div>
   );
