@@ -169,6 +169,7 @@ export async function POST(req: NextRequest) {
           email: business.email || null,
           address: business.address || null,
           city: business.city || null,
+          created_by: profile.userId,
         })
         .select("id")
         .single();

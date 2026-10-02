@@ -25,8 +25,9 @@ type Body = {
  * /negocios en middleware.ts.
  */
 export async function POST(req: NextRequest) {
+  let session;
   try {
-    await requireRole("admin", "sibarita");
+    session = await requireRole("admin", "sibarita");
   } catch {
     return NextResponse.json(
       { error: "Necesitas iniciar sesión como admin para dar de alta un negocio" },
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
       has_google_business: Boolean(body.hasGoogleBusiness),
       has_professional_photos: Boolean(body.hasProfessionalPhotos),
       has_reels: Boolean(body.hasReels),
+      created_by: session.userId,
     })
     .select("id")
     .single();

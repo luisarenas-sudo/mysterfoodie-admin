@@ -91,6 +91,11 @@ export default function MobileNegociosList({
                         ? "Cafetería"
                         : "Negocio"}
                     </div>
+                    {c.creatorLabel && (
+                      <div className="text-[11.5px]" style={{ color: "rgba(60,60,67,0.4)" }}>
+                        Añadido por: {c.creatorLabel}
+                      </div>
+                    )}
                   </div>
                   {verdict && (
                     <div className="text-[24px] font-bold leading-none" style={{ color: verdict.color }}>

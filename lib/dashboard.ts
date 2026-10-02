@@ -9,6 +9,8 @@ export type ClientSummary = {
   visitCount: number;
   lastVisitAt: string | null;
   lastScore: number | null;
+  /** "Rango Primer Nombre" de quién dio de alta el negocio (ver clients.created_by), o null si no se pudo resolver. */
+  creatorLabel: string | null;
 };
 
 export async function getClientsSummary(): Promise<ClientSummary[]> {
@@ -16,13 +18,18 @@ export async function getClientsSummary(): Promise<ClientSummary[]> {
 
   const { data: clients, error: clientsError } = await db
     .from("clients")
-    .select("id, name, type, city");
+    .select("id, name, type, city, created_by");
   if (clientsError || !clients) return [];
 
   const { data: forms } = await db
     .from("forms")
     .select("client_id, overall_score, created_at")
     .order("created_at", { ascending: false });
+
+  const creatorLabelById = await creatorFirstNameLabelsByUserId(
+    db,
+    clients.map((c) => c.created_by).filter((id): id is string => Boolean(id))
+  );
 
   return clients
     .map((client) => {
@@ -36,6 +43,7 @@ export async function getClientsSummary(): Promise<ClientSummary[]> {
         visitCount: clientForms.length,
         lastVisitAt: last?.created_at ?? null,
         lastScore: last?.overall_score ?? null,
+        creatorLabel: client.created_by ? creatorLabelById.get(client.created_by) ?? null : null,
       };
     })
     .sort((a, b) => {
@@ -408,6 +416,27 @@ async function creatorLabelsByUserId(
     const roleLabel = VISIT_CREATOR_ROLE_LABELS[p.role as string] ?? p.role;
     const name = p.full_name || "Sin nombre";
     map.set(p.id, `${roleLabel} ${name}`);
+  });
+  return map;
+}
+
+/** Igual que creatorLabelsByUserId, pero con solo el primer nombre (para
+ * la tarjeta de Negocios, donde "Añadido por" va en una línea angosta). */
+async function creatorFirstNameLabelsByUserId(
+  db: ReturnType<typeof getSupabaseServiceClient>,
+  userIds: string[]
+): Promise<Map<string, string>> {
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) return new Map();
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, full_name, role")
+    .in("id", uniqueIds);
+  const map = new Map<string, string>();
+  (profiles || []).forEach((p) => {
+    const roleLabel = VISIT_CREATOR_ROLE_LABELS[p.role as string] ?? p.role;
+    const firstName = (p.full_name || "").trim().split(/\s+/)[0] || "Sin nombre";
+    map.set(p.id, `${roleLabel} ${firstName}`);
   });
   return map;
 }

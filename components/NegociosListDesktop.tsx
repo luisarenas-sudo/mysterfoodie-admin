@@ -44,6 +44,9 @@ export default function NegociosListDesktop({ clients }: { clients: ClientSummar
                 {client.city || "Sin ciudad"} - {client.visitCount}{" "}
                 {client.visitCount === 1 ? "visita" : "visitas"}
               </p>
+              {client.creatorLabel && (
+                <p className="mt-0.5 text-xs text-stone-400">Añadido por: {client.creatorLabel}</p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               {client.lastScore !== null && (
