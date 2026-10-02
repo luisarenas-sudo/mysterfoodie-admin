@@ -93,7 +93,7 @@ export default function MobileNegociosList({
                     </div>
                   </div>
                   {verdict && (
-                    <div className="text-[15px] font-bold" style={{ color: verdict.color }}>
+                    <div className="text-[24px] font-bold leading-none" style={{ color: verdict.color }}>
                       {c.lastScore}
                     </div>
                   )}

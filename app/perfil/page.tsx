@@ -84,51 +84,6 @@ export default async function PerfilPage({
         <div className="heading text-[34px] font-bold">Perfil</div>
       </div>
 
-      <div className="card mx-5 mb-5 flex items-center gap-3.5 p-[18px]">
-        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
-        <div className="min-w-0">
-          <div className="truncate text-[17px] font-bold">{displayName}</div>
-          {displayName !== profile.email && (
-            <div className="truncate text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              {profile.email}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {google === "conectado" && (
-        <p className="mx-5 mb-5 rounded-[14px] px-4 py-3 text-[13.5px] font-medium" style={{ background: "rgba(52,199,89,0.1)", color: "#248A3D" }}>
-          Tu cuenta de Google quedó conectada.
-        </p>
-      )}
-      {googleError && (
-        <p className="mx-5 mb-5 rounded-[14px] px-4 py-3 text-[13.5px] font-medium" style={{ background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>
-          {googleError}
-        </p>
-      )}
-
-      <div className="card mx-5 mb-5 p-[18px]">
-        {profile.hasGoogleIdentity ? (
-          <div className="flex items-center gap-2.5">
-            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
-              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 0 0 9 18z" />
-              <path fill="#FBBC05" d="M3.95 10.7a5.4 5.4 0 0 1 0-3.4V4.97H.95a9 9 0 0 0 0 8.06l3-2.33z" />
-              <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
-            </svg>
-            <span className="text-[14px] font-semibold">Cuenta de Google conectada</span>
-            <span className="ml-auto text-[13px]" style={{ color: "#248A3D" }}>✓</span>
-          </div>
-        ) : (
-          <>
-            <p className="mb-3 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Conecta tu cuenta de Google para que tu foto de perfil se vea bien en toda la app.
-            </p>
-            <ConnectGoogleButton />
-          </>
-        )}
-      </div>
-
       {!isCliente && currentRank && (
       <>
       <div className="mx-5 mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
@@ -213,6 +168,34 @@ export default async function PerfilPage({
         </div>
       )}
 
+      <div
+        className="mx-5 mt-5 rounded-[18px] p-5 text-center"
+        style={{ background: "#1C1C1E" }}
+      >
+        <div className="mb-3 flex flex-col items-center gap-2">
+          <div
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(242,68,68,0.18)" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
+              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+        </div>
+        <div
+          className="mx-auto text-[14.5px] italic leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
+        >
+          &ldquo;Palabra Foodie, orgullo de gordo:
+          <br />
+          la verdad es mi palabra
+          <br />
+          y pongo mi boca en la verdad.&rdquo;
+        </div>
+      </div>
+
       {profile.role === "admin" && (
         <Link
           href="/admin/usuarios"
@@ -276,35 +259,53 @@ export default async function PerfilPage({
         </div>
       )}
 
-      <div
-        className="mx-5 mt-5 rounded-[18px] p-5 text-center"
-        style={{ background: "#1C1C1E" }}
-      >
-        <div className="mb-3 flex flex-col items-center gap-2">
-          <div
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
-            style={{ background: "rgba(242,68,68,0.18)" }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
-              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
-        </div>
-        <div
-          className="mx-auto text-[14.5px] italic leading-relaxed"
-          style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
-        >
-          &ldquo;Palabra Foodie, orgullo de gordo:
-          <br />
-          la verdad es mi palabra
-          <br />
-          y pongo mi boca en la verdad.&rdquo;
-        </div>
-      </div>
       <div className="mx-5 mt-2.5 text-center">
         <FlancoCredit />
+      </div>
+
+      <div className="card mx-5 mb-5 flex items-center gap-3.5 p-[18px]">
+        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
+        <div className="min-w-0">
+          <div className="truncate text-[17px] font-bold">{displayName}</div>
+          {displayName !== profile.email && (
+            <div className="truncate text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              {profile.email}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {google === "conectado" && (
+        <p className="mx-5 mb-5 rounded-[14px] px-4 py-3 text-[13.5px] font-medium" style={{ background: "rgba(52,199,89,0.1)", color: "#248A3D" }}>
+          Tu cuenta de Google quedó conectada.
+        </p>
+      )}
+      {googleError && (
+        <p className="mx-5 mb-5 rounded-[14px] px-4 py-3 text-[13.5px] font-medium" style={{ background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>
+          {googleError}
+        </p>
+      )}
+
+      <div className="card mx-5 mb-5 p-[18px]">
+        {profile.hasGoogleIdentity ? (
+          <div className="flex items-center gap-2.5">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 0 0 9 18z" />
+              <path fill="#FBBC05" d="M3.95 10.7a5.4 5.4 0 0 1 0-3.4V4.97H.95a9 9 0 0 0 0 8.06l3-2.33z" />
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
+            </svg>
+            <span className="text-[14px] font-semibold">Cuenta de Google conectada</span>
+            <span className="ml-auto text-[13px]" style={{ color: "#248A3D" }}>✓</span>
+          </div>
+        ) : (
+          <>
+            <p className="mb-3 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              Conecta tu cuenta de Google para que tu foto de perfil se vea bien en toda la app.
+            </p>
+            <ConnectGoogleButton />
+          </>
+        )}
       </div>
 
       <form action={signOut} className="mx-5 mt-6 mb-8">

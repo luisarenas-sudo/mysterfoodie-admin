@@ -126,7 +126,7 @@ export default function MobileTabBar({ role }: { role: Role }) {
             boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
           }}
         >
-          <Image src="/icon-512.png" alt="" width={26} height={26} className="rounded-sm object-contain" />
+          <Image src="/icon-mark-white.png" alt="" width={26} height={26} className="object-contain" />
         </div>
         <span className="mt-[1px] text-[10.5px] font-semibold" style={{ color: ACTIVE }}>
           Nueva visita
