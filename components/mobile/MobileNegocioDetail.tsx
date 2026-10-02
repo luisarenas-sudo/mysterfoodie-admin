@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { ClientDetail, PendingAssignmentForClient } from "@/lib/dashboard";
+import MobileSectionHeader from "./MobileSectionHeader";
 import { getMonthlyTrend } from "@/lib/dashboard";
 import { getVerdict } from "@/lib/verdict";
 import { avatarColorFor, initialsFor, CATEGORY_EMOJI } from "@/lib/ring";
@@ -136,24 +136,7 @@ export default function MobileNegocioDetail({
 
   return (
     <div className="md:hidden mf-push-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
-      <div
-        className="flex items-center px-3 py-[14px]"
-        style={{ background: "rgba(249,249,251,0.92)", borderBottom: "1px solid rgba(60,60,67,0.1)" }}
-      >
-        {backHref ? (
-          <Link href={backHref} className="mf-tap -my-2.5 -ml-1 flex flex-1 items-center gap-1 py-2.5 pl-2 pr-4" style={{ color: "#F24444" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path d="M15 6l-6 6 6 6" stroke="#F24444" strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="text-[16px]">{backLabel}</span>
-          </Link>
-        ) : (
-          <span className="flex-1 py-2.5 pl-2 pr-4 text-[16px] font-semibold">{backLabel}</span>
-        )}
-        <Link href="/" className="mf-tap -my-2.5 flex items-center py-2.5 pl-2" aria-label="Inicio">
-          <Image src="/icon-512.png" alt="" width={26} height={26} className="rounded-md object-contain" />
-        </Link>
-      </div>
+      <MobileSectionHeader backHref={backHref} backLabel={backLabel} />
 
       <div className="pb-6">
         <div className="flex flex-col items-center px-5 pb-2 pt-6 text-center">
