@@ -5,6 +5,7 @@ import { getClientDetail, getPendingAssignmentForClient } from "@/lib/dashboard"
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 import DeleteButton from "@/components/DeleteButton";
+import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,8 @@ export default async function NegocioDetailPage({
           pendingAssignment={pendingAssignment}
         />
         <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <BackLink href="/negocios" label="Negocios" />
+          <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
             <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
             {canAssign && (
               <DeleteButton
@@ -88,9 +90,7 @@ export default async function NegocioDetailPage({
       />
 
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
-        <Link href="/negocios" className="text-sm text-stone-500 hover:text-brand-500">
-          Negocios
-        </Link>
+        <BackLink href="/negocios" label="Negocios" />
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="heading text-3xl text-ink">{client.name}</h1>

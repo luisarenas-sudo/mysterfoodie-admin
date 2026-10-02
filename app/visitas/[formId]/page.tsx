@@ -6,6 +6,7 @@ import VerdictBadge from "@/components/VerdictBadge";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import MobileVisitDetail from "@/components/mobile/MobileVisitDetail";
 import DeleteButton from "@/components/DeleteButton";
+import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
 
@@ -65,9 +66,7 @@ export default async function VisitaDetailPage({
       />
 
       <main className="mx-auto hidden max-w-3xl px-6 py-10 md:block">
-        <Link href={backHref} className="text-sm text-stone-500 hover:text-brand-500">
-          ← {backLabel}
-        </Link>
+        <BackLink href={backHref} label={backLabel} />
 
         <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <div>

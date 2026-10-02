@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAdminStats } from "@/lib/dashboard";
 import InviteUserForm from "@/components/InviteUserForm";
 import UserRoleEditor from "@/components/UserRoleEditor";
+import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,8 @@ export default async function UsuariosPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-5 py-8 md:px-6 md:py-10">
-      <h1 className="heading text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
+      <BackLink href="/perfil" label="Perfil" />
+      <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
       <p className="mt-1 text-sm text-stone-500">
         Invita agentes y dueños de negocio, y administra sus roles.
       </p>
