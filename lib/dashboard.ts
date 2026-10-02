@@ -381,7 +381,36 @@ export type AgentVisit = {
   createdAt: string;
   clientId: string;
   clientName: string;
+  /** "Sibarita Davichin", "Foodie Ana", etc. -- quién levantó la visita
+   * (rango + nombre, ver ROLE_LABELS), o null si no se pudo resolver. */
+  creatorLabel: string | null;
 };
+
+const VISIT_CREATOR_ROLE_LABELS: Record<string, string> = {
+  admin: "Master Chef",
+  agente: "Foodie",
+  sibarita: "Sibarita",
+  cliente: "Cliente",
+};
+
+async function creatorLabelsByUserId(
+  db: ReturnType<typeof getSupabaseServiceClient>,
+  userIds: string[]
+): Promise<Map<string, string>> {
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) return new Map();
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, full_name, role")
+    .in("id", uniqueIds);
+  const map = new Map<string, string>();
+  (profiles || []).forEach((p) => {
+    const roleLabel = VISIT_CREATOR_ROLE_LABELS[p.role as string] ?? p.role;
+    const name = p.full_name || "Sin nombre";
+    map.set(p.id, `${roleLabel} ${name}`);
+  });
+  return map;
+}
 
 /** Visitas registradas por un agente/mystery shopper específico, para "Mis visitas". */
 export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
@@ -389,7 +418,7 @@ export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
 
   const { data: forms } = await db
     .from("forms")
-    .select("id, short_code, overall_score, created_at, client_id")
+    .select("id, short_code, overall_score, created_at, client_id, created_by")
     .eq("created_by", agentId)
     .order("created_at", { ascending: false });
 
@@ -401,6 +430,10 @@ export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
     .in("id", forms.map((f) => f.client_id));
 
   const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+  const creatorLabelById = await creatorLabelsByUserId(
+    db,
+    forms.map((f) => f.created_by).filter((id): id is string => Boolean(id))
+  );
 
   return forms.map((f) => ({
     id: f.id,
@@ -409,6 +442,7 @@ export async function getVisitsByAgent(agentId: string): Promise<AgentVisit[]> {
     createdAt: f.created_at,
     clientId: f.client_id,
     clientName: nameById.get(f.client_id) ?? "Negocio",
+    creatorLabel: f.created_by ? creatorLabelById.get(f.created_by) ?? null : null,
   }));
 }
 
@@ -559,7 +593,7 @@ export async function getAllVisits(): Promise<AgentVisit[]> {
 
   const { data: forms } = await db
     .from("forms")
-    .select("id, short_code, overall_score, created_at, client_id")
+    .select("id, short_code, overall_score, created_at, client_id, created_by")
     .order("created_at", { ascending: false });
 
   if (!forms || forms.length === 0) return [];
@@ -570,6 +604,10 @@ export async function getAllVisits(): Promise<AgentVisit[]> {
     .in("id", forms.map((f) => f.client_id));
 
   const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+  const creatorLabelById = await creatorLabelsByUserId(
+    db,
+    forms.map((f) => f.created_by).filter((id): id is string => Boolean(id))
+  );
 
   return forms.map((f) => ({
     id: f.id,
@@ -578,6 +616,7 @@ export async function getAllVisits(): Promise<AgentVisit[]> {
     createdAt: f.created_at,
     clientId: f.client_id,
     clientName: nameById.get(f.client_id) ?? "Negocio",
+    creatorLabel: f.created_by ? creatorLabelById.get(f.created_by) ?? null : null,
   }));
 }
 

@@ -8,6 +8,8 @@ type ReportRow = {
   clientName: string;
   overallScore: number;
   createdAt: string;
+  /** "Sibarita Davichin", etc. -- quién levantó la visita; null si no se pudo resolver. */
+  creatorLabel?: string | null;
 };
 
 function formatShortDate(iso: string) {
@@ -43,16 +45,21 @@ export default function MobileReportesList({ visits }: { visits: ReportRow[] }) 
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[15px] font-semibold">{r.clientName}</div>
+                    {r.creatorLabel && (
+                      <div className="truncate text-[12px] font-medium" style={{ color: "rgba(60,60,67,0.55)" }}>
+                        {r.creatorLabel}
+                      </div>
+                    )}
                     <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
                       {formatShortDate(r.createdAt)}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-[15px] font-bold" style={{ color: verdict.color }}>
+                  <div className="w-[88px] flex-shrink-0 text-right">
+                    <div className="text-[22px] font-bold leading-none" style={{ color: verdict.color }}>
                       {r.overallScore}
                     </div>
                     <div
-                      className="mt-0.5 inline-block rounded-lg px-[7px] py-[2px] text-[10.5px] font-bold"
+                      className="mt-1.5 inline-block w-full rounded-lg px-[7px] py-[3px] text-center text-[13px] font-bold"
                       style={{ color: verdict.color, background: `${verdict.color}1F` }}
                     >
                       {verdict.label}

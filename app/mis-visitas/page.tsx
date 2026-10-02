@@ -44,6 +44,7 @@ export default async function MisVisitasPage() {
                 <tr className="border-b border-stone-200 text-left text-stone-500">
                   <th className="px-4 py-2 font-medium">Fecha</th>
                   <th className="px-4 py-2 font-medium">Negocio</th>
+                  <th className="px-4 py-2 font-medium">Realizado por</th>
                   <th className="px-4 py-2 font-medium">Promedio</th>
                   <th className="px-4 py-2 font-medium">Veredicto</th>
                   <th className="px-4 py-2 font-medium">Reporte</th>
@@ -55,6 +56,7 @@ export default async function MisVisitasPage() {
                   <tr key={v.id} className="border-b border-stone-100 last:border-0">
                     <td className="px-4 py-2">{formatDateLong(v.createdAt)}</td>
                     <td className="px-4 py-2">{v.clientName}</td>
+                    <td className="px-4 py-2 text-stone-500">{v.creatorLabel ?? "—"}</td>
                     <td className="px-4 py-2 font-semibold">{v.overallScore}</td>
                     <td className="px-4 py-2">
                       <VerdictBadge score={v.overallScore} size="sm" />
