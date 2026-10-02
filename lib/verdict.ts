@@ -1,4 +1,4 @@
-export type VerdictLevel = "excelente" | "bueno" | "regular" | "critico";
+export type VerdictLevel = "excelente" | "bueno" | "regular" | "malo" | "muy_malo";
 
 export type Verdict = {
   level: VerdictLevel;
@@ -38,10 +38,18 @@ export function getVerdict(score: number): Verdict {
       color: "#D97706", // amarillo/ámbar
     };
   }
+  if (score >= 1.5) {
+    return {
+      level: "malo",
+      label: "Malo",
+      summary: "Varios indicadores están por debajo de lo esperado en el sector.",
+      color: "#DC2626", // rojo
+    };
+  }
   return {
-    level: "critico",
-    label: "Necesita atención",
-    summary: "Varios indicadores están por debajo de lo esperado en el sector.",
+    level: "muy_malo",
+    label: "Muy malo",
+    summary: "Varios indicadores están muy por debajo de lo esperado en el sector.",
     color: "#DC2626", // rojo
   };
 }
