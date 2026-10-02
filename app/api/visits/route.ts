@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const score = overallScore(body.ratings);
-  const catScores = categoryScores(body.ratings);
+  const score = overallScore(body.ratings, body.flags || {});
+  const catScores = categoryScores(body.ratings, body.flags || {});
   const shortCode = nanoid(8);
 
   const menuTipo = SELECT_ITEMS.length > 0 ? body.selects?.[SELECT_ITEMS[0].key] || null : null;

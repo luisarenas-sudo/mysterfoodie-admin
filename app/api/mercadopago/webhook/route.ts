@@ -133,8 +133,18 @@ async function deliverFullReportEmail(
     if (typeof row.score === "number") ratings[row.category_key as string] = row.score;
   }
 
-  const catScores = categoryScores(ratings);
-  const score = form.overall_score || overallScore(ratings);
+  const { data: flagRows } = await db
+    .from("form_flags")
+    .select("flag_key, flag_value")
+    .eq("form_id", form.id);
+
+  const flags: Record<string, boolean> = {};
+  for (const row of flagRows ?? []) {
+    flags[row.flag_key as string] = Boolean(row.flag_value);
+  }
+
+  const catScores = categoryScores(ratings, flags);
+  const score = form.overall_score || overallScore(ratings, flags);
 
   const pdfBuffer = await buildReportPdf({
     businessName: client?.name || "Negocio",

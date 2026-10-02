@@ -84,7 +84,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   for (const row of ratingRows || []) {
     ratings[row.category_key] = row.score;
   }
-  const catScores = categoryScores(ratings);
+
+  const { data: flagRows } = await db
+    .from("form_flags")
+    .select("flag_key, flag_value")
+    .eq("form_id", form.id);
+
+  const flags: Record<string, boolean> = {};
+  for (const row of flagRows || []) {
+    flags[row.flag_key] = row.flag_value;
+  }
+
+  const catScores = categoryScores(ratings, flags);
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const reportUrl = form.report_url || `${baseUrl}/r/${form.short_code}`;

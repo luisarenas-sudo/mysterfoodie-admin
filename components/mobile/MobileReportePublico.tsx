@@ -211,17 +211,26 @@ export default function MobileReportePublico({
       {categories.length > 0 && (
         <div className="px-5 pt-4">
           <div className="grid grid-cols-2 gap-3">
-            {categories.map((c) => (
-              <div key={c.key} className="card flex items-center gap-2.5 p-3.5">
-                <ActivityRing value={c.average} max={5} size={42} strokeWidth={6} color={getVerdict(c.average).color} trackColor="rgba(60,60,67,0.1)">
-                  <div className="text-[16px]">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
-                </ActivityRing>
-                <div className="min-w-0">
-                  <div className="truncate text-[12.5px] font-semibold">{c.label}</div>
-                  <div className="text-[17px] font-bold">{c.average}</div>
+            {categories.map((c, i) => {
+              // Si el número de categorías es impar, la última queda sola en
+              // su fila dejando la mitad derecha vacía -- se expande a las
+              // dos columnas (y se centra) para aprovechar ese espacio.
+              const isLastOdd = categories.length % 2 === 1 && i === categories.length - 1;
+              return (
+                <div
+                  key={c.key}
+                  className={`card flex items-center gap-3 p-4 ${isLastOdd ? "col-span-2 justify-center" : ""}`}
+                >
+                  <ActivityRing value={c.average} max={5} size={52} strokeWidth={7} color={getVerdict(c.average).color} trackColor="rgba(60,60,67,0.1)">
+                    <div className="text-[19px]">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
+                  </ActivityRing>
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] font-semibold">{c.label}</div>
+                    <div className="text-[19px] font-bold">{c.average}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

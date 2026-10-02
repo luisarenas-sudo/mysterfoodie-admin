@@ -159,10 +159,10 @@ export const CATEGORIES: Category[] = [
     key: "accesibilidad",
     label: "Accesibilidad",
     items: [
-      { key: "accesibilidad_sillas_altas", label: "Sillas altas para niños", type: "star" },
-      { key: "accesibilidad_rampas", label: "Rampas para sillas de ruedas", type: "star" },
-      { key: "accesibilidad_bano_ruedas", label: "Baño para sillas de ruedas", type: "star" },
-      { key: "accesibilidad_menu_braille", label: "Menú en braile", type: "star" },
+      { key: "accesibilidad_sillas_altas", label: "Sillas altas para niños", type: "boolean" },
+      { key: "accesibilidad_rampas", label: "Rampas para sillas de ruedas", type: "boolean" },
+      { key: "accesibilidad_bano_ruedas", label: "Baño para sillas de ruedas", type: "boolean" },
+      { key: "accesibilidad_menu_braille", label: "Menú en braile", type: "boolean" },
     ],
   },
 ];

@@ -58,7 +58,7 @@ async function loadReport(shortCode: string) {
     flags[f.flag_key] = f.flag_value;
   });
 
-  return { form, client, catScores: categoryScores(ratings), ratings, flags };
+  return { form, client, catScores: categoryScores(ratings, flags), ratings, flags };
 }
 
 function StarsReadonly({ value }: { value: number }) {

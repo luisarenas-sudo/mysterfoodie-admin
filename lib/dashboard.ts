@@ -189,6 +189,11 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     .select("form_id, category_key, score")
     .in("form_id", (forms || []).map((f) => f.id));
 
+  const { data: allFlags } = await db
+    .from("form_flags")
+    .select("form_id, flag_key, flag_value")
+    .in("form_id", (forms || []).map((f) => f.id));
+
   // Los indicadores individuales son ~50 por visita; para que el
   // comparativo entre visitas sea legible se agregan por categoria
   // (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad) en vez de
@@ -200,7 +205,13 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
       .forEach((r) => {
         raw[r.category_key] = r.score;
       });
-    const scores = categoryScores(raw).filter((c) => c.count > 0);
+    const flags: Record<string, boolean> = {};
+    (allFlags || [])
+      .filter((fl) => fl.form_id === f.id)
+      .forEach((fl) => {
+        flags[fl.flag_key] = fl.flag_value;
+      });
+    const scores = categoryScores(raw, flags).filter((c) => c.count > 0);
     return {
       id: f.id,
       shortCode: f.short_code,
@@ -302,7 +313,18 @@ export async function getVisitDetail(
   (ratingRows || []).forEach((r) => {
     raw[r.category_key] = r.score;
   });
-  const catScores = categoryScores(raw).filter((c) => c.count > 0);
+
+  const { data: flagRows } = await db
+    .from("form_flags")
+    .select("flag_key, flag_value")
+    .eq("form_id", form.id);
+
+  const flags: Record<string, boolean> = {};
+  (flagRows || []).forEach((fl) => {
+    flags[fl.flag_key] = fl.flag_value;
+  });
+
+  const catScores = categoryScores(raw, flags).filter((c) => c.count > 0);
 
   const { data: emailRows } = await db
     .from("email_confirmations")

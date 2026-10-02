@@ -59,7 +59,7 @@ export default function EmailStatusPanel({
     <div className="card p-5">
       <p className="text-sm font-medium text-stone-700">Correo automático</p>
 
-      <div className="mt-3 flex items-start gap-3">
+      <div className="mt-3 flex items-center gap-3">
         {infoStatus === "sent" ? (
           <svg viewBox="0 0 24 24" fill="none" className="h-10 w-10 flex-shrink-0 text-status-excellent">
             <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12" />
@@ -102,12 +102,12 @@ export default function EmailStatusPanel({
 
       {emailActionError ? <p className="mt-2 text-xs text-status-critical">{emailActionError}</p> : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex gap-2">
         <button
           type="button"
           onClick={() => sendReportEmail()}
           disabled={emailBusy !== null}
-          className="btn-primary text-sm"
+          className="btn-primary flex-1 text-sm"
         >
           {emailBusy === "resend" ? "Reenviando..." : "Reenviar"}
         </button>
@@ -115,7 +115,7 @@ export default function EmailStatusPanel({
           type="button"
           onClick={() => setShowAltEmail((v) => !v)}
           disabled={emailBusy !== null}
-          className="btn-secondary text-sm"
+          className="btn-secondary flex-1 text-sm"
         >
           Enviar a otro correo
         </button>
