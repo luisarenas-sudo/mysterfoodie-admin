@@ -18,8 +18,11 @@ export default async function Page() {
 
   const scope =
     (profile?.role === "agente" || profile?.role === "sibarita") && profile.userId
-      ? { agentId: profile.userId }
-      : {};
+      ? {
+          agentId: profile.userId,
+          includeNegociosRecientes: profile.role === "sibarita",
+        }
+      : { includeNegociosRecientes: profile?.role === "admin" };
 
   const [stats, rey] = await Promise.all([getHomeSummary(scope), getReyNegocio()]);
   const displayName = profile?.fullName || profile?.email || "MysterFoodie";

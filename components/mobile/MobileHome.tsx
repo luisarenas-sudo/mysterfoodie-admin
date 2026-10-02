@@ -132,6 +132,50 @@ export default function MobileHome({
           ))}
         </div>
       )}
+
+      {stats.negociosRecientes.length > 0 && (
+        <>
+          <div className="px-5 pb-2 pt-6 text-xl font-bold">Últimos negocios añadidos</div>
+          <div className="card mx-5 mb-5 overflow-hidden">
+            {stats.negociosRecientes.map((n, idx) => (
+              <div key={n.id}>
+                <Link href={`/negocios/${n.id}`} className="flex items-center gap-3 px-4 py-[13px]">
+                  <div
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[15px] font-semibold text-white"
+                    style={{ background: n.avatarColor }}
+                  >
+                    {n.initial}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[15px] font-semibold">{n.nombre}</div>
+                    <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                      {n.fecha}
+                    </div>
+                    {n.creatorLabel && (
+                      <div className="truncate text-[11.5px]" style={{ color: "rgba(60,60,67,0.4)" }}>
+                        Añadido por: {n.creatorLabel}
+                      </div>
+                    )}
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" style={{ opacity: 0.28 }} className="flex-shrink-0">
+                    <path
+                      d="M9 6l6 6-6 6"
+                      stroke="#000"
+                      strokeWidth="2.2"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+                {idx < stats.negociosRecientes.length - 1 && (
+                  <div className="ml-[68px] h-px" style={{ background: "rgba(60,60,67,0.08)" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

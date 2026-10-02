@@ -536,32 +536,70 @@ export type HomeActivityItem = {
   creatorLabel: string | null;
 };
 
+export type HomeNegocioItem = {
+  id: string;
+  nombre: string;
+  fecha: string;
+  initial: string;
+  avatarColor: string;
+  /** "Sibarita Davichin", etc. -- quién dio de alta el negocio; null si no se pudo resolver. */
+  creatorLabel: string | null;
+};
+
 export type HomeSummary = {
   visitasMes: number;
   promedioGeneral: number | null;
   actividadReciente: HomeActivityItem[];
+  negociosRecientes: HomeNegocioItem[];
 };
 
 function formatShortDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
 }
 
-/** Estadísticas + actividad reciente para "Inicio" (móvil). Sin agentId = alcance global (admin). */
-export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<HomeSummary> {
+/** Estadísticas + actividad reciente para "Inicio" (móvil). Sin agentId = alcance global (admin).
+ * includeNegociosRecientes: solo admin/sibarita ven el apartado de negocios
+ * recién dados de alta (un Foodie ni siquiera tiene acceso a /negocios). */
+export async function getHomeSummary(
+  scope: { agentId?: string; includeNegociosRecientes?: boolean } = {}
+): Promise<HomeSummary> {
   const db = getSupabaseServiceClient();
 
-  let query = db
+  let formsQuery = db
     .from("forms")
     .select("id, client_id, overall_score, created_at, created_by")
     .order("created_at", { ascending: false })
     .limit(60);
-  if (scope.agentId) query = query.eq("created_by", scope.agentId);
+  if (scope.agentId) formsQuery = formsQuery.eq("created_by", scope.agentId);
 
-  const { data: forms } = await query;
+  // No dependen entre sí -- se piden junto en vez de una tras otra.
+  const [{ data: forms }, { data: recentClients }] = await Promise.all([
+    formsQuery,
+    scope.includeNegociosRecientes
+      ? db
+          .from("clients")
+          .select("id, name, created_at, created_by")
+          .order("created_at", { ascending: false })
+          .limit(3)
+      : Promise.resolve({ data: [] as { id: string; name: string; created_at: string; created_by: string | null }[] }),
+  ]);
   const allForms = forms || [];
 
+  const negociosCreatorLabelById = await creatorFirstNameLabelsByUserId(
+    db,
+    (recentClients || []).map((c) => c.created_by).filter((id): id is string => Boolean(id))
+  );
+  const negociosRecientes: HomeNegocioItem[] = (recentClients || []).map((c) => ({
+    id: c.id,
+    nombre: c.name,
+    fecha: formatShortDate(c.created_at),
+    initial: initialsFor(c.name),
+    avatarColor: avatarColorFor(c.name),
+    creatorLabel: c.created_by ? negociosCreatorLabelById.get(c.created_by) ?? null : null,
+  }));
+
   if (allForms.length === 0) {
-    return { visitasMes: 0, promedioGeneral: null, actividadReciente: [] };
+    return { visitasMes: 0, promedioGeneral: null, actividadReciente: [], negociosRecientes };
   }
 
   const clientIds = Array.from(new Set(allForms.map((f) => f.client_id)));
@@ -583,7 +621,7 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
       ? Math.round((allForms.reduce((sum, f) => sum + (f.overall_score || 0), 0) / allForms.length) * 10) / 10
       : null;
 
-  const actividadReciente = allForms.slice(0, 8).map((f) => {
+  const actividadReciente = allForms.slice(0, 3).map((f) => {
     const nombre = nameById.get(f.client_id) ?? "Negocio";
     const verdict = getVerdict(f.overall_score);
     return {
@@ -600,7 +638,7 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
     };
   });
 
-  return { visitasMes, promedioGeneral, actividadReciente };
+  return { visitasMes, promedioGeneral, actividadReciente, negociosRecientes };
 }
 
 export type ReyNegocio = { id: string; nombre: string; scoreLabel: string } | null;
