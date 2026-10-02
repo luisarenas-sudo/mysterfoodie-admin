@@ -73,6 +73,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // No dependen de nada de lo que sigue (ni del negocio ni del form que se
+  // va a crear) -- se lanzan ya para que terminen mientras se resuelve el
+  // resto, en vez de esperar hasta el momento en que se usan más abajo.
+  const automationsPromise = Promise.all([
+    getAutomation("resultado_visita"),
+    getAutomation("instagram_dm"),
+  ]);
+
   // ------------------------------------------------------------
   // Resolver el negocio: de una asignación (Foodie), de un negocio ya
   // existente elegido directamente (admin/sibarita), o se da de alta /
@@ -238,32 +246,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (assignmentId) {
-    await db
-      .from("visit_assignments")
-      .update({ status: "completada", completed_form_id: form.id })
-      .eq("id", assignmentId);
-  }
-
+  // Ninguna de estas 3 escrituras depende de las otras (todas solo
+  // necesitan form.id, que ya tenemos) -- se lanzan juntas en vez de
+  // esperarlas una por una.
   const ratingRows = STAR_ITEMS.map((item) => ({
     form_id: form.id,
     category_key: item.key,
     category_label: fullItemLabel(item),
     score: body.ratings[item.key],
   }));
-  if (ratingRows.length > 0) {
-    await db.from("form_ratings").insert(ratingRows);
-  }
-
   const flagRows = BOOLEAN_ITEMS.map((item) => ({
     form_id: form.id,
     flag_key: item.key,
     flag_label: fullItemLabel(item),
     flag_value: Boolean(body.flags?.[item.key]),
   }));
-  if (flagRows.length > 0) {
-    await db.from("form_flags").insert(flagRows);
-  }
+
+  await Promise.all([
+    assignmentId
+      ? db
+          .from("visit_assignments")
+          .update({ status: "completada", completed_form_id: form.id })
+          .eq("id", assignmentId)
+      : Promise.resolve(),
+    ratingRows.length > 0 ? db.from("form_ratings").insert(ratingRows) : Promise.resolve(),
+    flagRows.length > 0 ? db.from("form_flags").insert(flagRows) : Promise.resolve(),
+  ]);
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const internalReportUrl = `${baseUrl}/r/${shortCode}`;
@@ -289,10 +297,7 @@ export async function POST(req: NextRequest) {
     mesero: waiterName || "",
     promedio: String(score),
   };
-  const [resultadoAutomation, dmAutomation] = await Promise.all([
-    getAutomation("resultado_visita"),
-    getAutomation("instagram_dm"),
-  ]);
+  const [resultadoAutomation, dmAutomation] = await automationsPromise;
   const defaultSubject = `Resultado de tu evaluación Mystery Shopper - ${score} estrellas`;
   const defaultIntro = `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${business.name}. El promedio general obtenido fue:`;
   const resultSubject =

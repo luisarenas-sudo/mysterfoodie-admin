@@ -26,9 +26,14 @@ export default async function NegocioDetailPage({
   const canAssign = profile?.role === "admin";
   const canCreateVisit = profile?.role === "admin" || profile?.role === "sibarita";
 
+  // Se lanzan ambas peticiones a la vez (en vez de esperar una y luego la
+  // otra) -- no dependen entre sí, así que no hay razón para encadenarlas.
+  const clientPromise = getClientDetail(id);
+  const pendingAssignmentPromise = getPendingAssignmentForClient(id);
+
   let client;
   try {
-    client = await getClientDetail(id);
+    client = await clientPromise;
   } catch (err) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-10">
@@ -41,7 +46,7 @@ export default async function NegocioDetailPage({
 
   if (!client) return notFound();
 
-  const pendingAssignment = await getPendingAssignmentForClient(id);
+  const pendingAssignment = await pendingAssignmentPromise;
 
   if (client.visits.length === 0) {
     return (

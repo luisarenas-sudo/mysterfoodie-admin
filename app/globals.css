@@ -155,7 +155,7 @@ a,
 }
 
 .mf-tap {
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.08s ease, opacity 0.08s ease;
 }
 .mf-tap:active {
   transform: scale(0.96);
@@ -173,7 +173,7 @@ a,
   }
 }
 .mf-push-in {
-  animation: mfPushIn 0.26s cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: mfPushIn 0.18s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 @keyframes mfFadeIn {
@@ -187,7 +187,7 @@ a,
   }
 }
 .mf-fade-in {
-  animation: mfFadeIn 0.22s ease-out both;
+  animation: mfFadeIn 0.15s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

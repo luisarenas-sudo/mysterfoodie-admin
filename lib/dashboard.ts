@@ -192,15 +192,11 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     .eq("client_id", id)
     .order("created_at", { ascending: true });
 
-  const { data: allRatings } = await db
-    .from("form_ratings")
-    .select("form_id, category_key, score")
-    .in("form_id", (forms || []).map((f) => f.id));
-
-  const { data: allFlags } = await db
-    .from("form_flags")
-    .select("form_id, flag_key, flag_value")
-    .in("form_id", (forms || []).map((f) => f.id));
+  const formIds = (forms || []).map((f) => f.id);
+  const [{ data: allRatings }, { data: allFlags }] = await Promise.all([
+    db.from("form_ratings").select("form_id, category_key, score").in("form_id", formIds),
+    db.from("form_flags").select("form_id, flag_key, flag_value").in("form_id", formIds),
+  ]);
 
   // Los indicadores individuales son ~50 por visita; para que el
   // comparativo entre visitas sea legible se agregan por categoria
@@ -305,27 +301,34 @@ export async function getVisitDetail(
   const { data: form } = await query.maybeSingle();
   if (!form) return null;
 
-  const { data: client } = await db
-    .from("clients")
-    .select("id, name, type")
-    .eq("id", form.client_id)
-    .maybeSingle();
+  // Ninguna de estas 5 consultas depende del resultado de otra (todas
+  // solo necesitan form.id/form.client_id, que ya tenemos) -- antes se
+  // esperaban una por una en cadena; lanzarlas juntas corta la espera de
+  // esta pantalla a la mitad o menos.
+  const [
+    { data: client },
+    { data: ratingRows },
+    { data: flagRows },
+    { data: emailRows },
+    { data: clientForms },
+  ] = await Promise.all([
+    db.from("clients").select("id, name, type").eq("id", form.client_id).maybeSingle(),
+    db.from("form_ratings").select("category_key, score").eq("form_id", form.id),
+    db.from("form_flags").select("flag_key, flag_value").eq("form_id", form.id),
+    db
+      .from("email_confirmations")
+      .select("status, error, recipient_email, sent_at")
+      .eq("form_id", form.id)
+      .order("sent_at", { ascending: false })
+      .limit(1),
+    db.from("forms").select("overall_score").eq("client_id", form.client_id),
+  ]);
   if (!client) return null;
-
-  const { data: ratingRows } = await db
-    .from("form_ratings")
-    .select("category_key, score")
-    .eq("form_id", form.id);
 
   const raw: Ratings = {};
   (ratingRows || []).forEach((r) => {
     raw[r.category_key] = r.score;
   });
-
-  const { data: flagRows } = await db
-    .from("form_flags")
-    .select("flag_key, flag_value")
-    .eq("form_id", form.id);
 
   const flags: Record<string, boolean> = {};
   (flagRows || []).forEach((fl) => {
@@ -334,22 +337,11 @@ export async function getVisitDetail(
 
   const catScores = categoryScores(raw, flags).filter((c) => c.count > 0);
 
-  const { data: emailRows } = await db
-    .from("email_confirmations")
-    .select("status, error, recipient_email, sent_at")
-    .eq("form_id", form.id)
-    .order("sent_at", { ascending: false })
-    .limit(1);
-
   const lastEmailRow = (emailRows || [])[0];
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "";
   const reportUrl = form.report_url || (baseUrl ? `${baseUrl}/r/${form.short_code}` : `/r/${form.short_code}`);
 
-  const { data: clientForms } = await db
-    .from("forms")
-    .select("overall_score")
-    .eq("client_id", client.id);
   const clientScores = (clientForms || []).map((f) => f.overall_score).filter((s): s is number => typeof s === "number");
   const clientAverageScore =
     clientScores.length > 0
@@ -613,14 +605,21 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
 
 export type ReyNegocio = { id: string; nombre: string; scoreLabel: string } | null;
 
-/** El negocio mejor evaluado (para el banner "El Rey" de Inicio). Solo se muestra si hay un destacado claro (>=4). */
-export async function getReyNegocio(): Promise<ReyNegocio> {
-  const clients = await getClientsSummary();
+/** Misma lógica que getReyNegocio(), pero sin volver a pedir los negocios a
+ * Supabase -- para cuando el caller ya tiene un ClientSummary[] a la mano
+ * (ver app/negocios/page.tsx) y así evitar duplicar la consulta completa. */
+export function reyFromClients(clients: ClientSummary[]): ReyNegocio {
   const withScore = clients.filter((c) => c.lastScore !== null && c.visitCount > 0);
   if (withScore.length === 0) return null;
   const top = withScore.reduce((best, c) => ((c.lastScore ?? 0) > (best.lastScore ?? 0) ? c : best));
   if (!top.lastScore || top.lastScore < 4) return null;
   return { id: top.id, nombre: top.name, scoreLabel: String(top.lastScore) };
+}
+
+/** El negocio mejor evaluado (para el banner "El Rey" de Inicio). Solo se muestra si hay un destacado claro (>=4). */
+export async function getReyNegocio(): Promise<ReyNegocio> {
+  const clients = await getClientsSummary();
+  return reyFromClients(clients);
 }
 
 /** Todas las visitas registradas (cualquier agente), para el tab Reportes cuando lo ve un admin. */

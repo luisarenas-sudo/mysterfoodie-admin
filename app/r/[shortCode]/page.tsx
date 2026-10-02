@@ -32,26 +32,19 @@ async function loadReport(shortCode: string) {
 
   if (!form) return null;
 
-  const { data: client } = await db
-    .from("clients")
-    .select("name, type, city")
-    .eq("id", form.client_id)
-    .maybeSingle();
-
-  const { data: ratingRows } = await db
-    .from("form_ratings")
-    .select("category_key, score")
-    .eq("form_id", form.id);
+  // Página pública (la que abre el negocio/cliente desde el link corto) --
+  // estas 3 consultas no dependen entre sí, así que se lanzan junto en vez
+  // de esperarlas una por una para que cargue más rápido.
+  const [{ data: client }, { data: ratingRows }, { data: flagRows }] = await Promise.all([
+    db.from("clients").select("name, type, city").eq("id", form.client_id).maybeSingle(),
+    db.from("form_ratings").select("category_key, score").eq("form_id", form.id),
+    db.from("form_flags").select("flag_key, flag_value").eq("form_id", form.id),
+  ]);
 
   const ratings: Ratings = {};
   (ratingRows || []).forEach((r) => {
     ratings[r.category_key] = r.score;
   });
-
-  const { data: flagRows } = await db
-    .from("form_flags")
-    .select("flag_key, flag_value")
-    .eq("form_id", form.id);
 
   const flags: Record<string, boolean> = {};
   (flagRows || []).forEach((f) => {

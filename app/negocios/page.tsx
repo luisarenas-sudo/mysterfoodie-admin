@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth";
-import { getClientsSummary, getReyNegocio } from "@/lib/dashboard";
+import { getClientsSummary, reyFromClients } from "@/lib/dashboard";
 import MobileNegociosList from "@/components/mobile/MobileNegociosList";
 import NegociosListDesktop from "@/components/NegociosListDesktop";
 
@@ -17,7 +17,7 @@ export default async function NegociosPage() {
     configError = err instanceof Error ? err.message : "Error desconocido";
   }
 
-  const rey = configError ? null : await getReyNegocio();
+  const rey = configError ? null : reyFromClients(clients);
 
   return (
     <>

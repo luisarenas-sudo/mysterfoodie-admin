@@ -36,7 +36,12 @@ export default async function AgendarPage({
   params: Promise<{ shortCode: string }>;
 }) {
   const { shortCode } = await params;
-  const data = await loadClientByShortCode(shortCode);
+  // No dependen entre sí -- se lanzan juntas en vez de esperar el negocio
+  // y luego, por separado, si el calendario está conectado.
+  const [data, { connected }] = await Promise.all([
+    loadClientByShortCode(shortCode),
+    isCalendarConnected(),
+  ]);
 
   if (data === "not_configured") {
     return (
@@ -48,8 +53,6 @@ export default async function AgendarPage({
     );
   }
   if (!data) return notFound();
-
-  const { connected } = await isCalendarConnected();
 
   let slots: SlotOption[] = [];
   let loadError: string | null = null;
