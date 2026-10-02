@@ -540,6 +540,8 @@ export type HomeActivityItem = {
   verdictColor: string;
   initial: string;
   avatarColor: string;
+  /** "Sibarita Davichin", etc. -- quién levantó la visita; null si no se pudo resolver. */
+  creatorLabel: string | null;
 };
 
 export type HomeSummary = {
@@ -558,7 +560,7 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
 
   let query = db
     .from("forms")
-    .select("id, client_id, overall_score, created_at")
+    .select("id, client_id, overall_score, created_at, created_by")
     .order("created_at", { ascending: false })
     .limit(60);
   if (scope.agentId) query = query.eq("created_by", scope.agentId);
@@ -573,6 +575,10 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
   const clientIds = Array.from(new Set(allForms.map((f) => f.client_id)));
   const { data: clients } = await db.from("clients").select("id, name").in("id", clientIds);
   const nameById = new Map((clients || []).map((c) => [c.id, c.name]));
+  const creatorLabelById = await creatorLabelsByUserId(
+    db,
+    allForms.map((f) => f.created_by).filter((id): id is string => Boolean(id))
+  );
 
   const now = new Date();
   const visitasMes = allForms.filter((f) => {
@@ -598,6 +604,7 @@ export async function getHomeSummary(scope: { agentId?: string } = {}): Promise<
       verdictColor: verdict.color,
       initial: initialsFor(nombre),
       avatarColor: avatarColorFor(nombre),
+      creatorLabel: f.created_by ? creatorLabelById.get(f.created_by) ?? null : null,
     };
   });
 

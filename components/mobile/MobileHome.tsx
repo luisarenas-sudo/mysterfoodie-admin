@@ -104,12 +104,25 @@ export default function MobileHome({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[15px] font-semibold">{r.negocioNombre}</div>
+                  {r.creatorLabel && (
+                    <div className="truncate text-[12px] font-medium" style={{ color: "rgba(60,60,67,0.55)" }}>
+                      {r.creatorLabel}
+                    </div>
+                  )}
                   <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-                    {r.fecha} &middot; {r.verdictLabel}
+                    {r.fecha}
                   </div>
                 </div>
-                <div className="text-[15px] font-bold" style={{ color: r.verdictColor }}>
-                  {r.score}
+                <div className="w-[76px] flex-shrink-0 text-right">
+                  <div className="text-[18px] font-bold leading-none" style={{ color: r.verdictColor }}>
+                    {r.score}
+                  </div>
+                  <div
+                    className="mt-1.5 inline-block w-full rounded-lg px-[7px] py-[3px] text-center text-[12px] font-bold"
+                    style={{ color: r.verdictColor, background: `${r.verdictColor}1F` }}
+                  >
+                    {r.verdictLabel}
+                  </div>
                 </div>
               </Link>
               {idx < stats.actividadReciente.length - 1 && (
