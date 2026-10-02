@@ -196,6 +196,10 @@ export default async function PerfilPage({
         </div>
       </div>
 
+      <div className="mx-5 mt-2.5 text-center">
+        <FlancoCredit />
+      </div>
+
       {profile.role === "admin" && (
         <Link
           href="/admin/usuarios"
@@ -258,10 +262,6 @@ export default async function PerfilPage({
           />
         </div>
       )}
-
-      <div className="mx-5 mt-2.5 text-center">
-        <FlancoCredit />
-      </div>
 
       <div className="card mx-5 mb-5 flex items-center gap-3.5 p-[18px]">
         <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
