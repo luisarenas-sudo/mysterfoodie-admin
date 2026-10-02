@@ -297,9 +297,7 @@ on conflict (key) do nothing;
 -- ============================================================
 -- "Añadido por": saber qué rango (Master Chef/Sibarita/Foodie) y qué
 -- persona dio de alta cada negocio, para mostrarlo en la lista de
--- Negocios (ver app/api/clients/route.ts y lib/dashboard.ts).
--- Pendiente de correr manualmente -- el intento de agregarla desde
--- Supabase en este chat fue bloqueado por una medida de seguridad al
--- modificar un recurso compartido/productivo.
+-- Negocios (ver app/api/clients/route.ts, app/api/visits/route.ts y
+-- lib/dashboard.ts). Ya aplicada en Supabase.
 -- ============================================================
 alter table clients add column if not exists created_by uuid references profiles(id);
