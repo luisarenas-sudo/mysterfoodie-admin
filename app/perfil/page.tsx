@@ -263,7 +263,7 @@ export default async function PerfilPage({
         </div>
       )}
 
-      <div className="card mx-5 mb-5 flex items-center gap-3.5 p-[18px]">
+      <div className="card mx-5 mt-4 mb-5 flex items-center gap-3.5 p-[18px]">
         <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
         <div className="min-w-0">
           <div className="truncate text-[17px] font-bold">{displayName}</div>
