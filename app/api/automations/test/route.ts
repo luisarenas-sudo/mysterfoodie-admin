@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getAutomation, renderTemplate, AUTOMATION_CATALOG } from "@/lib/automations";
-import { sendResultEmail, sendTemplatedEmail, formatSlot } from "@/lib/email";
+import { sendResultEmail, sendTemplatedEmail, sendFullReportEmail, formatSlot } from "@/lib/email";
+import { buildReportPdf } from "@/lib/reportPdf";
 import { CATEGORIES } from "@/lib/categories";
 import type { CategoryScore } from "@/lib/scoring";
 
@@ -56,10 +57,40 @@ export async function POST(req: NextRequest) {
   const reportUrl = `${baseUrl}/r/EJEMPLO`;
   const fechaHora = formatSlot(new Date(Date.now() + 2 * 86400000), new Date(Date.now() + 2 * 86400000 + 20 * 60000));
 
-  const keys = body.key ? [body.key] : Object.keys(AUTOMATION_CATALOG);
+  // "reporte_completo" no es una automatización editable (el correo con el
+  // PDF adjunto que se manda tras el pago), pero también se puede probar.
+  const keys = body.key ? [body.key] : [...Object.keys(AUTOMATION_CATALOG), "reporte_completo"];
   const results: TestResult[] = [];
 
   for (const key of keys) {
+    if (key === "reporte_completo") {
+      try {
+        const catScores = sampleCategoryScores();
+        const pdfBuffer = await buildReportPdf({
+          businessName: SAMPLE.negocio,
+          clientType: "cafeteria",
+          city: "Veracruz",
+          visitDate: new Date(),
+          overallScore: SAMPLE.promedio,
+          categoryScores: catScores,
+          shortCode: "EJEMPLO",
+        });
+        const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
+        const out = await sendFullReportEmail({
+          to,
+          businessName: SAMPLE.negocio,
+          score: SAMPLE.promedio,
+          reportUrl,
+          whatsappLink: contactWhatsapp ? `https://wa.me/${contactWhatsapp}` : null,
+          pdfBuffer,
+          pdfFilename: "reporte-completo-EJEMPLO.pdf",
+        });
+        results.push({ key, subject: `Tu reporte completo de ${SAMPLE.negocio} ya está listo (con PDF)`, source: "texto original", status: out.status, error: out.error });
+      } catch (err) {
+        results.push({ key, subject: "", source: "texto original", status: "failed", error: err instanceof Error ? err.message : String(err) });
+      }
+      continue;
+    }
     if (!AUTOMATION_CATALOG[key]) {
       results.push({ key, subject: "", source: "texto original", status: "failed", error: "Automatización desconocida" });
       continue;

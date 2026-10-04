@@ -40,7 +40,7 @@ function TagBox({
 type TestResult = { key: string; subject: string; source: string; status: string; error?: string };
 
 /** Manda un correo de prueba (datos de ejemplo) al correo del admin logueado. Sin `automationKey` manda todos. */
-function SendTestButton({ automationKey, className = "" }: { automationKey?: string; className?: string }) {
+function SendTestButton({ automationKey, className = "", label }: { automationKey?: string; className?: string; label?: string }) {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -82,7 +82,7 @@ function SendTestButton({ automationKey, className = "" }: { automationKey?: str
         className="rounded-md px-3 py-2 text-[13px] font-semibold disabled:opacity-50"
         style={{ background: "rgba(242,68,68,0.08)", color: ACCENT }}
       >
-        {sending ? "Enviando..." : automationKey ? "Enviarme una prueba" : "Enviarme una prueba de todas"}
+        {sending ? "Enviando..." : label ?? (automationKey ? "Enviarme una prueba" : "Enviarme una prueba de todas")}
       </button>
       {message && (
         <span className="mt-1 max-w-[260px] text-right text-[11.5px]" style={{ color: failed ? "#DC2626" : "rgba(60,60,67,0.6)" }}>
@@ -310,7 +310,8 @@ export default function AutomatizacionesPanel({
   return (
     <div className="mt-2">
       <GoogleCalendarCard connected={calendar.connected} email={calendar.email} />
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex items-start justify-end gap-2">
+        <SendTestButton automationKey="reporte_completo" label="Prueba: reporte con PDF" />
         <SendTestButton />
       </div>
       {automations.map((a) => (
