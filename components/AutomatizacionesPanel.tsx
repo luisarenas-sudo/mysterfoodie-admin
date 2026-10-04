@@ -37,6 +37,62 @@ function TagBox({
   );
 }
 
+type TestResult = { key: string; subject: string; source: string; status: string; error?: string };
+
+/** Manda un correo de prueba (datos de ejemplo) al correo del admin logueado. Sin `automationKey` manda todos. */
+function SendTestButton({ automationKey, className = "" }: { automationKey?: string; className?: string }) {
+  const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  async function send() {
+    setSending(true);
+    setMessage(null);
+    setFailed(false);
+    try {
+      const res = await fetch("/api/automations/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(automationKey ? { key: automationKey } : {}),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo enviar");
+      const results: TestResult[] = data.results || [];
+      const bad = results.filter((r) => r.status !== "sent");
+      if (bad.length > 0) {
+        setFailed(true);
+        setMessage(bad.map((r) => `${r.key}: ${r.status}${r.error ? ` (${r.error})` : ""}`).join(" · "));
+      } else {
+        setMessage(`Enviado${results.length > 1 ? ` (${results.length})` : ""} a ${data.to}`);
+      }
+    } catch (err) {
+      setFailed(true);
+      setMessage(err instanceof Error ? err.message : "No se pudo enviar");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className={`flex flex-col items-end ${className}`}>
+      <button
+        type="button"
+        onClick={send}
+        disabled={sending}
+        className="rounded-md px-3 py-2 text-[13px] font-semibold disabled:opacity-50"
+        style={{ background: "rgba(242,68,68,0.08)", color: ACCENT }}
+      >
+        {sending ? "Enviando..." : automationKey ? "Enviarme una prueba" : "Enviarme una prueba de todas"}
+      </button>
+      {message && (
+        <span className="mt-1 max-w-[260px] text-right text-[11.5px]" style={{ color: failed ? "#DC2626" : "rgba(60,60,67,0.6)" }}>
+          {message}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function AutomationCard({ automation }: { automation: Automation }) {
   const [enabled, setEnabled] = useState(automation.enabled);
   const [subject, setSubject] = useState(automation.subjectTemplate);
@@ -173,6 +229,7 @@ function AutomationCard({ automation }: { automation: Automation }) {
             Guardado
           </span>
         )}
+        <SendTestButton automationKey={automation.key} className="ml-auto" />
       </div>
     </div>
   );
@@ -253,6 +310,9 @@ export default function AutomatizacionesPanel({
   return (
     <div className="mt-2">
       <GoogleCalendarCard connected={calendar.connected} email={calendar.email} />
+      <div className="mt-4 flex justify-end">
+        <SendTestButton />
+      </div>
       {automations.map((a) => (
         <AutomationCard key={a.key} automation={a} />
       ))}
