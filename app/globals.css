@@ -209,14 +209,16 @@ a,
   }
 }
 
-/* Esqueleto de carga (components/PageSkeleton.tsx): pulso suave. */
-@keyframes mfSkeleton {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+/* Loader de marca (components/BrandLoader.tsx): entra con un pequeño retraso
+   para que no parpadee cuando la pantalla carga rápido. */
+@keyframes mfLoaderIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
-.mf-skeleton {
-  animation: mfSkeleton 1.3s ease-in-out infinite;
+.mf-loader-in {
+  opacity: 0;
+  animation: mfLoaderIn 0.25s ease-out 0.18s forwards;
 }
 @media (prefers-reduced-motion: reduce) {
-  .mf-skeleton { animation: none; }
+  .mf-loader-in { animation-duration: 0.01s; }
 }

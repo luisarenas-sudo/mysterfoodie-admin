@@ -16,6 +16,7 @@ import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "@/components/mobile/ActivityRing";
 import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
 import { friendlyError } from "@/lib/friendlyError";
+import { BrandLoaderOverlay } from "@/components/BrandLoader";
 
 type Business = {
   name: string;
@@ -733,6 +734,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
           </button>
         )}
       </div>
+      {submitting && <BrandLoaderOverlay label="Guardando tu visita…" />}
     </div>
   );
 }

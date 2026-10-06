@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BUSINESS_TYPES } from "@/lib/categories";
+import { BrandLoaderOverlay } from "@/components/BrandLoader";
 
 const ACCENT = "#F24444";
 
@@ -390,6 +391,7 @@ export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormI
           {submitting ? "Guardando..." : isEdit ? "Guardar cambios" : "Guardar negocio"}
         </button>
       </div>
+      {submitting && <BrandLoaderOverlay label={isEdit ? "Guardando cambios…" : "Guardando negocio…"} />}
     </div>
   );
 }
