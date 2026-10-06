@@ -222,3 +222,27 @@ a,
 @media (prefers-reduced-motion: reduce) {
   .mf-loader-in { animation-duration: 0.01s; }
 }
+
+/* Abejita del Perfil (components/EasterEggBee.tsx) y su bitácora. */
+@keyframes mfBeeIdle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes mfBeeBuzz {
+  0% { transform: translate(0, 0) rotate(0); }
+  15% { transform: translate(-3px, -2px) rotate(-12deg); }
+  30% { transform: translate(3px, -4px) rotate(10deg); }
+  45% { transform: translate(-2px, -1px) rotate(-8deg); }
+  60% { transform: translate(2px, -3px) rotate(7deg); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+@keyframes mfSheetUp {
+  from { transform: translateY(32px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.mf-bee-idle { display: inline-block; animation: mfBeeIdle 3s ease-in-out infinite; }
+.mf-bee-buzz { display: inline-block; animation: mfBeeBuzz 0.42s ease-in-out; }
+.mf-sheet-up { animation: mfSheetUp 0.28s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .mf-bee-idle, .mf-bee-buzz, .mf-sheet-up { animation: none; }
+}

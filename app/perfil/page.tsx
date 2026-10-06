@@ -8,6 +8,7 @@ import ConnectGoogleButton from "@/components/auth/ConnectGoogleButton";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 import DeleteButton from "@/components/DeleteButton";
 import FlancoCredit from "@/components/FlancoCredit";
+import EasterEggBee from "@/components/EasterEggBee";
 
 export const dynamic = "force-dynamic";
 
@@ -311,6 +312,10 @@ export default async function PerfilPage({
           Cerrar sesión
         </button>
       </form>
+
+      {/* Easter egg: 3 toques seguidos abren la bitácora de versiones. Solo para
+         el equipo (el dueño de un negocio no necesita ver el historial interno). */}
+      {!isCliente && <EasterEggBee />}
     </div>
 
     {/* Esta pantalla es sobre todo móvil (rango, Palabra Foodie, etc.), pero
@@ -453,6 +458,12 @@ export default async function PerfilPage({
         <p className="mt-6 text-sm text-stone-500">
           Entra desde el celular para ver el resto de tu perfil.
         </p>
+      )}
+
+      {!isCliente && (
+        <div className="mt-6">
+          <EasterEggBee />
+        </div>
       )}
     </main>
     </>
