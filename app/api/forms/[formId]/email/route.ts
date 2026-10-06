@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { businessTypePhrase } from "@/lib/categories";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import { sendResultEmail } from "@/lib/email";
-import { getAutomation, renderTemplate } from "@/lib/automations";
+import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 
 /**
  * Reenvia el correo de resultado de una evaluacion ya guardada, o lo
@@ -100,15 +100,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const reportUrl = form.report_url || `${baseUrl}/r/${form.short_code}`;
 
-  const templateVars = {
+  const templateVars = resultadoVars({
     negocio: client.name,
-    tipo_negocio: businessTypePhrase(client.type) || "",
-    mesero: form.waiter_name || "",
-    promedio: String(form.overall_score),
-  };
+    tipoNegocio: businessTypePhrase(client.type) || "negocio",
+    mesero: form.waiter_name,
+    promedio: form.overall_score,
+  });
   const resultadoAutomation = await getAutomation("resultado_visita");
-  const defaultSubject = `Resultado de tu evaluación Mystery Shopper - ${form.overall_score} estrellas`;
-  const defaultIntro = `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${client.name}. El promedio general obtenido fue:`;
+  const defaultSubject = renderTemplate(DEFAULT_RESULTADO_SUBJECT, templateVars);
+  const defaultIntro = renderTemplate(DEFAULT_RESULTADO_INTRO, templateVars);
   const subject =
     resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
       ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)

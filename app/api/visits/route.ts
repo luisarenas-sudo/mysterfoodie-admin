@@ -6,7 +6,7 @@ import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhr
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
-import { getAutomation, renderTemplate } from "@/lib/automations";
+import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 import { createShortLink } from "@/lib/shortio";
 
 type Business = {
@@ -291,15 +291,15 @@ export async function POST(req: NextRequest) {
   await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
 
   const waiterName = body.waiterName?.trim() || null;
-  const templateVars = {
+  const templateVars = resultadoVars({
     negocio: business.name,
-    tipo_negocio: businessTypePhrase(business.type) || "",
-    mesero: waiterName || "",
-    promedio: String(score),
-  };
+    tipoNegocio: businessTypePhrase(business.type) || "negocio",
+    mesero: waiterName,
+    promedio: score,
+  });
   const [resultadoAutomation, dmAutomation] = await automationsPromise;
-  const defaultSubject = `Resultado de tu evaluación Mystery Shopper - ${score} estrellas`;
-  const defaultIntro = `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${business.name}. El promedio general obtenido fue:`;
+  const defaultSubject = renderTemplate(DEFAULT_RESULTADO_SUBJECT, templateVars);
+  const defaultIntro = renderTemplate(DEFAULT_RESULTADO_INTRO, templateVars);
   const resultSubject =
     resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
       ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)

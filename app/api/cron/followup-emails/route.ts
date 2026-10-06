@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
     const subject = renderTemplate(automation.subjectTemplate, { negocio: client.name });
     const body = renderTemplate(automation.bodyTemplate, { negocio: client.name, link_agenda: agendaUrl });
 
-    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: body });
+    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: body, ctaLabel: "Agendar mi asesoría gratuita" });
 
     await db.from("email_confirmations").insert({
       form_id: form.id,

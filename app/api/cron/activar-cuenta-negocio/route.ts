@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
       ? renderTemplate(automation!.bodyTemplate, { negocio: client.name, link_acceso: actionLink })
       : defaultBody;
 
-    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText });
+    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText, ctaLabel: "Crear mi cuenta" });
 
     await db.from("clients").update({ account_invited_at: new Date().toISOString() }).eq("id", client.id);
 

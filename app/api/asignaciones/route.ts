@@ -137,6 +137,7 @@ MysterFoodie`;
     to: foodie.email,
     subject,
     bodyText,
+    ctaLabel: "Ver mis visitas asignadas",
   });
 
   if (emailOutcome.status === "sent") {

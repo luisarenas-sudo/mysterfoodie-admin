@@ -45,6 +45,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (puede venir vacío)" },
       { tag: "mesero", desc: "Nombre del mesero que atendió, si se capturó (puede venir vacío)" },
+      { tag: "mesero_linea", desc: "Frase lista (\" Los atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco" },
       { tag: "promedio", desc: "Promedio general obtenido (solo útil en el asunto)" },
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
@@ -145,4 +146,32 @@ export async function updateAutomation(
 /** Reemplaza {{variable}} en una plantilla; una variable sin valor se deja en blanco. */
 export function renderTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/{{\s*(\w+)\s*}}/g, (_, key: string) => vars[key] ?? "");
+}
+
+/**
+ * Textos por default del correo "Resultado de la visita" (se usan cuando la
+ * plantilla está desactivada). Las partes entre **doble asterisco** salen en
+ * negritas en el correo.
+ */
+export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas";
+export const DEFAULT_RESULTADO_INTRO =
+  "Un **Myster Foodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. " +
+  "Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** " +
+  "la experiencia real recibida.{{mesero_linea}}";
+
+/** Variables que acepta la plantilla "resultado_visita". */
+export function resultadoVars(params: {
+  negocio: string;
+  tipoNegocio: string;
+  mesero?: string | null;
+  promedio: number | string;
+}): Record<string, string> {
+  const mesero = params.mesero?.trim() || "";
+  return {
+    negocio: params.negocio,
+    tipo_negocio: params.tipoNegocio,
+    mesero,
+    mesero_linea: mesero ? ` Los atendió ${mesero}.` : "",
+    promedio: String(params.promedio),
+  };
 }

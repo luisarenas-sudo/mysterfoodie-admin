@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { getVerdict } from "./verdict";
 import type { CategoryScore } from "./scoring";
 import { TOTAL_ITEM_COUNT } from "./categories";
+import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 
 export type SendResultEmailParams = {
   to: string;
@@ -53,151 +54,127 @@ function resolveFromAddress(): string {
   return `MysterFoodie <${raw}>`;
 }
 
-/** Logo de MysterFoodie centrado, para el encabezado de los correos. */
-function renderEmailLogo(): string {
+const BRAND_RED = "#f24444";
+
+/** "#RRGGBB" -> "rgba(r,g,b,a)" (los clientes de correo no siempre entienden #RRGGBBAA). */
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/** Escapa HTML y convierte **texto** en negritas (para los párrafos editables). */
+function renderRichText(text: string): string {
+  return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+/** Botón rojo de ancho completo (CTA principal de los correos). */
+function renderButton(href: string, label: string, background = BRAND_RED): string {
+  return `<a href="${escapeHtml(href)}" style="display: block; background-color: ${background}; color: #ffffff; text-align: center; text-decoration: none; font-weight: bold; font-size: 15px; line-height: 1.3; padding: 16px 18px; border-radius: 14px;">${label}</a>`;
+}
+
+/**
+ * Estructura común de TODOS los correos: fondo gris claro, logo completo
+ * de MysterFoodie arriba, tarjeta blanca redondeada con el contenido y,
+ * abajo, el logo simplificado como firma con el respaldo de Flanco
+ * Izquierdo.
+ */
+function renderEmailShell(cardHtml: string): string {
   const baseUrl = emailBaseUrl();
   return `
-    <div style="text-align: center; margin-bottom: 22px;">
-      <img
-        src="${baseUrl}/logo-wordmark.png"
-        width="110"
-        height="59"
-        alt="MysterFoodie"
-        style="display: inline-block; width: 110px; height: auto;"
-      />
+    <div style="background-color: #f4f5fa; padding: 32px 12px; font-family: Arial, Helvetica, sans-serif; color: #222222;">
+      <div style="max-width: 560px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="${baseUrl}/logo-wordmark.png" width="150" alt="MysterFoodie" style="display: inline-block; width: 150px; height: auto;" />
+        </div>
+        <div style="background-color: #ffffff; border-radius: 24px; padding: 34px 32px;">
+          ${cardHtml}
+        </div>
+        <div style="text-align: center; margin-top: 26px;">
+          <img src="${baseUrl}/icon-512.png" width="40" height="40" alt="MysterFoodie" style="display: inline-block; width: 40px; height: 40px; border-radius: 10px;" />
+          <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
+            MysterFoodie · Evaluaciones objetivas e independientes con el respaldo de
+            <a href="https://flancoizquierdo.com/" style="color: #9ca3af; text-decoration: underline;">Flanco Izquierdo</a>.
+          </p>
+        </div>
+      </div>
     </div>
   `;
 }
 
-/**
- * Bloque gris de "garantía": la cita de Palabra Foodie, el número de
- * indicadores evaluados y el respaldo de Flanco Izquierdo. Es el mismo
- * contenido que ya se usa en /perfil y en la página pública del reporte,
- * pensado para generar confianza justo antes del botón de compra.
- */
+/** Caja gris de "Palabra Foodie" (la garantía de honestidad del estudio). */
 function renderGuaranteeBlock(): string {
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0; background-color: #f4f4f5; border-radius: 14px;">
-      <tr>
-        <td style="padding: 20px 22px; text-align: center;">
-          <p style="margin: 0 0 10px; font-size: 12px; font-weight: bold; letter-spacing: 0.08em; color: #78716c; text-transform: uppercase;">
-            Palabra Foodie
-          </p>
-          <p style="margin: 0 0 12px; font-size: 13.5px; font-style: italic; line-height: 1.6; color: #57534e;">
-            &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
-          </p>
-          <p style="margin: 0; font-size: 12.5px; line-height: 1.6; color: #78716c;">
-            Nuestros Myster Foodies visitan el negocio de incógnito, pagan su cuenta y califican
-            más de ${TOTAL_ITEM_COUNT} indicadores de servicio, sabor, limpieza y experiencia — con total honestidad.
-          </p>
-          <p style="margin: 14px 0 0; font-size: 11px; color: #a8a29e;">
-            <a href="https://flancoizquierdo.com/" style="color: #a8a29e; text-decoration: underline;">Con el respaldo de Flanco Izquierdo</a>
-          </p>
-        </td>
-      </tr>
-    </table>
+    <div style="margin: 24px 0; background-color: #f8f9fb; border: 1px solid #eceef2; border-radius: 16px; padding: 20px 22px; text-align: center;">
+      <p style="margin: 0 0 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: #8a8f98; text-transform: uppercase;">
+        Palabra Foodie
+      </p>
+      <p style="margin: 0; font-size: 17px; font-weight: bold; line-height: 1.45; color: #1f2937;">
+        &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
+      </p>
+    </div>
   `;
 }
 
 function renderCategoryRows(categoryScores: CategoryScore[]): string {
-  return categoryScores
+  return [...categoryScores]
     .filter((c) => c.count > 0)
+    .sort((a, b) => b.average - a.average)
     .map(
       (c) => `
         <tr>
-          <td style="padding: 6px 0; font-size: 14px; color: #44403c;">${c.label}</td>
-          <td style="padding: 6px 0; font-size: 14px; color: #222222; font-weight: bold; text-align: right;">${c.average} / 5</td>
+          <td style="padding: 14px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; font-weight: bold; color: #111827;">${escapeHtml(c.label)}</td>
+          <td style="padding: 14px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; font-weight: bold; color: #111827; text-align: right;">${c.average.toFixed(1)} / 5</td>
         </tr>
       `
     )
     .join("");
 }
 
-/**
- * Lista de indicadores reales (nombres de item, no de categoría) usada
- * como textura decorativa "desenfocada" detrás de la tarjeta de
- * calificación general - sugiere que hay mucho más detalle disponible
- * sin revelarlo, para generar curiosidad por el reporte completo.
- */
-const TEASER_INDICATOR_NAMES = [
-  "Atención del mesero",
-  "Tiempo de espera",
-  "Limpieza de baños",
-  "Sabor de los alimentos",
-  "Temperatura de la comida",
-  "Uniformes del personal",
-  "Rapidez de la cuenta",
-  "Iluminación",
-  "Mobiliario",
-  "Accesibilidad",
-];
-
-/**
- * Tarjeta con la calificación general: estrellas + veredicto, con una
- * capa decorativa de nombres de indicadores desenfocada de fondo (el
- * efecto de blur lo soportan Apple Mail, Gmail y la mayoría de clientes
- * modernos; en los que lo ignoran - ej. Outlook de escritorio - esa capa
- * simplemente queda oculta detrás/debajo de la tarjeta sólida, nunca se
- * ve rota).
- */
-function renderScoreCard(score: number, reportUrl: string): string {
+/** Tarjeta con la calificación general: número grande, veredicto y resumen. */
+function renderScoreCard(score: number): string {
   const verdict = getVerdict(score);
-  const teaserText = TEASER_INDICATOR_NAMES.join("   ·   ");
-
   return `
-    <div style="position: relative; margin: 22px 0 18px;">
-      <div style="position: absolute; inset: 0; overflow: hidden; border-radius: 16px; display: flex; align-items: center; justify-content: center; padding: 0 18px;">
-        <p style="margin: 0; font-size: 12px; line-height: 1.8; color: #d6d3d1; text-align: center; filter: blur(2.5px); -webkit-filter: blur(2.5px);">
-          ${teaserText}
-        </p>
-      </div>
-      <div style="position: relative; background-color: #ffffff; border: 1px solid #e7e5e4; border-radius: 16px; padding: 22px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
-        <p style="margin: 0 0 2px; font-size: 32px; font-weight: bold; color: #f24444; line-height: 1;">${score}<span style="font-size: 16px; color: #a8a29e; font-weight: normal;"> / 5</span></p>
-        <p style="display: inline-block; margin-top: 8px; font-size: 12px; font-weight: bold; color: ${verdict.color}; border: 1px solid ${verdict.color}; border-radius: 999px; padding: 4px 14px;">
-          ${verdict.label}
-        </p>
-        <p style="margin: 10px 0 0; font-size: 13.5px; color: #57534e;">${verdict.summary}</p>
-      </div>
+    <div style="margin: 24px 0 20px; border: 1px solid #e5e7eb; border-radius: 20px; padding: 24px 20px; text-align: center;">
+      <p style="margin: 0; line-height: 1;">
+        <span style="font-size: 46px; font-weight: bold; color: ${BRAND_RED};">${score}</span><span style="font-size: 22px; font-weight: bold; color: #9ca3af;"> / 5</span>
+      </p>
+      <p style="display: inline-block; margin: 14px 0 0; padding: 5px 16px; border-radius: 999px; background-color: ${hexToRgba(verdict.color, 0.12)}; color: ${verdict.color}; font-size: 14px; font-weight: bold;">
+        ${verdict.label}
+      </p>
+      <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: #6b7280;">${verdict.summary}</p>
     </div>
   `;
 }
 
 function renderEmailHtml(params: SendResultEmailParams): string {
   const { businessName, introText, score, reportUrl, categoryScores } = params;
+  const rated = categoryScores.filter((c) => c.count > 0).length;
 
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
-      ${renderEmailLogo()}
+  return renderEmailShell(`
+    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de tu evaluación Mystery Shopper</h2>
+    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
+    <p style="white-space: pre-line; margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">${renderRichText(introText)}</p>
 
-      <h2 style="color: #222222; margin: 0 0 14px; font-size: 20px; text-align: center;">Resultado de tu evaluación Mystery Shopper</h2>
-      <p style="margin: 0 0 6px;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
-      <p style="white-space: pre-line; margin: 0 0 4px;">${escapeHtml(introText)}</p>
+    ${renderScoreCard(score)}
 
-      ${renderScoreCard(score, reportUrl)}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+      ${renderCategoryRows(categoryScores)}
+    </table>
 
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-top: 4px; border-top: 1px solid #e7e5e4;">
-        ${renderCategoryRows(categoryScores)}
-      </table>
+    ${renderGuaranteeBlock()}
 
-      <p style="margin-top: 20px; font-size: 14px; color: #44403c;">
-        Este es solo un resumen por categoría. El reporte completo incluye el detalle de cada
-        uno de los ${TOTAL_ITEM_COUNT} indicadores evaluados, comparativo con el sector y
-        recomendaciones específicas.
-      </p>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #6b7280;">
+      Este resumen muestra solo las ${rated} categorías generales. El estudio completo evalúa
+      <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, etc.),
+      desarrollado bajo la metodología técnica de <strong>Flanco Izquierdo</strong>.
+    </p>
 
-      ${renderGuaranteeBlock()}
-
-      <p style="text-align: center; margin: 24px 0 8px;">
-        <a href="${reportUrl}" style="background-color: #f24444; background-image: linear-gradient(180deg, #f24444, #f25631); color: #ffffff; padding: 12px 22px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 15px;">
-          Ver reporte y solicitar el detalle completo
-        </a>
-      </p>
-
-      <p style="font-size: 11px; color: #a8a29e; margin-top: 32px; text-align: center;">
-        MysterFoodie · evaluaciones Mystery Shopper para restaurantes y bares.
-      </p>
-    </div>
-  `;
+    ${renderButton(reportUrl, `👉 Obtener Reporte Completo de ${TOTAL_ITEM_COUNT} Indicadores ($${FULL_REPORT_PRICE_MXN} MXN)`)}
+    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">Acceso inmediato por correo tras confirmar la solicitud.</p>
+  `);
 }
 
 /** Correo con el resultado de una visita, mandado al negocio. El párrafo
@@ -247,19 +224,34 @@ export type SendTemplatedEmailParams = {
   subject: string;
   /** Texto plano ya renderizado (variables {{...}} ya reemplazadas). */
   bodyText: string;
+  /** Si se pasa, una línea del texto que sea solo un enlace se muestra como botón rojo con esta etiqueta. */
+  ctaLabel?: string;
 };
 
-function renderPlainEmailHtml(bodyText: string): string {
-  const escaped = escapeHtml(bodyText);
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
-      ${renderEmailLogo()}
-      <div style="white-space: pre-line; font-size: 15px; line-height: 1.6;">${escaped}</div>
-      <p style="font-size: 11px; color: #a8a29e; margin-top: 32px; text-align: center;">
-        <a href="https://flancoizquierdo.com/" style="color: #a8a29e; text-decoration: underline;">Con el respaldo de Flanco Izquierdo</a>
-      </p>
-    </div>
-  `;
+function renderPlainEmailHtml(bodyText: string, ctaLabel?: string): string {
+  const urlLine = /^\s*(https?:\/\/\S+)\s*$/;
+  const linkify = (escaped: string) =>
+    escaped.replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color: ${BRAND_RED}; text-decoration: underline;">$1</a>`);
+  const textStyle = "white-space: pre-line; font-size: 15px; line-height: 1.7; color: #374151;";
+
+  const parts: string[] = [];
+  let buffer: string[] = [];
+  const flush = () => {
+    if (buffer.length === 0) return;
+    parts.push(`<div style="${textStyle}">${linkify(escapeHtml(buffer.join("\n")))}</div>`);
+    buffer = [];
+  };
+  for (const line of bodyText.split("\n")) {
+    const match = ctaLabel ? line.match(urlLine) : null;
+    if (match) {
+      flush();
+      parts.push(`<div style="margin: 18px 0;">${renderButton(match[1], escapeHtml(ctaLabel as string))}</div>`);
+    } else {
+      buffer.push(line);
+    }
+  }
+  flush();
+  return renderEmailShell(parts.join(""));
 }
 
 /** Envía un correo a partir de una plantilla de Automatizaciones ya renderizada. */
@@ -276,7 +268,7 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
       from: resolveFromAddress(),
       to: params.to,
       subject: params.subject,
-      html: renderPlainEmailHtml(params.bodyText),
+      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel),
     });
 
     if (result.error) {
@@ -326,41 +318,20 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
   const { businessName, score, reportUrl, whatsappLink } = params;
   const verdict = getVerdict(score);
 
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #222222;">
-      ${renderEmailLogo()}
+  return renderEmailShell(`
+    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">¡Gracias por tu compra!</h2>
+    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
+    <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
+      Aquí está tu reporte completo de la evaluación Mystery Shopper, con calificación general de
+      <strong>${score} / 5 (${verdict.label})</strong>. Va adjunto en PDF con el detalle por categoría,
+      la metodología del estudio y el respaldo de Flanco Izquierdo.
+    </p>
 
-      <h2 style="color: #222222; margin: 0 0 14px; font-size: 20px; text-align: center;">¡Gracias por tu compra!</h2>
-      <p style="margin: 0 0 6px;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
-      <p style="margin: 0 0 4px;">
-        Aquí está tu reporte completo de la evaluación Mystery Shopper, con calificación general de
-        <strong>${score} / 5 (${verdict.label})</strong>. Va adjunto en PDF con el detalle por categoría,
-        la metodología del estudio y el respaldo de Flanco Izquierdo.
-      </p>
+    ${renderGuaranteeBlock()}
 
-      <p style="text-align: center; margin: 24px 0 10px;">
-        <a href="${reportUrl}" style="background-color: #f24444; background-image: linear-gradient(180deg, #f24444, #f25631); color: #ffffff; padding: 12px 22px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 15px;">
-          Ver el reporte en línea
-        </a>
-      </p>
-
-      ${
-        whatsappLink
-          ? `<p style="text-align: center; margin: 0 0 10px;">
-              <a href="${whatsappLink}" style="background-color: #25D366; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 14px;">
-                ¿Dudas? Escríbenos por WhatsApp
-              </a>
-            </p>`
-          : ""
-      }
-
-      ${renderGuaranteeBlock()}
-
-      <p style="font-size: 11px; color: #a8a29e; margin-top: 32px; text-align: center;">
-        MysterFoodie · evaluaciones Mystery Shopper para restaurantes y bares.
-      </p>
-    </div>
-  `;
+    ${renderButton(reportUrl, "Ver el reporte en línea")}
+    ${whatsappLink ? `<div style="margin-top: 12px;">${renderButton(whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+  `);
 }
 
 /** Correo con el PDF del reporte completo adjunto, mandado al comprador

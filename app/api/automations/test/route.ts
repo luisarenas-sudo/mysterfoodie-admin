@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
-import { getAutomation, renderTemplate, AUTOMATION_CATALOG } from "@/lib/automations";
+import { getAutomation, renderTemplate, AUTOMATION_CATALOG, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 import { sendResultEmail, sendTemplatedEmail, sendFullReportEmail, formatSlot } from "@/lib/email";
 import { buildReportPdf } from "@/lib/reportPdf";
 import { CATEGORIES } from "@/lib/categories";
@@ -103,13 +103,9 @@ export async function POST(req: NextRequest) {
 
     try {
       if (key === "resultado_visita") {
-        const vars = { negocio: SAMPLE.negocio, tipo_negocio: SAMPLE.tipoNegocio, mesero: SAMPLE.mesero, promedio: String(SAMPLE.promedio) };
-        const subject = prefix + tpl(automation?.subjectTemplate, vars, `Resultado de tu evaluación Mystery Shopper - ${SAMPLE.promedio} estrellas`);
-        const introText = tpl(
-          automation?.bodyTemplate,
-          vars,
-          `Recientemente realizamos una visita de evaluación (Mystery Shopper) sin previo aviso a ${SAMPLE.negocio}. El promedio general obtenido fue:`
-        );
+        const vars = resultadoVars({ negocio: SAMPLE.negocio, tipoNegocio: SAMPLE.tipoNegocio, mesero: SAMPLE.mesero, promedio: SAMPLE.promedio });
+        const subject = prefix + tpl(automation?.subjectTemplate, vars, renderTemplate(DEFAULT_RESULTADO_SUBJECT, vars));
+        const introText = tpl(automation?.bodyTemplate, vars, renderTemplate(DEFAULT_RESULTADO_INTRO, vars));
         const out = await sendResultEmail({ to, businessName: SAMPLE.negocio, score: SAMPLE.promedio, reportUrl, categoryScores: sampleCategoryScores(), subject, introText });
         results.push({ key, subject, source: useTemplate ? "plantilla" : "texto original", status: out.status, error: out.error });
         continue;
@@ -170,7 +166,12 @@ export async function POST(req: NextRequest) {
           );
       }
 
-      const out = await sendTemplatedEmail({ to, subject, bodyText });
+      const ctaByKey: Record<string, string> = {
+        asesoria_gratuita: "Agendar mi asesoría gratuita",
+        asignacion_visita: "Ver mis visitas asignadas",
+        activacion_cuenta_negocio: "Crear mi cuenta",
+      };
+      const out = await sendTemplatedEmail({ to, subject, bodyText, ctaLabel: ctaByKey[key] });
       results.push({ key, subject, source: useTemplate ? "plantilla" : "texto original", status: out.status, error: out.error });
     } catch (err) {
       results.push({ key, subject: "", source: "texto original", status: "failed", error: err instanceof Error ? err.message : String(err) });
