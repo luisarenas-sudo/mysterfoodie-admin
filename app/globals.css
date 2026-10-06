@@ -140,6 +140,16 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Evita que la página se pueda desplazar/arrastrar de lado (se veía el
+   contenido cortado a la derecha al enfocar un campo en la app "Añadida
+   a Inicio"). `clip` no crea contenedor de scroll, así que no rompe los
+   headers sticky. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 @media (max-width: 767px) {
   input,
   select,
