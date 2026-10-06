@@ -159,9 +159,6 @@ export default function MobileReportePublico({
   return (
     <div className="md:hidden mf-fade-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
       <div style={{ background: "linear-gradient(180deg,#EDEFF7 0%,#F2F2F7 100%)", padding: "24px 24px 20px 24px", textAlign: "center" }}>
-        <div className="mb-3.5 flex items-center justify-center">
-          <Image src="/logo-wordmark.png" alt="MysterFoodie" width={88} height={47} priority className="h-7 w-auto opacity-90" />
-        </div>
         <div className="mb-1 text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
           Reporte de visita anónima
         </div>

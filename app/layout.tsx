@@ -27,18 +27,19 @@ export const metadata: Metadata = {
 };
 
 /**
- * width=device-width + initialScale: 1 explícito (Next ya lo infiere,
- * pero se declara para que quede claro que es intencional) y sin
- * maximumScale/userScalable: deshabilitar el pinch-zoom es mala
- * práctica de accesibilidad; el zoom automático al enfocar un input
- * se evita con font-size >= 16px en los campos, no quitando el zoom
- * del usuario. viewportFit: "cover" habilita env(safe-area-inset-*)
- * para respetar el notch / home indicator en los overlays de
- * pantalla completa (wizard, nuevo negocio).
+ * width=device-width + initialScale: 1 explícitos, y maximumScale: 1.
+ * La app se usa "Añadida a Inicio" en iPhone (modo standalone, sin la
+ * barra de Safari): si iOS hace zoom al enfocar un campo (buscador de
+ * Negocios, formularios) no hay forma de volver atrás y la vista se
+ * descuadra. maximum-scale=1 es lo que impide ese zoom automático (el
+ * font-size >= 16px solo no fue suficiente en standalone). viewportFit:
+ * "cover" habilita env(safe-area-inset-*) para respetar el notch / home
+ * indicator en los overlays de pantalla completa.
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
   viewportFit: "cover",
 };
 
