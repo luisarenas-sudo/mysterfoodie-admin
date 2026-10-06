@@ -363,7 +363,7 @@ export default function MobileReportePublico({
           <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
         </div>
         <div className="text-[13.5px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
+          &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
         </div>
         <div className="mt-3 text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
           Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el

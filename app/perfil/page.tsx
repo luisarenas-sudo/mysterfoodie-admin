@@ -233,11 +233,11 @@ export default async function PerfilPage({
           className="mx-auto text-[14.5px] italic leading-relaxed"
           style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
         >
-          &ldquo;Palabra Foodie, orgullo de gordo:
+          &ldquo;Palabra Foodie, orgullo sibarita:
           <br />
-          la verdad es mi palabra
+          ponemos la boca en el plato
           <br />
-          y pongo mi boca en la verdad.&rdquo;
+          y la firma en la verdad.&rdquo;
         </div>
       </div>
 

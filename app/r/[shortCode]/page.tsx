@@ -359,7 +359,7 @@ export default async function ReportPage({
       <div className="mt-10 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
         <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra Foodie</h3>
         <p className="mt-2 text-sm italic leading-relaxed text-white/85">
-          &ldquo;Palabra Foodie, orgullo de gordo: la verdad es mi palabra y pongo mi boca en la verdad.&rdquo;
+          &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/55">
           Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el
