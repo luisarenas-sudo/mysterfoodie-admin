@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { safeNextPath } from "@/lib/safeNext";
 
 /**
  * Callback de OAuth (Google Sign-In). Supabase redirige aquí con un
@@ -40,7 +41,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const code = req.nextUrl.searchParams.get("code");
-  const next = req.nextUrl.searchParams.get("next") || "/";
+  const next = safeNextPath(req.nextUrl.searchParams.get("next"));
   const oauthError = req.nextUrl.searchParams.get("error_description");
 
   // Si "next" apunta a /perfil, este callback viene del botón "Conecta tu

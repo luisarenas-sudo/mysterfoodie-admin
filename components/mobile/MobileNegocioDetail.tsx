@@ -61,6 +61,96 @@ function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
 }
 
+function digitsOnly(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
+function whatsappHref(phone: string): string | null {
+  const d = digitsOnly(phone);
+  if (d.length < 10) return null;
+  // Número local de 10 dígitos de México: se antepone el 52 de país.
+  return `https://wa.me/${d.length === 10 ? `52${d}` : d}`;
+}
+
+/**
+ * Datos de contacto que se capturan al dar de alta el negocio (antes se
+ * guardaban pero nunca se mostraban) y acceso a corregirlos.
+ */
+function ContactCard({ client, canEdit }: { client: ClientDetail; canEdit: boolean }) {
+  const wa = client.phone ? whatsappHref(client.phone) : null;
+  const rows: { label: string; value: string; href?: string; href2?: { href: string; label: string } }[] = [];
+  if (client.contactName) rows.push({ label: "Contacto", value: client.contactName });
+  if (client.phone) {
+    rows.push({
+      label: "Teléfono",
+      value: client.phone,
+      href: `tel:${digitsOnly(client.phone)}`,
+      href2: wa ? { href: wa, label: "WhatsApp" } : undefined,
+    });
+  }
+  if (client.email) rows.push({ label: "Correo", value: client.email, href: `mailto:${client.email}` });
+  if (client.instagramHandle) {
+    rows.push({
+      label: "Instagram",
+      value: `@${client.instagramHandle}`,
+      href: `https://instagram.com/${client.instagramHandle}`,
+    });
+  }
+  if (rows.length === 0 && !canEdit) return null;
+
+  return (
+    <div className="px-5 pt-4">
+      <div className="card px-4 py-1">
+        {rows.length === 0 && (
+          <div className="py-3 text-[13px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+            Aún no hay datos de contacto.
+          </div>
+        )}
+        {rows.map((r, idx) => (
+          <div
+            key={r.label}
+            className="flex items-center justify-between gap-3 py-2.5"
+            style={idx < rows.length - 1 || canEdit ? { borderBottom: "1px solid rgba(60,60,67,0.08)" } : undefined}
+          >
+            <div className="min-w-0">
+              <div className="text-[11.5px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>
+                {r.label}
+              </div>
+              {r.href ? (
+                <a href={r.href} className="block truncate text-[14.5px] font-medium" style={{ color: "#007AFF" }}>
+                  {r.value}
+                </a>
+              ) : (
+                <div className="truncate text-[14.5px] font-medium">{r.value}</div>
+              )}
+            </div>
+            {r.href2 && (
+              <a
+                href={r.href2.href}
+                target="_blank"
+                rel="noreferrer"
+                className="mf-tap flex-shrink-0 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold"
+                style={{ background: "rgba(52,199,89,0.12)", color: "#248A3D" }}
+              >
+                {r.href2.label}
+              </a>
+            )}
+          </div>
+        ))}
+        {canEdit && (
+          <Link
+            href={`/negocios/${client.id}/editar`}
+            className="mf-tap block py-3 text-center text-[14px] font-semibold"
+            style={{ color: "#F24444" }}
+          >
+            Editar datos del negocio
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AssignedFoodieCard({ assignment }: { assignment: PendingAssignmentForClient }) {
   return (
     <div className="card mx-5 mt-4 flex items-center gap-3 px-4 py-3.5">
@@ -92,6 +182,8 @@ export default function MobileNegocioDetail({
   client,
   canAssign = false,
   canDelete = false,
+  canEdit = false,
+  ownerView = false,
   canCreateVisit = true,
   backHref = "/negocios",
   backLabel = "Negocios",
@@ -100,6 +192,15 @@ export default function MobileNegocioDetail({
   client: ClientDetail;
   canAssign?: boolean;
   canDelete?: boolean;
+  /** Muestra "Editar datos del negocio" (admin, o Sibarita que lo dio de alta). */
+  canEdit?: boolean;
+  /**
+   * true cuando quien mira es el dueño del negocio (/mi-negocio): sus visitas
+   * abren el reporte público (/r/...) en vez de /visitas (que es del equipo),
+   * y no se le muestran las "oportunidades de venta" ni los datos de contacto
+   * internos.
+   */
+  ownerView?: boolean;
   /** false para el dueño del negocio (/mi-negocio): no le toca levantar visitas Mystery Shopper. */
   canCreateVisit?: boolean;
   /** null cuando esta pantalla no tiene a dónde "regresar" (ej. /mi-negocio, que ya es el nivel superior para ese rol) -- se muestra el nombre sin link. */
@@ -225,6 +326,8 @@ export default function MobileNegocioDetail({
           </div>
         )}
 
+        {!ownerView && <ContactCard client={client} canEdit={canEdit} />}
+
         {canDelete && (
           <div className="px-5">
             <DeleteButton
@@ -314,6 +417,9 @@ export default function MobileNegocioDetail({
         )}
 
         {(() => {
+          // Las oportunidades de venta (y sus mensajes para copiar) son
+          // material interno del equipo: el dueño del negocio no las ve.
+          if (ownerView) return null;
           const pending = OPPORTUNITIES.filter((o) => !client[o.key]);
           if (pending.length === 0) return null;
           return (
@@ -343,15 +449,24 @@ export default function MobileNegocioDetail({
             <div className="card mx-5 overflow-hidden">
               {[...visits].reverse().map((v, idx, arr) => (
                 <div key={v.id}>
-                  <Link href={`/visitas/${v.id}`} className="flex items-center justify-between px-4 py-[13px]">
+                  <Link
+                    href={ownerView ? `/r/${v.shortCode}` : `/visitas/${v.id}`}
+                    className="flex items-center justify-between px-4 py-[13px]"
+                  >
                     <div>
                       <div className="text-[14.5px]" style={{ color: "rgba(60,60,67,0.7)" }}>
                         {formatDateLong(v.createdAt)}
                       </div>
-                      {v.shopperName && (
-                        <div className="mt-0.5 text-[11.5px]" style={{ color: "rgba(60,60,67,0.45)" }}>
-                          {v.shopperName}
+                      {ownerView ? (
+                        <div className="mt-0.5 text-[11.5px] font-semibold" style={{ color: "#F24444" }}>
+                          Ver reporte
                         </div>
+                      ) : (
+                        v.shopperName && (
+                          <div className="mt-0.5 text-[11.5px]" style={{ color: "rgba(60,60,67,0.45)" }}>
+                            {v.shopperName}
+                          </div>
+                        )
                       )}
                     </div>
                     <div className="text-[15px] font-bold" style={{ color: getVerdict(v.overallScore).color }}>

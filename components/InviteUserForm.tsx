@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { friendlyError } from "@/lib/friendlyError";
 
 type Client = { id: string; name: string };
 type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
@@ -41,7 +42,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
       setClientId("");
       router.refresh();
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Error de red" });
+      setMessage({ type: "error", text: friendlyError(err) });
     } finally {
       setSubmitting(false);
     }

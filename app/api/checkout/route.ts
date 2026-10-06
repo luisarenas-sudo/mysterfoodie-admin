@@ -55,27 +55,34 @@ export async function GET(req: NextRequest) {
   const payerName = req.nextUrl.searchParams.get("nombre") || undefined;
   const payerEmail = req.nextUrl.searchParams.get("email") || undefined;
 
-  const preference = await createPaymentPreference({
-    title: `Reporte completo Mystery Shopper - ${client?.name ?? "negocio"}`,
-    price: FULL_REPORT_PRICE_MXN,
-    externalReference: form.id,
-    successUrl: `${reportUrl}?pago=exitoso`,
-    failureUrl: `${reportUrl}?pago=fallido`,
-    pendingUrl: `${reportUrl}?pago=pendiente`,
-    notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
-    payer: { name: payerName, email: payerEmail },
-  });
+  // Si MercadoPago o la base fallan a mitad del camino, la persona vuelve al
+  // reporte con un aviso claro en vez de ver una pantalla de error cruda.
+  try {
+    const preference = await createPaymentPreference({
+      title: `Reporte completo Mystery Shopper - ${client?.name ?? "negocio"}`,
+      price: FULL_REPORT_PRICE_MXN,
+      externalReference: form.id,
+      successUrl: `${reportUrl}?pago=exitoso`,
+      failureUrl: `${reportUrl}?pago=fallido`,
+      pendingUrl: `${reportUrl}?pago=pendiente`,
+      notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
+      payer: { name: payerName, email: payerEmail },
+    });
 
-  if (!preference.ok) {
+    if (!preference.ok) {
+      return NextResponse.redirect(`${reportUrl}?pago=error`);
+    }
+
+    await db.from("report_payments").insert({
+      form_id: form.id,
+      mercadopago_preference_id: preference.preferenceId,
+      status: "pending",
+      amount: FULL_REPORT_PRICE_MXN,
+    });
+
+    return NextResponse.redirect(preference.initPoint);
+  } catch (err) {
+    console.error("Error al iniciar el pago:", err);
     return NextResponse.redirect(`${reportUrl}?pago=error`);
   }
-
-  await db.from("report_payments").insert({
-    form_id: form.id,
-    mercadopago_preference_id: preference.preferenceId,
-    status: "pending",
-    amount: FULL_REPORT_PRICE_MXN,
-  });
-
-  return NextResponse.redirect(preference.initPoint);
 }

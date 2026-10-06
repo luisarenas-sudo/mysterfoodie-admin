@@ -13,6 +13,8 @@ type Body = {
   email?: string;
   address?: string;
   autoEmailEnabled?: boolean;
+  /** true = el usuario ya vio el aviso de posible duplicado y quiere crearlo igual. */
+  force?: boolean;
   hasWebsite?: boolean;
   hasGoogleBusiness?: boolean;
   hasProfessionalPhotos?: boolean;
@@ -57,6 +59,35 @@ export async function POST(req: NextRequest) {
       { error: err instanceof Error ? err.message : "Supabase no configurado" },
       { status: 500 }
     );
+  }
+
+  // Aviso de posible duplicado: mismo nombre (sin importar mayúsculas) o
+  // mismo usuario de Instagram. No bloquea: devuelve 409 con el negocio
+  // existente y la pantalla deja elegir "Ver negocio" o "Crear de todos
+  // modos" (reenvía con force=true).
+  if (!body.force) {
+    const escapeLike = (v: string) => v.replace(/[\\%_]/g, (c) => `\\${c}`);
+    const handle = body.instagramHandle?.trim().replace(/^@/, "") || "";
+    const { data: sameName } = await db
+      .from("clients")
+      .select("id, name")
+      .ilike("name", escapeLike(name))
+      .limit(1);
+    let duplicate = sameName?.[0] ?? null;
+    if (!duplicate && handle) {
+      const { data: sameHandle } = await db
+        .from("clients")
+        .select("id, name")
+        .ilike("instagram_handle", escapeLike(handle))
+        .limit(1);
+      duplicate = sameHandle?.[0] ?? null;
+    }
+    if (duplicate) {
+      return NextResponse.json(
+        { error: `Ya existe un negocio parecido: ${duplicate.name}`, duplicate },
+        { status: 409 }
+      );
+    }
   }
 
   const { data: newClient, error } = await db

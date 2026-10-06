@@ -9,6 +9,8 @@ import {
   type CategoryItem,
 } from "@/lib/categories";
 import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
+import { isCalendarConnected } from "@/lib/googleCalendar";
+import AutoRefreshAfterPayment from "@/components/AutoRefreshAfterPayment";
 import VerdictBadge from "@/components/VerdictBadge";
 import FlancoCredit from "@/components/FlancoCredit";
 import MobileReportePublico from "@/components/mobile/MobileReportePublico";
@@ -245,10 +247,22 @@ export default async function ReportPage({
   const visibleCategories = catScores.filter((c) => c.count > 0);
   const paymentStatus = pago && ["exitoso", "pendiente", "fallido", "error"].includes(pago) ? pago : undefined;
 
+  // La asesoría gratuita solo se ofrece si hay un calendario conectado (si
+  // no, /agendar solo mostraría "no disponible").
+  let agendaHref: string | null = null;
+  try {
+    const { connected } = await isCalendarConnected();
+    if (connected) agendaHref = `/agendar/${shortCode}`;
+  } catch {
+    agendaHref = null;
+  }
+
   return (
     <>
+      <AutoRefreshAfterPayment active={!unlocked && (paymentStatus === "exitoso" || paymentStatus === "pendiente")} />
       <MobileReportePublico
         shortCode={shortCode}
+        agendaHref={agendaHref}
         clientName={client?.name ?? "tu negocio"}
         overallScore={form.overall_score}
         categories={visibleCategories}
@@ -274,8 +288,8 @@ export default async function ReportPage({
 
       {pago === "exitoso" && (
         <p className="mt-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          Pago recibido. Si el detalle completo no aparece abajo todavía, espera unos segundos y
-          recarga la página.
+          Pago recibido. Estamos preparando tu reporte: el detalle completo aparece aquí solo, en
+          unos segundos.
         </p>
       )}
       {pago === "pendiente" && (
@@ -354,6 +368,21 @@ export default async function ReportPage({
               Para solicitar el reporte completo, contacta a MysterFoodie.
             </p>
           )}
+        </div>
+      )}
+
+      {agendaHref && (
+        <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">
+          <p className="font-semibold text-ink">¿Quieres mejorar tu calificación?</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Agenda una asesoría gratuita y platicamos qué mover primero.
+          </p>
+          <a
+            href={agendaHref}
+            className="mt-3 inline-block rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Agendar asesoría
+          </a>
         </div>
       )}
 

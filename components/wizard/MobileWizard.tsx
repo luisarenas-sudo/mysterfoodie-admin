@@ -15,6 +15,7 @@ import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "@/components/mobile/ActivityRing";
 import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
+import { friendlyError } from "@/lib/friendlyError";
 
 type Business = {
   name: string;
@@ -317,7 +318,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
       clearWizardDraft(draftId);
       setResult(data);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Error de red");
+      setSubmitError(friendlyError(err, { offline: "Sin conexión. Tu avance está guardado en este teléfono: vuelve a intentar cuando tengas internet." }));
     } finally {
       setSubmitting(false);
     }
@@ -465,17 +466,24 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     <div className="md:hidden fixed inset-0 z-40 flex flex-col mf-push-in" style={{ background: "#F2F2F7" }}>
       <div style={{ background: "rgba(249,249,251,0.95)", borderBottom: "1px solid rgba(60,60,67,0.1)", paddingTop: "env(safe-area-inset-top)" }}>
         <div className="flex items-center justify-between px-4 pb-2.5 pt-3.5">
-          <button
-            type="button"
-            onClick={goBack}
-            aria-label="Atrás"
-            className="mf-tap -my-3 flex w-[46px] flex-shrink-0 items-center py-3"
-            style={{ cursor: "pointer" }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24">
-              <path d="M15 6l-6 6 6 6" stroke={ACCENT} strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          {/* La flecha de arriba solo sirve para SALIR del cuestionario (primer
+              paso); de ahí en adelante "Atrás" vive abajo, al alcance del pulgar,
+              para no tener dos botones que hacen lo mismo. */}
+          {step === 0 ? (
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Salir"
+              className="mf-tap -my-3 flex w-[46px] flex-shrink-0 items-center py-3"
+              style={{ cursor: "pointer" }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24">
+                <path d="M15 6l-6 6 6 6" stroke={ACCENT} strokeWidth="2.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ) : (
+            <div className="w-[46px] flex-shrink-0" />
+          )}
           <div className="flex-1 truncate text-center">
             <div className="truncate text-[16px] font-bold">{stepTitle()}</div>
             {boundAssignment && (
@@ -693,14 +701,16 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
           paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
         }}
       >
-        <button
-          type="button"
-          onClick={goBack}
-          className="mf-tap flex-1 rounded-2xl py-3.5 text-center text-[15.5px] font-semibold"
-          style={{ background: "rgba(118,118,128,0.12)" }}
-        >
-          Atrás
-        </button>
+        {step > 0 && (
+          <button
+            type="button"
+            onClick={goBack}
+            className="mf-tap flex-1 rounded-2xl py-3.5 text-center text-[15.5px] font-semibold"
+            style={{ background: "rgba(118,118,128,0.12)" }}
+          >
+            Atrás
+          </button>
+        )}
         {step < steps.length - 1 ? (
           <button
             type="button"

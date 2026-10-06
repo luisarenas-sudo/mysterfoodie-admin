@@ -25,6 +25,8 @@ export default async function NegocioDetailPage({
 
   const canAssign = profile?.role === "admin";
   const canCreateVisit = profile?.role === "admin" || profile?.role === "sibarita";
+  // Admin edita cualquier negocio; un Sibarita solo los que dio de alta
+  // (se decide más abajo, cuando ya se cargó el negocio).
 
   // Se lanzan ambas peticiones a la vez (en vez de esperar una y luego la
   // otra) -- no dependen entre sí, así que no hay razón para encadenarlas.
@@ -46,6 +48,9 @@ export default async function NegocioDetailPage({
 
   if (!client) return notFound();
 
+  const canEdit =
+    profile?.role === "admin" || (profile?.role === "sibarita" && client.createdBy === profile.userId);
+
   const pendingAssignment = await pendingAssignmentPromise;
 
   if (client.visits.length === 0) {
@@ -55,6 +60,7 @@ export default async function NegocioDetailPage({
           client={client}
           canAssign={canAssign}
           canDelete={canAssign}
+          canEdit={canEdit}
           canCreateVisit={canCreateVisit}
           pendingAssignment={pendingAssignment}
         />
@@ -90,6 +96,7 @@ export default async function NegocioDetailPage({
         client={client}
         canAssign={canAssign}
         canDelete={canAssign}
+        canEdit={canEdit}
         canCreateVisit={canCreateVisit}
         pendingAssignment={pendingAssignment}
       />

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Foodie } from "@/lib/dashboard";
+import { friendlyError } from "@/lib/friendlyError";
 
 export default function MobileAsignarVisita({
   clientId,
@@ -15,7 +16,9 @@ export default function MobileAsignarVisita({
   foodies: Foodie[];
 }) {
   const router = useRouter();
-  const [assignedTo, setAssignedTo] = useState(foodies[0]?.id || "");
+  // Sin Foodie preseleccionado a propósito: con el primero ya marcado, un
+  // toque rápido en "Asignar" mandaba la visita a la persona equivocada.
+  const [assignedTo, setAssignedTo] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +42,7 @@ export default function MobileAsignarVisita({
       setDone(true);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de red");
+      setError(friendlyError(err));
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +89,10 @@ export default function MobileAsignarVisita({
           </div>
         ) : foodies.length === 0 ? (
           <div className="card mt-5 p-5 text-center text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-            Aún no hay Foodies invitados. Invita a uno desde tu Perfil.
+            Aún no hay Foodies invitados.
+            <Link href="/perfil" className="mt-3 block font-semibold" style={{ color: "#F24444" }}>
+              Invitar a un Foodie desde tu Perfil
+            </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="card mt-5 p-[18px]">
@@ -112,6 +118,18 @@ export default function MobileAsignarVisita({
                         {f.email}
                       </div>
                     )}
+                  </div>
+                  <div
+                    className="flex-shrink-0 rounded-lg px-2 py-[3px] text-[11px] font-bold"
+                    style={
+                      f.pendingCount === 0
+                        ? { background: "rgba(52,199,89,0.12)", color: "#248A3D" }
+                        : { background: "rgba(255,149,0,0.12)", color: "#B25E00" }
+                    }
+                  >
+                    {f.pendingCount === 0
+                      ? "Libre"
+                      : `${f.pendingCount} pendiente${f.pendingCount === 1 ? "" : "s"}`}
                   </div>
                   {assignedTo === f.id && (
                     <svg width="20" height="20" viewBox="0 0 24 24">
@@ -148,7 +166,7 @@ export default function MobileAsignarVisita({
               className="mf-tap mt-4 w-full rounded-[14px] py-3.5 text-center text-[15px] font-bold text-white disabled:opacity-50"
               style={{ background: "#F24444" }}
             >
-              {submitting ? "Asignando..." : "Asignar visita"}
+              {submitting ? "Asignando..." : assignedTo ? "Asignar visita" : "Elige un Foodie"}
             </button>
           </form>
         )}

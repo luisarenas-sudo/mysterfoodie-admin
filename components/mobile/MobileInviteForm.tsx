@@ -3,6 +3,7 @@
 import { ROLE_LABELS } from "@/lib/brand";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { friendlyError } from "@/lib/friendlyError";
 
 type RoleOption = "sibarita" | "agente";
 
@@ -59,7 +60,7 @@ export default function MobileInviteForm({
       setFullName("");
       router.refresh();
     } catch (err) {
-      setMessage({ type: "error", text: err instanceof Error ? err.message : "Error de red" });
+      setMessage({ type: "error", text: friendlyError(err) });
     } finally {
       setSubmitting(false);
     }

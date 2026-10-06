@@ -37,23 +37,15 @@ export function HeaderVisibility({
 }
 
 /**
- * Como la app corre "Añadida a Inicio" (modo standalone, sin la barra
- * de Safari), si iOS llega a hacer zoom automático al enfocar un
- * input, no hay forma de que la persona lo quite con el gesto normal
- * (no hay chrome de navegador ni doble-tap para reset) y el zoom se
- * queda pegado en TODAS las pantallas de ahí en adelante.
+ * Respaldo contra el zoom automático de iOS en la app "Añadida a Inicio"
+ * (modo standalone: sin barra de Safari no hay forma de quitar el zoom una
+ * vez que se queda pegado).
  *
- * El font-size >= 16px en los campos (ver globals.css) debería evitar
- * que ese zoom se dispare, pero en standalone iOS a veces igual ocurre
- * (p. ej. si el campo se enfoca mientras la pantalla todavía está en
- * la animación de entrada). Esta protección adicional sube
- * `maximum-scale=1` en el <meta name="viewport"> SOLO mientras hay un
- * campo de texto enfocado -- eso evita que WebKit pueda hacer zoom al
- * enfocar y, de paso, fuerza a WebKit a recalcular el viewport y
- * "soltar" cualquier zoom que ya se hubiera quedado pegado. Al salir
- * del campo se quita el límite, así el pinch-zoom normal del usuario
- * sigue funcionando el resto del tiempo (no se desactiva por
- * accesibilidad).
+ * La defensa principal ya es permanente: `maximumScale: 1` en el viewport de
+ * app/layout.tsx, campos con font-size >= 16px y overflow-x recortado en
+ * globals.css. Esto solo repite el límite mientras hay un campo de texto
+ * enfocado, por si algún WebKit lo ignora, y fuerza a recalcular el
+ * viewport para "soltar" un zoom que ya se hubiera quedado pegado.
  */
 function useViewportZoomGuard() {
   useEffect(() => {

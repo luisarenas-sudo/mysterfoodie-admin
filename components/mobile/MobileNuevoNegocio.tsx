@@ -103,35 +103,58 @@ const OPPORTUNITY_ITEMS = [
 
 type OpportunityKey = (typeof OPPORTUNITY_ITEMS)[number]["key"];
 
-export default function MobileNuevoNegocio() {
+export type NegocioFormInitial = {
+  id: string;
+  name: string;
+  type: string;
+  city: string | null;
+  contactName: string | null;
+  phone: string | null;
+  instagramHandle: string | null;
+  email: string | null;
+  autoEmailEnabled: boolean;
+  hasWebsite: boolean;
+  hasGoogleBusiness: boolean;
+  hasProfessionalPhotos: boolean;
+  hasReels: boolean;
+};
+
+/**
+ * Alta de negocio, o su edición cuando recibe `initial` (mismo formulario:
+ * así un dato mal capturado se corrige sin borrar el negocio y sus visitas).
+ */
+export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormInitial } = {}) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [type, setType] = useState(BUSINESS_TYPES[0].value);
-  const [city, setCity] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [instagramHandle, setInstagramHandle] = useState("");
-  const [email, setEmail] = useState("");
-  const [autoEmailEnabled, setAutoEmailEnabled] = useState(true);
+  const isEdit = Boolean(initial);
+  const [name, setName] = useState(initial?.name ?? "");
+  const [type, setType] = useState(initial?.type ?? BUSINESS_TYPES[0].value);
+  const [city, setCity] = useState(initial?.city ?? "");
+  const [contactName, setContactName] = useState(initial?.contactName ?? "");
+  const [phone, setPhone] = useState(initial?.phone ?? "");
+  const [instagramHandle, setInstagramHandle] = useState(initial?.instagramHandle ?? "");
+  const [email, setEmail] = useState(initial?.email ?? "");
+  const [autoEmailEnabled, setAutoEmailEnabled] = useState(initial?.autoEmailEnabled ?? true);
   const [opportunities, setOpportunities] = useState<Record<OpportunityKey, boolean>>({
-    hasWebsite: false,
-    hasGoogleBusiness: false,
-    hasProfessionalPhotos: false,
-    hasReels: false,
+    hasWebsite: initial?.hasWebsite ?? false,
+    hasGoogleBusiness: initial?.hasGoogleBusiness ?? false,
+    hasProfessionalPhotos: initial?.hasProfessionalPhotos ?? false,
+    hasReels: initial?.hasReels ?? false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; name: string } | null>(null);
 
-  async function handleSubmit() {
+  async function handleSubmit(force = false) {
     if (!name.trim()) {
       setError("Falta el nombre del negocio");
       return;
     }
     setSubmitting(true);
     setError(null);
+    setDuplicate(null);
     try {
-      const res = await fetch("/api/clients", {
-        method: "POST",
+      const res = await fetch(isEdit ? `/api/clients/${initial!.id}` : "/api/clients", {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
@@ -143,9 +166,15 @@ export default function MobileNuevoNegocio() {
           email,
           autoEmailEnabled,
           ...opportunities,
+          ...(force ? { force: true } : {}),
         }),
       });
       const data = await res.json();
+      if (res.status === 409 && data.duplicate) {
+        setDuplicate(data.duplicate);
+        setSubmitting(false);
+        return;
+      }
       if (!res.ok) {
         setError(data.error || "No se pudo guardar el negocio");
         setSubmitting(false);
@@ -173,13 +202,15 @@ export default function MobileNuevoNegocio() {
         }}
       >
         <Link
-          href="/negocios"
+          href={isEdit ? `/negocios/${initial!.id}` : "/negocios"}
           className="mf-tap -my-3 -ml-2 py-3 pl-2 pr-3 text-[16px]"
           style={{ color: ACCENT }}
         >
           Cancelar
         </Link>
-        <div className="flex-1 truncate text-center text-[16px] font-bold">Nuevo negocio</div>
+        <div className="flex-1 truncate text-center text-[16px] font-bold">
+          {isEdit ? "Editar negocio" : "Nuevo negocio"}
+        </div>
         <div className="w-[70px] flex-shrink-0" />
       </div>
 
@@ -312,6 +343,32 @@ export default function MobileNuevoNegocio() {
           ))}
         </div>
 
+        {duplicate && (
+          <div className="card mt-4 p-4" style={{ border: "1.5px solid rgba(255,149,0,0.45)" }}>
+            <div className="text-[14px] font-bold">Ya existe un negocio parecido</div>
+            <div className="mt-0.5 text-[13px]" style={{ color: "rgba(60,60,67,0.65)" }}>
+              &ldquo;{duplicate.name}&rdquo; ya está registrado. Revísalo antes de duplicarlo.
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Link
+                href={`/negocios/${duplicate.id}`}
+                className="mf-tap flex-1 rounded-xl py-2.5 text-center text-[14px] font-semibold text-white"
+                style={{ background: ACCENT }}
+              >
+                Ver negocio
+              </Link>
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)}
+                className="mf-tap flex-1 rounded-xl py-2.5 text-center text-[14px] font-semibold"
+                style={{ background: "rgba(118,118,128,0.12)" }}
+              >
+                Crear de todos modos
+              </button>
+            </div>
+          </div>
+        )}
+
         {error && <p className="mt-4 text-[13.5px] text-red-600">{error}</p>}
       </div>
 
@@ -325,12 +382,12 @@ export default function MobileNuevoNegocio() {
       >
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => handleSubmit()}
           disabled={submitting}
           className="mf-tap w-full rounded-2xl py-3.5 text-center text-[16px] font-bold text-white disabled:opacity-50"
           style={{ background: ACCENT }}
         >
-          {submitting ? "Guardando..." : "Guardar negocio"}
+          {submitting ? "Guardando..." : isEdit ? "Guardar cambios" : "Guardar negocio"}
         </button>
       </div>
     </div>

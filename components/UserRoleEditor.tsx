@@ -3,6 +3,7 @@
 import { ROLE_LABELS as BRAND_ROLE_LABELS } from "@/lib/brand";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { friendlyError } from "@/lib/friendlyError";
 
 type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
 
@@ -72,7 +73,7 @@ export default function UserRoleEditor({
       setEditing(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de red");
+      setError(friendlyError(err));
     } finally {
       setSaving(false);
     }

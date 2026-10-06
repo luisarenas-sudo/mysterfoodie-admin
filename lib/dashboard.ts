@@ -127,6 +127,11 @@ export type ClientDetail = {
   city: string | null;
   instagramHandle: string | null;
   email: string | null;
+  /** Datos de contacto capturados al dar de alta el negocio (se muestran al equipo en el detalle). */
+  phone: string | null;
+  contactName: string | null;
+  /** Quién dio de alta el negocio (para decidir si un Sibarita puede editarlo). */
+  createdBy: string | null;
   /** Banderas de oportunidad de venta, capturadas al dar de alta el negocio (ver "Nuevo negocio"). */
   hasWebsite: boolean;
   hasGoogleBusiness: boolean;
@@ -181,7 +186,7 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
   const { data: client } = await db
     .from("clients")
     .select(
-      "id, name, type, city, instagram_handle, email, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
+      "id, name, type, city, instagram_handle, email, phone, contact_name, created_by, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
     )
     .eq("id", id)
     .maybeSingle();
@@ -235,6 +240,9 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     city: client.city,
     instagramHandle: client.instagram_handle,
     email: client.email,
+    phone: client.phone ?? null,
+    contactName: client.contact_name ?? null,
+    createdBy: client.created_by ?? null,
     hasWebsite: Boolean(client.has_website),
     hasGoogleBusiness: Boolean(client.has_google_business),
     hasProfessionalPhotos: Boolean(client.has_professional_photos),
@@ -749,6 +757,8 @@ export type Foodie = {
   id: string;
   fullName: string | null;
   email: string;
+  /** Visitas asignadas todavía pendientes de hacer (para decidir a quién asignar). */
+  pendingCount: number;
 };
 
 /** Usuarios con rol "agente" (Foodie), para el selector de "Asignar visita". */
@@ -760,10 +770,24 @@ export async function getFoodies(): Promise<Foodie[]> {
     .eq("role", "agente")
     .order("full_name");
 
+  const ids = (data || []).map((p) => p.id);
+  const pendingByFoodie = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: pending } = await db
+      .from("visit_assignments")
+      .select("assigned_to")
+      .eq("status", "pendiente")
+      .in("assigned_to", ids);
+    for (const row of pending || []) {
+      pendingByFoodie.set(row.assigned_to, (pendingByFoodie.get(row.assigned_to) ?? 0) + 1);
+    }
+  }
+
   return (data || []).map((p) => ({
     id: p.id,
     fullName: p.full_name,
     email: p.email,
+    pendingCount: pendingByFoodie.get(p.id) ?? 0,
   }));
 }
 

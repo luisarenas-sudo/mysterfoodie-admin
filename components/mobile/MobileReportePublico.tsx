@@ -129,12 +129,15 @@ export default function MobileReportePublico({
   mercadopagoConfigured,
   whatsappFallbackLink,
   paymentStatus,
+  agendaHref = null,
   ratings,
   flags,
   menuType,
   comments,
 }: {
   shortCode: string;
+  /** Link a /agendar/[shortCode] cuando hay calendario conectado; null = no se ofrece. */
+  agendaHref?: string | null;
   clientName: string;
   overallScore: number;
   categories: { key: string; label: string; average: number; count: number }[];
@@ -185,7 +188,7 @@ export default function MobileReportePublico({
         <div className="px-5 pt-4">
           {paymentStatus === "exitoso" && (
             <p className="rounded-[14px] px-4 py-3 text-[13.5px] font-medium" style={{ background: "rgba(52,199,89,0.1)", color: "#248A3D" }}>
-              Pago recibido. Si el detalle completo no aparece todavía, espera unos segundos y recarga la página.
+              Pago recibido. Estamos preparando tu reporte: el detalle completo aparece aquí solo, en unos segundos.
             </p>
           )}
           {paymentStatus === "pendiente" && (
@@ -256,7 +259,7 @@ export default function MobileReportePublico({
               <input
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                placeholder="Tu nombre"
+                placeholder="Tu nombre (opcional)"
                 className="w-full bg-transparent py-3 text-[16px] outline-none"
                 type="text"
                 autoComplete="name"
@@ -267,7 +270,7 @@ export default function MobileReportePublico({
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Tu correo electrónico"
+                placeholder="Tu correo (opcional, para enviarte el PDF)"
                 type="email"
                 inputMode="email"
                 autoCapitalize="none"
@@ -348,6 +351,22 @@ export default function MobileReportePublico({
             </div>
           </div>
         </>
+      )}
+
+      {agendaHref && (
+        <div className="card mx-5 mt-6 p-5 text-center">
+          <div className="text-[16px] font-bold">¿Quieres mejorar tu calificación?</div>
+          <div className="mt-1 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+            Agenda una asesoría gratuita y platicamos qué mover primero.
+          </div>
+          <a
+            href={agendaHref}
+            className="mf-tap mt-3.5 block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
+            style={{ background: "rgba(242,68,68,0.1)", color: ACCENT }}
+          >
+            Agendar asesoría
+          </a>
+        </div>
       )}
 
       <div className="mx-5 mt-6 rounded-[18px] p-5" style={{ background: "#1C1C1E" }}>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
-import { getHomeSummary, getReyNegocio } from "@/lib/dashboard";
+import { getHomeSummary, getReyNegocio, getPendingAssignmentsFor } from "@/lib/dashboard";
 import MobileHome from "@/components/mobile/MobileHome";
 import DesktopWizard from "@/components/wizard/DesktopWizard";
 
@@ -24,12 +24,24 @@ export default async function Page() {
         }
       : { includeNegociosRecientes: profile?.role === "admin" };
 
-  const [stats, rey] = await Promise.all([getHomeSummary(scope), getReyNegocio()]);
+  // Un Foodie solo puede levantar visitas que le asignaron: el Inicio le avisa
+  // cuántas tiene esperando (antes tenía que entrar a "Nueva visita" para saberlo).
+  const [stats, rey, pending] = await Promise.all([
+    getHomeSummary(scope),
+    getReyNegocio(),
+    profile?.role === "agente" && profile.userId ? getPendingAssignmentsFor(profile.userId) : Promise.resolve(null),
+  ]);
   const displayName = profile?.fullName || profile?.email || "MysterFoodie";
 
   return (
     <>
-      <MobileHome displayName={displayName} avatarUrl={profile?.avatarUrl ?? null} stats={stats} rey={rey} />
+      <MobileHome
+        displayName={displayName}
+        avatarUrl={profile?.avatarUrl ?? null}
+        stats={stats}
+        rey={rey}
+        pendingAssignments={pending ? pending.length : null}
+      />
       <div className="hidden md:block">
         {profile?.role === "agente" ? (
           <main className="mx-auto max-w-xl px-6 py-14 text-center">

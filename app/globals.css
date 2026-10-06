@@ -208,3 +208,15 @@ a,
     transition: none !important;
   }
 }
+
+/* Esqueleto de carga (components/PageSkeleton.tsx): pulso suave. */
+@keyframes mfSkeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.mf-skeleton {
+  animation: mfSkeleton 1.3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mf-skeleton { animation: none; }
+}

@@ -7,11 +7,14 @@ export default function MobileHome({
   avatarUrl,
   stats,
   rey,
+  pendingAssignments = null,
 }: {
   displayName: string;
   avatarUrl?: string | null;
   stats: HomeSummary;
   rey: ReyNegocio;
+  /** Solo para un Foodie: cuántas visitas asignadas tiene pendientes (null = no aplica a este rol). */
+  pendingAssignments?: number | null;
 }) {
   const promedioLabel = stats.promedioGeneral !== null ? String(stats.promedioGeneral) : "—";
   const promedioColor =
@@ -78,7 +81,13 @@ export default function MobileHome({
         >
           <div>
             <div className="text-[17px] font-bold text-white">Nueva visita</div>
-            <div className="mt-0.5 text-[13px] text-white/85">Levanta una evaluación ahora</div>
+            <div className="mt-0.5 text-[13px] text-white/85">
+              {pendingAssignments === null
+                ? "Levanta una evaluación ahora"
+                : pendingAssignments === 0
+                ? "No tienes visitas asignadas por ahora"
+                : `Tienes ${pendingAssignments} ${pendingAssignments === 1 ? "visita asignada" : "visitas asignadas"} esperándote`}
+            </div>
           </div>
           <svg width="22" height="22" viewBox="0 0 24 24">
             <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />

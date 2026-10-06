@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { friendlyError } from "@/lib/friendlyError";
 
 type EmailInfo = { status: string; error?: string | null; to?: string | null };
 
@@ -45,7 +46,7 @@ export default function EmailStatusPanel({
         setAltEmail("");
       }
     } catch (err) {
-      setEmailActionError(err instanceof Error ? err.message : "Error de red");
+      setEmailActionError(friendlyError(err));
     } finally {
       setEmailBusy(null);
     }

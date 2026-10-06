@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import FlancoCredit from "@/components/FlancoCredit";
+import { friendlyError } from "@/lib/friendlyError";
 
 export type SlotOption = { startISO: string; endISO: string };
 
@@ -105,7 +106,7 @@ export default function AgendarPicker({
       }
       setConfirmed(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de red");
+      setError(friendlyError(err));
     } finally {
       setSubmitting(false);
     }

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseServiceClient } from "./supabase";
@@ -48,8 +49,12 @@ export async function createSupabaseServerClient() {
 /**
  * Sesión actual + rol, o null si no hay usuario logueado. Valida el
  * usuario contra el servidor de Supabase Auth (no solo lee la cookie).
+ *
+ * Va envuelta en cache() de React: dentro de una misma petición (layout,
+ * header y página lo llaman por separado) se resuelve una sola vez en
+ * lugar de ir a Supabase Auth y a "profiles" por cada llamada.
  */
-export async function getSessionProfile(): Promise<SessionProfile | null> {
+export const getSessionProfile = cache(async function getSessionProfile(): Promise<SessionProfile | null> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -74,7 +79,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     role: profile.role as Role,
     clientId: profile.client_id,
   };
-}
+});
 
 /**
  * Usar en Server Components y Route Handlers como defensa adicional

@@ -40,6 +40,7 @@ export default async function MiNegocioPage() {
         <MobileNegocioDetail
           client={client}
           canCreateVisit={false}
+          ownerView
           backHref={null}
           backLabel="Mi negocio"
         />
@@ -59,6 +60,7 @@ export default async function MiNegocioPage() {
       <MobileNegocioDetail
         client={client}
         canCreateVisit={false}
+          ownerView
         backHref={null}
         backLabel="Mi negocio"
       />

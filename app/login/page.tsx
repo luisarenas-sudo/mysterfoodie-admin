@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/auth";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import { safeNextPath } from "@/lib/safeNext";
 
 const ERROR_MESSAGES: Record<string, string> = {
   "Invalid login credentials": "Correo o contraseña incorrectos.",
@@ -29,7 +30,7 @@ export default async function LoginPage({
       redirect(`/login?${qs.toString()}`);
     }
 
-    redirect(nextPath || "/");
+    redirect(safeNextPath(nextPath));
   }
 
   return (

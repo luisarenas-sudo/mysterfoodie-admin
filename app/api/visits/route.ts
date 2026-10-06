@@ -227,7 +227,9 @@ export async function POST(req: NextRequest) {
     .from("forms")
     .insert({
       client_id: clientId,
-      shopper_name: body.shopperName || null,
+      // Desde móvil el wizard ya no pregunta el nombre (la visita va ligada a un
+      // negocio/asignación): se toma del perfil de quien la levanta.
+      shopper_name: body.shopperName?.trim() || profile.fullName || null,
       overall_score: score,
       short_code: shortCode,
       status: "completado",

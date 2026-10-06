@@ -14,6 +14,7 @@ import {
   type Category,
   type CategoryItem,
 } from "@/lib/categories";
+import { friendlyError } from "@/lib/friendlyError";
 
 type Business = {
   name: string;
@@ -248,7 +249,7 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
       clearWizardDraft(draftId);
       setResult(data);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Error de red");
+      setSubmitError(friendlyError(err, { offline: "Sin conexión. Tu avance está guardado en este equipo: vuelve a intentar cuando tengas internet." }));
     } finally {
       setSubmitting(false);
     }
