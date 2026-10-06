@@ -1,70 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
-const PRICE_MXN = 850;
-
-type ScenarioKey = "1" | "2" | "3a" | "3b" | "4" | "5";
-
-type Scenario = {
-  key: ScenarioKey;
-  label: string;
-  short: string;
-  admin: number;
-  sibarita: number;
-  foodie: number;
-};
-
-const SCENARIOS: Scenario[] = [
-  {
-    key: "1",
-    label: "Acción 1 — Admin vende y Admin visita",
-    short: "Admin vende y visita",
-    admin: 850,
-    sibarita: 0,
-    foodie: 0,
-  },
-  {
-    key: "2",
-    label: "Acción 2 — Admin vende y asigna directo a un Foodie",
-    short: "Admin vende, Foodie visita",
-    admin: 450,
-    sibarita: 0,
-    foodie: 400,
-  },
-  {
-    key: "3a",
-    label: "Acción 3 — Admin vende y asigna a un Sibarita, que asigna a un Foodie",
-    short: "Admin vende, Sibarita gestiona, Foodie visita",
-    admin: 300,
-    sibarita: 150,
-    foodie: 400,
-  },
-  {
-    key: "3b",
-    label: "Acción 3 (variante) — Admin vende y asigna a un Sibarita, que visita él mismo",
-    short: "Admin vende, el mismo Sibarita visita",
-    admin: 300,
-    sibarita: 550,
-    foodie: 0,
-  },
-  {
-    key: "4",
-    label: "Acción 4 — Sibarita vende y el mismo Sibarita visita",
-    short: "Sibarita vende y visita",
-    admin: 150,
-    sibarita: 700,
-    foodie: 0,
-  },
-  {
-    key: "5",
-    label: "Acción 5 — Sibarita vende y asigna la visita a un Foodie",
-    short: "Sibarita vende, Foodie visita",
-    admin: 150,
-    sibarita: 300,
-    foodie: 400,
-  },
-];
+import { PRICE_MXN, SCENARIOS, type ScenarioKey } from "@/lib/earningsMatrix";
 
 const ROLE_LABEL = { admin: "Master Chef (Admin)", sibarita: "Sibarita", foodie: "Foodie" } as const;
 
@@ -74,7 +11,7 @@ function mxn(n: number) {
 
 /**
  * Calculadora de reparto de ingresos por visita, solo para Admin (ver
- * /admin/finanzas). No lee datos reales de la base -- es una
+ * /finanzas). No lee datos reales de la base -- es una
  * simulación: Luis escribe cuántas visitas hubo en cada acción/
  * escenario y aquí se desglosa cuánto le toca a cada perfil, según la
  * matriz de tarifas exactas que dio. $850 MXN es el precio único del

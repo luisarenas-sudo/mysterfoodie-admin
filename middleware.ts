@@ -96,7 +96,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/mis-visitas") ||
     pathname.startsWith("/visitas") ||
     pathname.startsWith("/nueva-visita") ||
-    pathname.startsWith("/perfil");
+    pathname.startsWith("/perfil") ||
+    pathname.startsWith("/finanzas");
   const clienteOnly = pathname.startsWith("/mi-negocio");
 
   if (adminOnly && role !== "admin") {

@@ -271,15 +271,17 @@ export default async function PerfilPage({
         </Link>
       )}
 
-      {profile.role === "admin" && (
+      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
         <Link
-          href="/admin/finanzas"
+          href="/finanzas"
           className="card mx-5 mt-4 flex items-center justify-between p-4"
         >
           <div>
             <div className="text-[14.5px] font-bold">Finanzas</div>
             <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              Calculadora de reparto de ingresos por visita
+              {profile.role === "admin"
+                ? "Ventas y ganancias de todos los perfiles, por mes"
+                : "Tus ganancias por mes"}
             </div>
           </div>
           <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
