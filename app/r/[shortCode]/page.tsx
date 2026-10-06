@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict } from "@/lib/verdict";
+import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import {
   CATEGORIES,
@@ -359,13 +360,10 @@ export default async function ReportPage({
       <div className="mt-10 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
         <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra Foodie</h3>
         <p className="mt-2 text-sm italic leading-relaxed text-white/85">
-          &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
+          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
         </p>
         <p className="mt-3 text-sm leading-relaxed text-white/55">
-          Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el
-          poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican
-          más de {TOTAL_ITEM_COUNT} indicadores de servicio, sabor, limpieza y experiencia — con total
-          honestidad, Palabra Foodie.
+          {foodieTrustText(TOTAL_ITEM_COUNT)}
         </p>
       </div>
 

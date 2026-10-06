@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { PALABRA_FOODIE_QUOTE, ROLE_LABELS } from "@/lib/brand";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import Link from "next/link";
@@ -17,30 +18,25 @@ async function signOut() {
   redirect("/login");
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Administrador",
-  agente: "Mystery shopper",
-  cliente: "Dueño de negocio",
-  sibarita: "Sibarita",
-};
+const ROLE_LABEL = ROLE_LABELS;
 
 const RANKS = [
   {
     key: "master",
     emoji: "👨‍🍳",
-    label: "Master Chef",
+    label: ROLE_LABELS.admin,
     desc: "Administra toda la red de Mystery Shoppers y da seguimiento a cada negocio.",
   },
   {
     key: "sibarita",
     emoji: "🍷",
-    label: "Sibarita",
+    label: ROLE_LABELS.sibarita,
     desc: "Da de alta negocios y levanta visitas Mystery Shopper libremente.",
   },
   {
     key: "foodie",
     emoji: "🌱",
-    label: "Foodie",
+    label: ROLE_LABELS.agente,
     desc: "Levanta visitas Mystery Shopper y registra la evaluación en la app.",
   },
 ] as const;
@@ -233,11 +229,7 @@ export default async function PerfilPage({
           className="mx-auto text-[14.5px] italic leading-relaxed"
           style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
         >
-          &ldquo;Palabra Foodie, orgullo sibarita:
-          <br />
-          ponemos la boca en el plato
-          <br />
-          y la firma en la verdad.&rdquo;
+          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
         </div>
       </div>
 

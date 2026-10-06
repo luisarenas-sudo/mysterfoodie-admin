@@ -1,4 +1,5 @@
 import { getSupabaseServiceClient } from "./supabase";
+import { ROLE_LABELS } from "./brand";
 import { categoryScores, type Ratings } from "./scoring";
 
 export type ClientSummary = {
@@ -386,12 +387,7 @@ export type AgentVisit = {
   creatorLabel: string | null;
 };
 
-const VISIT_CREATOR_ROLE_LABELS: Record<string, string> = {
-  admin: "Master Chef",
-  agente: "Foodie",
-  sibarita: "Sibarita",
-  cliente: "Cliente",
-};
+const VISIT_CREATOR_ROLE_LABELS = ROLE_LABELS;
 
 async function creatorLabelsByUserId(
   db: ReturnType<typeof getSupabaseServiceClient>,

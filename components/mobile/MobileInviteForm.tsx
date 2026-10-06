@@ -1,13 +1,14 @@
 "use client";
 
+import { ROLE_LABELS } from "@/lib/brand";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type RoleOption = "sibarita" | "agente";
 
 const ALL_ROLE_OPTIONS: { value: RoleOption; label: string; desc: string }[] = [
-  { value: "sibarita", label: "Sibarita", desc: "Da de alta negocios y hace visitas libremente." },
-  { value: "agente", label: "Foodie", desc: "Solo hace las visitas que le asignes." },
+  { value: "sibarita", label: ROLE_LABELS.sibarita, desc: "Da de alta negocios y hace visitas libremente." },
+  { value: "agente", label: ROLE_LABELS.agente, desc: "Solo hace las visitas que le asignes." },
 ];
 
 /**

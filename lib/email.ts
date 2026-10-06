@@ -3,6 +3,7 @@ import { getVerdict } from "./verdict";
 import type { CategoryScore } from "./scoring";
 import { TOTAL_ITEM_COUNT } from "./categories";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
+import { PALABRA_FOODIE_QUOTE } from "./brand";
 
 export type SendResultEmailParams = {
   to: string;
@@ -112,7 +113,7 @@ function renderGuaranteeBlock(): string {
         Palabra Foodie
       </p>
       <p style="margin: 0; font-size: 17px; font-weight: bold; line-height: 1.45; color: #1f2937;">
-        &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
+        &ldquo;${PALABRA_FOODIE_QUOTE}&rdquo;
       </p>
     </div>
   `;

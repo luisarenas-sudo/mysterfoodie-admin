@@ -1,5 +1,6 @@
 "use client";
 
+import { ROLE_LABELS as BRAND_ROLE_LABELS } from "@/lib/brand";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -9,12 +10,7 @@ type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
 // interno del rol (admin/agente/cliente) no cambia -- sigue siendo lo
 // que usan middleware.ts, requireRole() y la base de datos -- solo se
 // renombra la etiqueta que ve la persona.
-const ROLE_LABELS: Record<RoleOption, string> = {
-  admin: "Master Chef",
-  agente: "Foodie",
-  cliente: "Cliente",
-  sibarita: "Sibarita",
-};
+const ROLE_LABELS = BRAND_ROLE_LABELS;
 
 export default function UserRoleEditor({
   userId,
@@ -91,10 +87,10 @@ export default function UserRoleEditor({
         disabled={saving}
         autoFocus
       >
-        <option value="admin">Master Chef</option>
-        <option value="sibarita">Sibarita</option>
-        <option value="agente">Foodie</option>
-        <option value="cliente">Cliente</option>
+        <option value="admin">{ROLE_LABELS.admin}</option>
+        <option value="sibarita">{ROLE_LABELS.sibarita}</option>
+        <option value="agente">{ROLE_LABELS.agente}</option>
+        <option value="cliente">{ROLE_LABELS.cliente}</option>
       </select>
       <button
         type="button"

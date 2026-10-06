@@ -75,7 +75,7 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
           onChange={(e) => setRole(e.target.value as RoleOption)}
           className="input mt-1"
         >
-          <option value="agente">Foodie (mystery shopper)</option>
+          <option value="agente">Foodie</option>
           <option value="sibarita">Sibarita</option>
           <option value="cliente">Cliente (dueño de negocio)</option>
           <option value="admin">Master Chef</option>

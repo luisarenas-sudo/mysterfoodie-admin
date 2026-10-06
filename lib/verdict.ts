@@ -53,3 +53,16 @@ export function getVerdict(score: number): Verdict {
     color: "#DC2626", // rojo
   };
 }
+
+/**
+ * Rangos de calificación con su veredicto, derivados de getVerdict() para
+ * que cualquier leyenda (ej. la metodología del PDF) no se desincronice
+ * de los umbrales reales.
+ */
+export const VERDICT_BANDS = [
+  { range: "4.5 – 5.0", sample: 5 },
+  { range: "3.5 – 4.4", sample: 4 },
+  { range: "2.5 – 3.4", sample: 3 },
+  { range: "1.5 – 2.4", sample: 2 },
+  { range: "0 – 1.4", sample: 1 },
+].map((b) => ({ range: b.range, label: getVerdict(b.sample).label, color: getVerdict(b.sample).color }));

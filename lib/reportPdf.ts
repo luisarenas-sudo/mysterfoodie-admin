@@ -1,9 +1,9 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
-import { getVerdict } from "./verdict";
+import { getVerdict, VERDICT_BANDS } from "./verdict";
 import type { CategoryScore } from "./scoring";
-import { TOTAL_ITEM_COUNT } from "./categories";
+import { TOTAL_ITEM_COUNT, CATEGORIES } from "./categories";
 
 export type ReportPdfParams = {
   businessName: string;
@@ -161,7 +161,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
         .fillColor(MUTED)
         .fontSize(10.5)
         .text(
-          `Evaluación anónima realizada por un Myster Foodie: visitó el negocio como cliente real, pagó su cuenta (propina incluida) y calificó ${TOTAL_ITEM_COUNT} indicadores en 5 categorías.`,
+          `Evaluación anónima realizada por un Myster Foodie: visitó el negocio como cliente real, pagó su cuenta (propina incluida) y calificó ${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías.`,
           PAGE_MARGIN,
           cardTop + cardHeight + 26,
           { width: contentWidth, align: "left", lineGap: 3 }
@@ -221,7 +221,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
 
       const methodologyParagraphs = [
         "MysterFoodie evalúa negocios de alimentos y bebidas a través de visitas anónimas realizadas por Myster Foodies: perfiles que trabajan dentro de la industria restaurantera y visitan el negocio como clientes reales, pagando su propia cuenta con propina incluida, sin que el personal sepa que está siendo evaluado.",
-        `Cada visita califica ${TOTAL_ITEM_COUNT} indicadores agrupados en 5 categorías: Fachada, Ambiente, Atención, Alimentos y Accesibilidad. La calificación general de la visita es el promedio de las calificaciones por categoría (no un promedio plano de todos los indicadores), para que ninguna categoría con muchos indicadores pese más que otra.`,
+        `Cada visita califica ${TOTAL_ITEM_COUNT} indicadores agrupados en ${CATEGORIES.length} categorías: ${CATEGORIES.slice(0, -1).map((c) => c.label).join(", ")} y ${CATEGORIES[CATEGORIES.length - 1].label}. La calificación general de la visita es el promedio de las calificaciones por categoría (no un promedio plano de todos los indicadores), para que ninguna categoría con muchos indicadores pese más que otra.`,
         "Con la calificación general se asigna un veredicto:",
       ];
 
@@ -231,14 +231,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
         textY = doc.y + 10;
       }
 
-      const bands: { range: string; label: string; color: string }[] = [
-        { range: "4.5 – 5.0", label: "Excelente", color: getVerdict(4.8).color },
-        { range: "3.5 – 4.4", label: "Bueno", color: getVerdict(3.8).color },
-        { range: "2.5 – 3.4", label: "Regular", color: getVerdict(2.8).color },
-        { range: "0 – 2.4", label: "Necesita atención", color: getVerdict(1.5).color },
-      ];
-
-      for (const band of bands) {
+      for (const band of VERDICT_BANDS) {
         doc.circle(PAGE_MARGIN + 4, textY + 5, 4).fillColor(band.color).fill();
         doc
           .fontSize(10.5)

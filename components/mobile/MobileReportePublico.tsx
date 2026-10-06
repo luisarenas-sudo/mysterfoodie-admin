@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { getVerdict } from "@/lib/verdict";
+import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
@@ -239,7 +240,7 @@ export default function MobileReportePublico({
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
             <div className="mb-1.5 text-[21px] font-bold">Obtén el reporte completo</div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Más de <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
+              <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
               tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro Myster Foodie.
             </div>
           </div>
@@ -363,13 +364,10 @@ export default function MobileReportePublico({
           <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
         </div>
         <div className="text-[13.5px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          &ldquo;Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.&rdquo;
+          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
         </div>
         <div className="mt-3 text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-          Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el
-          poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican
-          más de {TOTAL_ITEM_COUNT} indicadores de servicio, sabor, limpieza y experiencia — con
-          total honestidad, Palabra Foodie.
+          {foodieTrustText(TOTAL_ITEM_COUNT)}
         </div>
       </div>
 
