@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { getPendingAssignmentsFor, getClientsForVisitPicker } from "@/lib/dashboard";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getOpenPoolFor } from "@/lib/visitRequests";
 import MobileVisitasAsignadas from "@/components/mobile/MobileVisitasAsignadas";
 import MobileNuevaVisitaPicker from "@/components/mobile/MobileNuevaVisitaPicker";
 
@@ -27,9 +29,10 @@ export default async function NuevaVisitaPage() {
 
   if (profile?.role === "agente") {
     const assignments = await getPendingAssignmentsFor(profile.userId);
+    const pool = await getOpenPoolFor(getSupabaseServiceClient(), profile.userId).catch(() => []);
     return (
       <>
-        <MobileVisitasAsignadas assignments={assignments} />
+        <MobileVisitasAsignadas assignments={assignments} pool={pool} />
         <main className="mx-auto hidden max-w-xl px-6 py-14 text-center md:block">
           <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
           <h1 className="heading mt-2 text-2xl text-ink">Tus visitas asignadas</h1>

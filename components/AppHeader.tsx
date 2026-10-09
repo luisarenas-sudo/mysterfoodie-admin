@@ -15,6 +15,7 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
     { href: "/", label: "Nueva evaluación" },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Visitas" },
+    { href: "/solicitudes", label: "Solicitudes" },
     { href: "/admin/usuarios", label: "Usuarios" },
     { href: "/automatizaciones", label: "Automatizaciones" },
     { href: "/planes", label: "Planes" },

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { PendingAssignment } from "@/lib/dashboard";
+import type { OpenPoolItem } from "@/lib/visitRequests";
+import TomarSolicitudButton from "./TomarSolicitudButton";
 
 const TYPE_LABEL: Record<string, string> = {
   restaurante: "Restaurante",
@@ -17,7 +19,7 @@ function formatDateLong(iso: string) {
  * puede abrir una de estas asignaciones, que lo lleva al wizard
  * pre-cargado con el negocio correspondiente.
  */
-export default function MobileVisitasAsignadas({ assignments }: { assignments: PendingAssignment[] }) {
+export default function MobileVisitasAsignadas({ assignments, pool = [] }: { assignments: PendingAssignment[]; pool?: OpenPoolItem[] }) {
   return (
     <div className="md:hidden fixed inset-0 z-40 flex flex-col mf-push-in" style={{ background: "#F2F2F7" }}>
       <div
@@ -97,6 +99,27 @@ export default function MobileVisitasAsignadas({ assignments }: { assignments: P
               </Link>
             ))}
           </div>
+        )}
+
+        {pool.length > 0 && (
+          <section className="mt-7">
+            <h2 className="text-[15px] font-bold">Disponibles para ti</h2>
+            <p className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Visitas gratis que nadie ha hecho a tiempo. Toma una antes de que venza y haz la visita.
+            </p>
+            <div className="mt-3 space-y-2.5">
+              {pool.map((p) => (
+                <div key={p.requestId} className="card p-4">
+                  <div className="truncate text-[15.5px] font-bold">{p.clientName}</div>
+                  <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                    {TYPE_LABEL[p.clientType] ?? "Negocio"}
+                    {p.city ? ` · ${p.city}` : ""} · vence el {formatDateLong(p.expiresAt)}
+                  </div>
+                  <TomarSolicitudButton requestId={p.requestId} />
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </div>

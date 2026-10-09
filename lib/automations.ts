@@ -110,6 +110,27 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  solicitud_recibida: {
+    title: "Solicitud de visita gratis recibida (al negocio)",
+    desc: "Se manda al instante cuando un negocio llena \"Solicita una visita GRATIS\" en mysterfoodie.com: confirma que el negocio fue dado de alta y la solicitud enviada, con sus datos y el enlace para crear su cuenta. Si la desactivas se usa el texto original; el código de 6 dígitos se agrega solo al final.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "contacto", desc: "Nombre de la persona de contacto" },
+      { tag: "datos", desc: "Lista con los datos que capturó (negocio, ciudad, dirección, contacto, correo...)" },
+      { tag: "link_acceso", desc: "Enlace para crear su cuenta (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  solicitud_sin_foodie: {
+    title: "Solicitud sin Foodie disponible (al negocio)",
+    desc: "Se manda cuando pasan 5 días desde que se asignó la solicitud de visita gratis (o desde que llegó, si nunca se asignó) y nadie hizo la visita: avisa que por ahora no hay Foodie y lo invita a ver la tabla comparativa de paquetes.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "contacto", desc: "Nombre de la persona de contacto (o \"equipo de <negocio>\")" },
+      { tag: "link_paquetes", desc: "Enlace a la tabla comparativa de paquetes en mysterfoodie.com (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
   instagram_dm: {
     title: "Mensaje de Instagram (DM, primer contacto)",
     desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",

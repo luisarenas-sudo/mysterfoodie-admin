@@ -87,7 +87,7 @@ export async function middleware(request: NextRequest) {
   const role = (profile?.role as "admin" | "agente" | "cliente" | "sibarita" | undefined) ?? "cliente";
 
   // /admin es exclusivo del administrador (Master Chef).
-  const adminOnly = pathname.startsWith("/admin") || pathname.startsWith("/automatizaciones") || pathname.startsWith("/planes");
+  const adminOnly = pathname.startsWith("/admin") || pathname.startsWith("/automatizaciones") || pathname.startsWith("/planes") || pathname.startsWith("/solicitudes");
   // /negocios lo puede usar admin o sibarita (dar de alta negocios).
   const negociosAccess = pathname.startsWith("/negocios");
   // Operativa diaria: admin, agente (Foodie) y sibarita.

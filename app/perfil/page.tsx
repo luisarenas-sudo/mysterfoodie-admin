@@ -10,6 +10,8 @@ import DeleteButton from "@/components/DeleteButton";
 import FlancoCredit from "@/components/FlancoCredit";
 import EasterEggBee from "@/components/EasterEggBee";
 import { Group, Row } from "@/components/perfil/ListRow";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import { countPendingRequests } from "@/lib/visitRequests";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +53,7 @@ export default async function PerfilPage({
   const profile = await requireRole("admin", "agente", "sibarita", "cliente");
   const { google, error: googleError } = await searchParams;
   const isCliente = profile.role === "cliente";
+  const solicitudesPendientes = profile.role === "admin" ? await countPendingRequests(getSupabaseServiceClient()).catch(() => 0) : 0;
   const visits = isCliente
     ? []
     : profile.role === "admin"
@@ -238,6 +241,17 @@ export default async function PerfilPage({
         )}
         {profile.role === "admin" && (
           <>
+            <Row
+              href="/solicitudes"
+              icon="🎁"
+              iconBg="#F24444"
+              title="Solicitudes de visita"
+              subtitle={
+                solicitudesPendientes > 0
+                  ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
+                  : "Visitas gratis pedidas en la web"
+              }
+            />
             <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Foodies y sus roles" />
             <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
             <Row href="/planes" icon="📅" iconBg="#007AFF" title="Planes" subtitle="Visitas mensuales contratadas por sucursal" last />

@@ -19,12 +19,14 @@ export async function sendAssignmentEmail(
     foodie: { email: string | null; full_name: string | null };
     note: string | null;
     baseUrl: string;
+    /** Enlace del botón del correo; por defecto la lista /nueva-visita (una solicitud lleva directo a su visita). */
+    linkVisitas?: string;
   }
 ): Promise<SendEmailOutcome> {
-  const { assignmentId, client, foodie, note, baseUrl } = params;
+  const { assignmentId, client, foodie, note, baseUrl, linkVisitas: linkOverride } = params;
   if (!foodie.email) return { status: "failed", error: "El Foodie no tiene correo" };
 
-  const linkVisitas = `${baseUrl}/nueva-visita`;
+  const linkVisitas = linkOverride || `${baseUrl}/nueva-visita`;
   const ubicacion = [businessTypePhrase(client.type), client.city].filter(Boolean).join(" · ");
   const templateVars = {
     foodie: foodie.full_name || "",

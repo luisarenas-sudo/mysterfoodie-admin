@@ -148,6 +148,25 @@ export async function POST(req: NextRequest) {
           vars,
           `Hola equipo de ${SAMPLE.negocio},\n\nYa puedes crear tu cuenta en MysterFoodie para ver el historial de visitas de tu negocio, pedir nuevas visitas programadas y revisar tus reportes cuando quieras.\n\nEntra aquí para crear tu contraseña (o puedes continuar con tu cuenta de Google desde la misma pantalla):\n${link}\n\nSaludos,\nMysterFoodie`
         );
+      } else if (key === "solicitud_recibida") {
+        const link = `${baseUrl}/set-password`;
+        const datos = `Negocio: ${SAMPLE.negocio}\nTipo y ciudad: ${SAMPLE.ubicacion}\nContacto: Ana`;
+        const vars = { negocio: SAMPLE.negocio, contacto: "Ana", datos, link_acceso: link };
+        subject = prefix + tpl(automation?.subjectTemplate, vars, `Tu negocio ya está en MysterFoodie: ${SAMPLE.negocio}`);
+        bodyText = tpl(
+          automation?.bodyTemplate,
+          vars,
+          `Hola Ana,\n\n¡Gracias por pedir tu visita gratis! Tu negocio ${SAMPLE.negocio} ha sido dado de alta y tu solicitud ha sido enviada.\n\nEstos son los datos que registramos:\n${datos}\n\nQué sigue: asignaremos tu visita a uno de nuestros MysterFoodies. Cuando termine, recibirás por correo el resultado.\n\nCrea tu contraseña aquí:\n${link}\n\nSaludos,\nMysterFoodie`
+        );
+      } else if (key === "solicitud_sin_foodie") {
+        const link = "https://mysterfoodie.com/servicios/#comparativa";
+        const vars = { negocio: SAMPLE.negocio, contacto: "Ana", link_paquetes: link };
+        subject = prefix + tpl(automation?.subjectTemplate, vars, "Sobre tu solicitud de visita en MysterFoodie");
+        bodyText = tpl(
+          automation?.bodyTemplate,
+          vars,
+          `Hola Ana,\n\nPor el momento y dado el alto volumen de solicitudes, no contamos con un foodie para tu visita a ${SAMPLE.negocio}.\n\nPuedes agendar paquetes de visitas con nosotros aquí, donde también encuentras la tabla comparativa de paquetes:\n${link}\n\nGracias por tu interés,\nMysterFoodie`
+        );
       } else if (key === "ticket_oferta" || key === "ticket_aviso") {
         const kind = key === "ticket_oferta" ? "oferta" : "aviso";
         const mail = await ticketEmailContent(
@@ -179,6 +198,8 @@ export async function POST(req: NextRequest) {
         asesoria_gratuita: "Agendar mi asesoría gratuita",
         asignacion_visita: "Ver mis visitas asignadas",
         activacion_cuenta_negocio: "Crear mi cuenta",
+        solicitud_recibida: "Crear mi cuenta",
+        solicitud_sin_foodie: "Ver la tabla comparativa de paquetes",
         ticket_oferta: TICKET_CTA_LABEL.oferta,
         ticket_aviso: TICKET_CTA_LABEL.aviso,
       };

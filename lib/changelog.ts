@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.13.0",
+    date: "2026-10-09",
+    title: "Solicita una visita GRATIS y Foodie Academy",
+    emoji: "🎁",
+    highlights: [
+      "Nuevo botón «Solicita una visita GRATIS» en mysterfoodie.com: el negocio llena sus datos, se da de alta solo, recibe un correo de confirmación con el acceso para crear su cuenta y a ti te llega un aviso.",
+      "Nueva pantalla Solicitudes (Perfil → Solicitudes de visita): asignas cada negocio a un sibarita, a un Foodie o a ti. Quien la recibe tiene 3 días en exclusiva; los días 4 y 5 aparece en «Disponibles para ti» de todos los Foodies, que pueden tomarla.",
+      "Si al quinto día nadie hizo la visita, el negocio recibe un correo: por el momento no hay Foodie, con el enlace a la tabla comparativa de paquetes. Los dos correos se editan en Automatizaciones.",
+      "Al compartir un enlace de reporte (Instagram, WhatsApp...) se ve una tarjeta con el nombre del negocio, sus estrellas y su veredicto.",
+      "Lista de espera de la Foodie Academy en la web, con correo de confirmación sobre los 52 indicadores, la metodología y los esquemas de ganancias.",
+    ],
+  },
+  {
     version: "0.12.0",
     date: "2026-10-09",
     title: "Ticket de consumo y Perfil con foto",
