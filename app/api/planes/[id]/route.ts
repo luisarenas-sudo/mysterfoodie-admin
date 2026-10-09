@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import { requireRole } from "@/lib/auth";
+import { currentMonthCdmx, isValidMonth } from "@/lib/earnings";
+import { ensurePlanMonth, mapPlan } from "@/lib/plans";
+import { sendTicketForPlan } from "@/lib/planTicket";
+
+type Body = {
+  status?: "activo" | "pausado" | "cancelado";
+  defaultFoodieId?: string | null;
+  markPaid?: { month?: string; paid?: boolean };
+  resendTicket?: boolean;
+};
+
+/** Administrar un plan (Master Chef): estatus, Foodie por default, cobro del mes y reenviar el ticket. */
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireRole("admin");
+  } catch {
+    return NextResponse.json({ error: "Necesitas iniciar sesión como admin" }, { status: 401 });
+  }
+  const { id } = await params;
+
+  let body: Body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  const db = getSupabaseServiceClient();
+  const { data: row } = await db.from("client_plans").select("*").eq("id", id).maybeSingle();
+  if (!row) return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 });
+  let plan = mapPlan(row);
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+
+  if (body.markPaid) {
+    const month = body.markPaid.month;
+    if (!isValidMonth(month)) return NextResponse.json({ error: "Mes no válido" }, { status: 400 });
+    const { error } = await db
+      .from("plan_periods")
+      .update({ paid_at: body.markPaid.paid === false ? null : new Date().toISOString() })
+      .eq("plan_id", id)
+      .eq("month", month);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.resendTicket) {
+    const ticket = await sendTicketForPlan(db, plan);
+    return NextResponse.json({ ok: true, ticket });
+  }
+
+  const update: Record<string, unknown> = {};
+  if (body.status) {
+    if (!["activo", "pausado", "cancelado"].includes(body.status)) {
+      return NextResponse.json({ error: "Estatus no válido" }, { status: 400 });
+    }
+    update.status = body.status;
+  }
+  if (body.defaultFoodieId !== undefined) {
+    if (body.defaultFoodieId) {
+      const { data: foodie } = await db.from("profiles").select("id, role").eq("id", body.defaultFoodieId).maybeSingle();
+      if (!foodie || foodie.role !== "agente") {
+        return NextResponse.json({ error: "El usuario seleccionado no es un Foodie" }, { status: 400 });
+      }
+    }
+    update.default_foodie_id = body.defaultFoodieId || null;
+  }
+  if (Object.keys(update).length === 0) return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
+
+  const { data: updated, error } = await db.from("client_plans").update(update).eq("id", id).select("*").single();
+  if (error || !updated) return NextResponse.json({ error: error?.message || "No se pudo actualizar" }, { status: 500 });
+  plan = mapPlan(updated);
+
+  if (body.status === "cancelado") {
+    // Las visitas que aún no se hacen ya no deben aparecerle a nadie.
+    await db.from("visit_assignments").update({ status: "cancelada" }).eq("plan_id", id).eq("status", "pendiente");
+  }
+  if (body.status === "activo") {
+    await ensurePlanMonth(db, plan, currentMonthCdmx(), baseUrl);
+  }
+
+  return NextResponse.json({ ok: true });
+}

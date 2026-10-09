@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
-import { getClientDetail, getPendingAssignmentForClient } from "@/lib/dashboard";
+import { getClientDetail, getFoodies, getPendingAssignmentForClient } from "@/lib/dashboard";
+import { PLAN_CATALOG, getClientPlanView, startMonthOptions } from "@/lib/plans";
+import PlanCard from "@/components/PlanCard";
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 import DeleteButton from "@/components/DeleteButton";
@@ -53,6 +55,30 @@ export default async function NegocioDetailPage({
 
   const pendingAssignment = await pendingAssignmentPromise;
 
+  // Plan mensual de visitas (segunda etapa): solo lo administra el Master Chef.
+  let planSlot = null;
+  if (canAssign) {
+    const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || undefined;
+    const [planView, foodies] = await Promise.all([getClientPlanView(id, { sync: true, baseUrl }), getFoodies()]);
+    const start = startMonthOptions();
+    planSlot = (
+      <PlanCard
+        clientId={client.id}
+        clientEmail={client.email ?? null}
+        view={planView}
+        foodies={foodies.map((f) => ({ id: f.id, name: f.fullName || f.email || "Foodie", pendingCount: f.pendingCount }))}
+        suggestedStart={start.suggested}
+        otherStart={start.other}
+        catalog={{
+          name: PLAN_CATALOG.starter.name,
+          tagline: PLAN_CATALOG.starter.tagline,
+          visitsPerMonth: PLAN_CATALOG.starter.visitsPerMonth,
+          pricePerVisit: PLAN_CATALOG.starter.pricePerVisit,
+        }}
+      />
+    );
+  }
+
   if (client.visits.length === 0) {
     return (
       <>
@@ -63,6 +89,7 @@ export default async function NegocioDetailPage({
           canEdit={canEdit}
           canCreateVisit={canCreateVisit}
           pendingAssignment={pendingAssignment}
+          planSlot={planSlot}
         />
         <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
           <BackLink href="/negocios" label="Negocios" />
@@ -83,6 +110,7 @@ export default async function NegocioDetailPage({
               {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar visita a un Foodie"}
             </Link>
           )}
+          {planSlot && <div className="mt-6 max-w-xl">{planSlot}</div>}
         </main>
       </>
     );
@@ -99,6 +127,7 @@ export default async function NegocioDetailPage({
         canEdit={canEdit}
         canCreateVisit={canCreateVisit}
         pendingAssignment={pendingAssignment}
+        planSlot={planSlot}
       />
 
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
@@ -129,6 +158,8 @@ export default async function NegocioDetailPage({
             )}
           </div>
         </div>
+
+        {planSlot && <div className="mt-6 max-w-xl">{planSlot}</div>}
 
         <ClientScoreboard client={client} canManageEmail />
       </main>

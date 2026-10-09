@@ -7,6 +7,7 @@ import { avatarColorFor, initialsFor, CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "./ActivityRing";
 import OpportunityCopyButton from "./OpportunityCopyButton";
 import DeleteButton from "@/components/DeleteButton";
+import type { ReactNode } from "react";
 
 type OpportunityDef = {
   key: "hasWebsite" | "hasGoogleBusiness" | "hasProfessionalPhotos" | "hasReels";
@@ -188,6 +189,8 @@ export default function MobileNegocioDetail({
   backHref = "/negocios",
   backLabel = "Negocios",
   pendingAssignment = null,
+  planSlot = null,
+  ownerPlan = null,
 }: {
   client: ClientDetail;
   canAssign?: boolean;
@@ -207,6 +210,10 @@ export default function MobileNegocioDetail({
   backHref?: string | null;
   backLabel?: string;
   pendingAssignment?: PendingAssignmentForClient | null;
+  /** Tarjeta de administración del plan de visitas (solo Master Chef). */
+  planSlot?: ReactNode;
+  /** Resumen del plan para el dueño del negocio (/mi-negocio). */
+  ownerPlan?: { planName: string; done: number; quota: number; monthLabel: string } | null;
 }) {
   const visits = client.visits;
   const hasVisits = visits.length > 0;
@@ -325,6 +332,31 @@ export default function MobileNegocioDetail({
             )}
           </div>
         )}
+
+        {ownerPlan && (
+          <div className="card mx-5 mt-4 p-4">
+            <div className="text-[15px] font-bold">Tu plan {ownerPlan.planName}</div>
+            <div className="mt-2 flex items-center gap-3">
+              <span aria-hidden className="inline-flex gap-1">
+                {Array.from({ length: ownerPlan.quota }, (_, i) => (
+                  <span
+                    key={i}
+                    className="inline-block h-3 w-3 rounded-full"
+                    style={{ background: i < ownerPlan.done ? "#34C759" : "rgba(60,60,67,0.18)" }}
+                  />
+                ))}
+              </span>
+              <span className="text-[14px] font-semibold">
+                {ownerPlan.done} de {ownerPlan.quota} visitas · {ownerPlan.monthLabel}
+              </span>
+            </div>
+            <p className="mt-2 text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              Cada visita es anónima: te mostramos el avance del mes, no el día en que ocurre.
+            </p>
+          </div>
+        )}
+
+        {planSlot}
 
         {!ownerView && <ContactCard client={client} canEdit={canEdit} />}
 

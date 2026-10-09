@@ -19,6 +19,20 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.8.0",
+    date: "2026-10-09",
+    title: "Planes de visitas (segunda etapa)",
+    emoji: "🍽️",
+    highlights: [
+      "Plan Starter (la entrada): 3 visitas al mes por sucursal a $700 cada una, más el reembolso del ticket de consumo.",
+      "Contratar un plan desde el negocio: las visitas del mes se generan solas y se asignan a un Foodie.",
+      "Al contratar, el negocio recibe un correo con aspecto de ticket de restaurante con los servicios contratados.",
+      "Cada visita del plan entrega su reporte completo por correo, con el avance \"visita 2 de 3\" del mes.",
+      "Finanzas reparte cada visita de plan con la misma regla de la prospección, proporcional a $700, todos los meses.",
+      "Pantalla Planes con avance, cobro del mes y visitas sin Foodie; el dueño ve el avance de su plan en Mi negocio.",
+    ],
+  },
+  {
     version: "0.7.0",
     date: "2026-10-06",
     title: "Finanzas, auditoría y loader",

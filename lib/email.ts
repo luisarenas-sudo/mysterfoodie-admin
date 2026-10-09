@@ -313,14 +313,23 @@ export type SendFullReportEmailParams = {
   whatsappLink?: string | null;
   pdfBuffer: Buffer;
   pdfFilename: string;
+  /** Visita de un plan mensual: cambia el asunto y el encabezado para mostrar el avance ("2 de 3"). */
+  planProgress?: { done: number; total: number; monthLabel: string; planName: string };
 };
 
 function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
-  const { businessName, score, reportUrl, whatsappLink } = params;
+  const { businessName, score, reportUrl, whatsappLink, planProgress } = params;
   const verdict = getVerdict(score);
+  const heading = planProgress
+    ? `Visita ${planProgress.done} de ${planProgress.total} de ${planProgress.monthLabel.toLowerCase()}`
+    : "¡Gracias por tu compra!";
+  const progressBar = planProgress
+    ? `<p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6b7280;">Plan ${escapeHtml(planProgress.planName)}: ${"●".repeat(Math.min(planProgress.done, planProgress.total))}${"○".repeat(Math.max(planProgress.total - planProgress.done, 0))} ${planProgress.done} de ${planProgress.total} visitas del mes.</p>`
+    : "";
 
   return renderEmailShell(`
-    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">¡Gracias por tu compra!</h2>
+    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">${escapeHtml(heading)}</h2>
+    ${progressBar}
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
       Aquí está tu reporte completo de la evaluación Mystery Shopper, con calificación general de
@@ -351,7 +360,9 @@ export async function sendFullReportEmail(
     const result = await resend.emails.send({
       from: resolveFromAddress(),
       to: params.to,
-      subject: `Tu reporte completo de ${params.businessName} ya está listo`,
+      subject: params.planProgress
+        ? `Visita ${params.planProgress.done} de ${params.planProgress.total}: reporte de ${params.businessName}`
+        : `Tu reporte completo de ${params.businessName} ya está listo`,
       html: renderFullReportEmailHtml(params),
       attachments: [
         {
@@ -364,6 +375,119 @@ export async function sendFullReportEmail(
     if (result.error) {
       return { status: "failed", error: result.error.message };
     }
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// ============================================================
+// Ticket de servicio (plan contratado): se manda al contratar un plan de
+// visitas, con aspecto de ticket de restaurante -- los servicios
+// contratados, la tarifa y lo que no incluye (el consumo se reembolsa
+// aparte contra ticket). Después de este correo, el equipo contacta al
+// cliente de forma personal.
+// ============================================================
+
+export type SendPlanTicketParams = {
+  to: string;
+  /** Copia oculta para el equipo (ADMIN_EMAIL), opcional. */
+  bcc?: string | null;
+  businessName: string;
+  planName: string;
+  tagline: string;
+  visitsPerMonth: number;
+  pricePerVisit: number;
+  startMonthLabel: string;
+  folio: string;
+  includes: string[];
+  issuedAt: Date;
+  whatsappLink?: string | null;
+};
+
+function mxn(n: number): string {
+  return `$${n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
+  const mono = "font-family: 'Courier New', Courier, monospace;";
+  const dash = `<div style="border-top: 2px dashed #c9ccd3; margin: 14px 0;"></div>`;
+  const row = (left: string, right: string, bold = false) => `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+      <tr>
+        <td style="padding: 3px 0; ${mono} font-size: 14px; color: #111827; ${bold ? "font-weight: bold;" : ""}">${left}</td>
+        <td style="padding: 3px 0; ${mono} font-size: 14px; color: #111827; text-align: right; white-space: nowrap; ${bold ? "font-weight: bold;" : ""}">${right}</td>
+      </tr>
+    </table>`;
+  const total = p.visitsPerMonth * p.pricePerVisit;
+  const issued = new Intl.DateTimeFormat("es-MX", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Mexico_City",
+  }).format(p.issuedAt);
+
+  const includes = p.includes
+    .map((i) => `<div style="padding: 2px 0; ${mono} font-size: 13px; line-height: 1.5; color: #374151;">+ ${escapeHtml(i)}</div>`)
+    .join("");
+
+  return renderEmailShell(`
+    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(p.businessName)}</strong>, gracias por sentarse a la mesa. Este es el ticket de su servicio:</p>
+
+    <div style="background-color: #fbfaf7; border: 1px solid #e7e3d8; border-radius: 6px; padding: 24px 22px; ${mono}">
+      <div style="text-align: center;">
+        <div style="${mono} font-size: 18px; font-weight: bold; letter-spacing: 0.18em; color: #111827;">MYSTERFOODIE</div>
+        <div style="${mono} font-size: 12px; letter-spacing: 0.12em; color: #6b7280; margin-top: 2px;">TICKET DE SERVICIO</div>
+      </div>
+      ${dash}
+      ${row("FOLIO", escapeHtml(p.folio))}
+      ${row("FECHA", escapeHtml(issued))}
+      ${row("MESA", escapeHtml(p.businessName.toUpperCase()))}
+      ${row("INICIO", escapeHtml(p.startMonthLabel.toUpperCase()))}
+      ${dash}
+      <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">CANT  DESCRIPCIÓN</div>
+      ${row(`${p.visitsPerMonth} &nbsp;Visitas Mystery Shopper / mes`, mxn(total))}
+      <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ${escapeHtml(p.planName)} (${escapeHtml(p.tagline)}) · ${p.visitsPerMonth} × ${mxn(p.pricePerVisit)}</div>
+      ${row("Consumo en cada visita", "REEMBOLSO")}
+      <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Se cubre contra ticket del consumo</div>
+      ${dash}
+      ${row("TOTAL MENSUAL", mxn(total) + " MXN", true)}
+      ${row("+ Reembolso del ticket de consumo", "según ticket")}
+      ${dash}
+      <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">INCLUYE</div>
+      ${includes}
+      ${dash}
+      <div style="text-align: center; ${mono} font-size: 13px; line-height: 1.6; color: #374151;">
+        *** GRACIAS POR SU PREFERENCIA ***<br />
+        ${escapeHtml(PALABRA_FOODIE_QUOTE)}
+      </div>
+    </div>
+
+    <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
+      En breve nos pondremos en contacto contigo para coordinar el arranque, resolver dudas y acordar la forma de pago.
+      No tienes que hacer nada más por ahora.
+    </p>
+    ${p.whatsappLink ? `<div style="margin-top: 18px;">${renderButton(p.whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+  `);
+}
+
+/** Ticket de servicio del plan contratado (con copia oculta al equipo si hay ADMIN_EMAIL). */
+export async function sendPlanTicketEmail(params: SendPlanTicketParams): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { status: "skipped_no_api_key" };
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: resolveFromAddress(),
+      to: params.to,
+      ...(params.bcc && params.bcc.toLowerCase() !== params.to.toLowerCase() ? { bcc: params.bcc } : {}),
+      subject: `Tu ticket de servicio · Plan ${params.planName} · ${params.businessName}`,
+      html: renderPlanTicketHtml(params),
+    });
+    if (result.error) return { status: "failed", error: result.error.message };
     return { status: "sent", providerId: result.data?.id };
   } catch (err) {
     return { status: "failed", error: err instanceof Error ? err.message : String(err) };

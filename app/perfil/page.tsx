@@ -272,6 +272,23 @@ export default async function PerfilPage({
         </Link>
       )}
 
+      {profile.role === "admin" && (
+        <Link
+          href="/planes"
+          className="card mx-5 mt-4 flex items-center justify-between p-4"
+        >
+          <div>
+            <div className="text-[14.5px] font-bold">Planes</div>
+            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Visitas mensuales contratadas por sucursal
+            </div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
+            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      )}
+
       {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
         <Link
           href="/finanzas"

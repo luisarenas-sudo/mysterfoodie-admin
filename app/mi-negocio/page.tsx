@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { getClientDetail } from "@/lib/dashboard";
+import { getClientPlanView } from "@/lib/plans";
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 
@@ -34,6 +35,13 @@ export default async function MiNegocioPage() {
     );
   }
 
+  // Resumen del plan mensual (si tiene uno): solo el avance, nunca los días ni los Foodies.
+  const planView = await getClientPlanView(profile.clientId);
+  const ownerPlan =
+    planView && planView.plan.status === "activo"
+      ? { planName: planView.plan.planName, done: planView.done, quota: planView.quota, monthLabel: planView.monthLabel }
+      : null;
+
   if (client.visits.length === 0) {
     return (
       <>
@@ -41,6 +49,7 @@ export default async function MiNegocioPage() {
           client={client}
           canCreateVisit={false}
           ownerView
+          ownerPlan={ownerPlan}
           backHref={null}
           backLabel="Mi negocio"
         />
@@ -61,6 +70,7 @@ export default async function MiNegocioPage() {
         client={client}
         canCreateVisit={false}
           ownerView
+          ownerPlan={ownerPlan}
         backHref={null}
         backLabel="Mi negocio"
       />

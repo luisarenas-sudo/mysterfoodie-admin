@@ -1,3 +1,5 @@
+import { deliverFullReportEmail } from "@/lib/fullReportDelivery";
+import { monthLabel } from "@/lib/earnings";
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -89,11 +91,14 @@ export async function POST(req: NextRequest) {
   let clientId: string;
   let business: Business;
   let assignmentId: string | null = null;
+  // Visita de un plan mensual (segunda etapa): el reporte ya viene incluido.
+  let planId: string | null = null;
+  let planMonth: string | null = null;
 
   if (body.assignmentId) {
     const { data: assignment } = await db
       .from("visit_assignments")
-      .select("id, client_id, assigned_to, status")
+      .select("id, client_id, assigned_to, status, plan_id, plan_month")
       .eq("id", body.assignmentId)
       .maybeSingle();
 
@@ -114,6 +119,8 @@ export async function POST(req: NextRequest) {
     }
 
     assignmentId = assignment.id;
+    planId = (assignment.plan_id as string | null) ?? null;
+    planMonth = (assignment.plan_month as string | null) ?? null;
     clientId = client.id;
     business = {
       name: client.name,
@@ -237,6 +244,8 @@ export async function POST(req: NextRequest) {
       menu_type: menuTipo,
       comments: body.comments?.trim() || null,
       waiter_name: body.waiterName?.trim() || null,
+      // Visita de plan: queda ligada al plan y con el reporte completo ya abierto.
+      ...(planId ? { plan_id: planId, report_unlocked_at: new Date().toISOString() } : {}),
     })
     .select("id")
     .single();
@@ -292,6 +301,42 @@ export async function POST(req: NextRequest) {
 
   await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
 
+  if (planId && planMonth) {
+    try {
+      const [{ data: plan }, { count: doneCount }] = await Promise.all([
+        db.from("client_plans").select("plan_name, visits_per_month").eq("id", planId).maybeSingle(),
+        db
+          .from("visit_assignments")
+          .select("id", { count: "exact", head: true })
+          .eq("plan_id", planId)
+          .eq("plan_month", planMonth)
+          .eq("status", "completada"),
+      ]);
+      await deliverFullReportEmail(
+        db,
+        {
+          id: form.id,
+          overall_score: score,
+          client_id: clientId,
+          report_url: reportUrl,
+          short_code: shortCode,
+          created_at: new Date().toISOString(),
+        },
+        {
+          planProgress: {
+            done: doneCount ?? 1,
+            total: plan?.visits_per_month ?? 1,
+            monthLabel: monthLabel(planMonth),
+            planName: plan?.plan_name ?? "mensual",
+          },
+        }
+      );
+    } catch (err) {
+      // El reporte ya quedó guardado y abierto; un fallo de correo no debe tirar la visita.
+      console.error("No se pudo mandar el reporte de la visita del plan:", err);
+    }
+  }
+
   const waiterName = body.waiterName?.trim() || null;
   const templateVars = resultadoVars({
     negocio: business.name,
@@ -311,7 +356,9 @@ export async function POST(req: NextRequest) {
       ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
       : defaultIntro;
 
-  const recipientEmail = business.email || process.env.ADMIN_EMAIL || "";
+  // En un plan no se manda el resumen "gancho" de venta: el negocio ya pagó y
+  // recibe el reporte completo con PDF (más abajo).
+  const recipientEmail = planId ? "" : business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
   if (recipientEmail) {

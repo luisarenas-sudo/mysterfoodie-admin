@@ -854,10 +854,11 @@ export async function getPendingAssignmentForClient(clientId: string): Promise<P
     .select("id, assigned_to, note, created_at")
     .eq("client_id", clientId)
     .eq("status", "pendiente")
+    .is("plan_id", null) // las visitas de un plan se administran en su propia tarjeta
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!assignment) return null;
+  if (!assignment || !assignment.assigned_to) return null;
 
   const { data: foodie } = await db
     .from("profiles")

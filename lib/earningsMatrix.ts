@@ -48,3 +48,17 @@ export function scenarioByKey(key: ScenarioKey): Scenario {
 export function formatMxn(n: number): string {
   return `$${n.toLocaleString("es-MX")} MXN`;
 }
+
+/**
+ * Mismo reparto de las 6 acciones, pero para otro precio por visita (los
+ * planes de segunda etapa: Starter = $700 por visita). Se respeta la misma
+ * proporción que el reporte de $850 y se redondea a pesos enteros; el
+ * Master Chef absorbe el redondeo para que la suma siempre dé el precio.
+ */
+export function splitForPrice(scenario: Scenario, price: number): { admin: number; sibarita: number; foodie: number } {
+  if (price === PRICE_MXN) return { admin: scenario.admin, sibarita: scenario.sibarita, foodie: scenario.foodie };
+  const k = price / PRICE_MXN;
+  const foodie = Math.round(scenario.foodie * k);
+  const sibarita = Math.round(scenario.sibarita * k);
+  return { admin: price - foodie - sibarita, sibarita, foodie };
+}

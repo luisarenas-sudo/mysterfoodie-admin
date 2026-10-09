@@ -9,8 +9,9 @@ import {
   shiftMonth,
   type PaidVisit,
   type ProfileLite,
+  type UnpaidPlanVisits,
 } from "@/lib/earnings";
-import { PRICE_MXN, formatMxn, scenarioByKey } from "@/lib/earningsMatrix";
+import { formatMxn, scenarioByKey } from "@/lib/earningsMatrix";
 import FinanzasCalculator from "@/components/admin/FinanzasCalculator";
 import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
@@ -45,6 +46,11 @@ function StatCard({ label, value, hint, tone }: { label: string; value: string; 
   );
 }
 
+/** "Reporte" o "Visita de plan Starter", para los renglones de ventas. */
+function kindLabel(v: PaidVisit): string {
+  return v.kind === "plan" ? `Visita de plan ${v.planName ?? ""}`.trim() : "Reporte";
+}
+
 function MonthNav({ month }: { month: string }) {
   const isCurrent = month >= currentMonthCdmx();
   return (
@@ -71,8 +77,8 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
   const mine = visits.filter((v) => (role === "sibarita" ? v.sibaritaId === userId : v.foodieId === userId));
   const share = (v: PaidVisit) => (role === "sibarita" ? v.sibarita : v.foodie);
   const total = mine.reduce((acc, v) => acc + share(v), 0);
-  const bruto = mine.length * PRICE_MXN;
-  const appCommission = mine.reduce((acc, v) => acc + (role === "sibarita" ? v.admin : PRICE_MXN - v.foodie), 0);
+  const bruto = mine.reduce((acc, v) => acc + v.price, 0);
+  const appCommission = mine.reduce((acc, v) => acc + (role === "sibarita" ? v.admin : v.price - v.foodie), 0);
   const foodiePay = role === "sibarita" ? mine.reduce((acc, v) => acc + v.foodie, 0) : 0;
   const commissionLabel = role === "sibarita" ? "Comisión por uso de la aplicación" : "Comisión por uso de la aplicación y gestión";
 
@@ -84,7 +90,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
         </div>
         <div className="mt-1 text-[34px] font-bold leading-tight text-brand-500">{formatMxn(total)}</div>
         <div className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
-          {mine.length} {mine.length === 1 ? "reporte vendido" : "reportes vendidos"}
+          {mine.length} {mine.length === 1 ? "venta" : "ventas"} (reportes y visitas de plan)
         </div>
       </div>
 
@@ -93,7 +99,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
           <div className="mb-3 text-[15px] font-bold">Resumen del mes</div>
           <div className="space-y-2 text-[14px]">
             <div className="flex justify-between">
-              <span>Ventas ({mine.length} × {formatMxn(PRICE_MXN)})</span>
+              <span>Ventas ({mine.length})</span>
               <span className="font-semibold">{formatMxn(bruto)}</span>
             </div>
             <div className="flex justify-between" style={{ color: MUTED }}>
@@ -119,12 +125,12 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
       </div>
       {mine.length === 0 ? (
         <p className="px-1 text-[14px]" style={{ color: MUTED }}>
-          Todavía no hay reportes vendidos en este mes.
+          Todavía no hay ventas en este mes.
         </p>
       ) : (
         <div className="card overflow-hidden">
           {mine.map((v, idx) => {
-            const commission = role === "sibarita" ? v.admin : PRICE_MXN - v.foodie;
+            const commission = role === "sibarita" ? v.admin : v.price - v.foodie;
             return (
               <div key={v.formId} className="px-4 py-3" style={{ borderTop: idx > 0 ? "1px solid rgba(60,60,67,0.08)" : undefined }}>
                 <div className="flex items-start justify-between gap-3">
@@ -137,7 +143,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
                   <div className="text-[15px] font-bold">{formatMxn(share(v))}</div>
                 </div>
                 <div className="mt-1 text-[12px]" style={{ color: MUTED }}>
-                  Reporte {formatMxn(PRICE_MXN)} · {commissionLabel} −{formatMxn(commission)}
+                  {kindLabel(v)} {formatMxn(v.price)} · {commissionLabel} −{formatMxn(commission)}
                   {role === "sibarita" && v.foodie > 0 ? ` · Pago al Foodie −${formatMxn(v.foodie)}` : ""}
                 </div>
               </div>
@@ -148,15 +154,25 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
 
       <p className="mt-4 px-1 text-[12px] leading-relaxed" style={{ color: MUTED }}>
         Una venta cuenta cuando el negocio paga y se le entrega el reporte completo (PDF); el mes se toma de esa fecha.
-        La comisión por uso de la aplicación cubre la plataforma, la gestión de reportes y el cobro.
+        En los planes mensuales cuenta cada visita entregada, todos los meses, una vez cobrado el mes del plan. El reembolso
+        del ticket de consumo no es ganancia: se paga aparte al Foodie. La comisión por uso de la aplicación cubre la
+        plataforma, la gestión de reportes y el cobro.
       </p>
     </>
   );
 }
 
 /** Vista del Master Chef: todo el mes, desglose por perfil y sus propias ventas. */
-function AdminView({ visits, profiles }: { visits: PaidVisit[]; profiles: Map<string, ProfileLite> }) {
-  const bruto = visits.length * PRICE_MXN;
+function AdminView({
+  visits,
+  profiles,
+  unpaidPlan,
+}: {
+  visits: PaidVisit[];
+  profiles: Map<string, ProfileLite>;
+  unpaidPlan: UnpaidPlanVisits;
+}) {
+  const bruto = visits.reduce((a, v) => a + v.price, 0);
   const adminTotal = visits.reduce((a, v) => a + v.admin, 0);
   const sibTotal = visits.reduce((a, v) => a + v.sibarita, 0);
   const foodieTotal = visits.reduce((a, v) => a + v.foodie, 0);
@@ -187,6 +203,16 @@ function AdminView({ visits, profiles }: { visits: PaidVisit[]; profiles: Map<st
         <StatCard label="Sibaritas" value={formatMxn(sibTotal)} />
         <StatCard label="Foodies" value={formatMxn(foodieTotal)} />
       </div>
+      {unpaidPlan.count > 0 && (
+        <div className="mt-3">
+          <StatCard
+            tone="warn"
+            label="Por cobrar (planes)"
+            value={formatMxn(unpaidPlan.amount)}
+            hint={`${unpaidPlan.count} ${unpaidPlan.count === 1 ? "visita hecha" : "visitas hechas"} de planes cuyo mes aún no marcas como cobrado. No se reparte ganancia hasta cobrar.`}
+          />
+        </div>
+      )}
       {unclassified.length > 0 && (
         <div className="mt-3">
           <StatCard
@@ -240,7 +266,7 @@ function AdminView({ visits, profiles }: { visits: PaidVisit[]; profiles: Map<st
                 <div className="min-w-0">
                   <div className="truncate text-[15px] font-semibold">{v.negocio}</div>
                   <div className="text-[12px]" style={{ color: MUTED }}>
-                    {formatSoldAt(v.soldAt)} · {v.scenario ? scenarioByKey(v.scenario).short : ""}
+                    {formatSoldAt(v.soldAt)} · {kindLabel(v)} · {v.scenario ? scenarioByKey(v.scenario).short : ""}
                   </div>
                 </div>
                 <div className="text-[15px] font-bold">{formatMxn(v.admin)}</div>
@@ -269,8 +295,9 @@ function AdminView({ visits, profiles }: { visits: PaidVisit[]; profiles: Map<st
       )}
 
       <p className="mt-4 px-1 text-[12px] leading-relaxed" style={{ color: MUTED }}>
-        Una venta cuenta cuando el negocio paga y se le entrega el reporte completo (PDF); el mes se toma de esa fecha. Quien visita es
-        quien guardó la visita; quien vende, quien dio de alta el negocio.
+        Una venta cuenta cuando el negocio paga y se le entrega el reporte completo (PDF); el mes se toma de esa fecha. En los planes
+        mensuales cada visita entregada es una venta (mismo reparto, proporcional a la tarifa por visita), cada mes, una vez que marcas
+        el mes del plan como cobrado. Quien visita es quien guardó la visita; quien vende, quien dio de alta el negocio.
       </p>
 
       <details className="card mt-6 p-4">
@@ -287,7 +314,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   const profile = await requireRole("admin", "sibarita", "agente");
   const { mes } = await searchParams;
   const month = isValidMonth(mes) && mes <= currentMonthCdmx() ? mes : currentMonthCdmx();
-  const { visits, profiles } = await getMonthEarnings(month);
+  const { visits, profiles, unpaidPlan } = await getMonthEarnings(month);
 
   return (
     <>
@@ -308,7 +335,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
         <MonthNav month={month} />
 
         {profile.role === "admin" ? (
-          <AdminView visits={visits} profiles={profiles} />
+          <AdminView visits={visits} profiles={profiles} unpaidPlan={unpaidPlan} />
         ) : (
           <PersonalView role={profile.role as "sibarita" | "agente"} userId={profile.userId} visits={visits} />
         )}
