@@ -10,7 +10,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
 /** Crea el token (5 días) y manda la invitación con link + código. */
 async function sendInvitation(
   db: Db,
-  p: { userId: string; email: string; name: string | null; role: string; clientId: string | null; baseUrl: string }
+  p: { userId: string; email: string; name: string | null; role: string; clientId: string | null; baseUrl: string; invitedBy?: string | null }
 ) {
   let businessName: string | null = null;
   if (p.role === "cliente" && p.clientId) {
@@ -21,6 +21,8 @@ async function sendInvitation(
   return sendInviteEmail({
     to: p.email,
     name: p.name,
+    invitedBy: p.invitedBy ?? null,
+    role: p.role,
     roleLabel: ROLE_LABELS[p.role] ?? p.role,
     businessName,
     url: accessUrl(p.baseUrl, token),
@@ -142,7 +144,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
   }
 
-  const outcome = await sendInvitation(db, { userId, email, name: fullName, role, clientId, baseUrl });
+  const outcome = await sendInvitation(db, { userId, email, name: fullName, role, clientId, baseUrl, invitedBy: requester.fullName });
   return NextResponse.json({ ok: true, emailStatus: outcome.status, warning: emailNote(outcome.status), resent: Boolean(existing) });
 }
 
@@ -185,6 +187,7 @@ export async function PATCH(req: NextRequest) {
       role: target.role as string,
       clientId: target.client_id as string | null,
       baseUrl,
+      invitedBy: session.fullName,
     });
     if (outcome.status !== "sent") {
       return NextResponse.json({ error: emailNote(outcome.status) }, { status: 502 });

@@ -55,7 +55,7 @@ function resolveFromAddress(): string {
   return `MysterFoodie <${raw}>`;
 }
 
-const BRAND_RED = "#f24444";
+export const BRAND_RED = "#f24444";
 
 /** "#RRGGBB" -> "rgba(r,g,b,a)" (los clientes de correo no siempre entienden #RRGGBBAA). */
 function hexToRgba(hex: string, alpha: number): string {
@@ -72,7 +72,7 @@ function renderRichText(text: string): string {
 }
 
 /** Botón rojo de ancho completo (CTA principal de los correos). */
-function renderButton(href: string, label: string, background = BRAND_RED): string {
+export function renderButton(href: string, label: string, background = BRAND_RED): string {
   return `<a href="${escapeHtml(href)}" style="display: block; background-color: ${background}; color: #ffffff; text-align: center; text-decoration: none; font-weight: bold; font-size: 15px; line-height: 1.3; padding: 16px 18px; border-radius: 14px;">${label}</a>`;
 }
 
@@ -82,7 +82,7 @@ function renderButton(href: string, label: string, background = BRAND_RED): stri
  * abajo, el logo simplificado como firma con el respaldo de Flanco
  * Izquierdo.
  */
-function renderEmailShell(cardHtml: string): string {
+export function renderEmailShell(cardHtml: string): string {
   const baseUrl = emailBaseUrl();
   return `
     <div style="background-color: #f4f5fa; padding: 32px 12px; font-family: Arial, Helvetica, sans-serif; color: #222222;">
@@ -275,6 +275,26 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
     if (result.error) {
       return { status: "failed", error: result.error.message };
     }
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Envía un correo con HTML ya armado (con renderEmailShell) y su versión en texto plano. */
+export async function sendHtmlEmail(params: { to: string; subject: string; html: string; text?: string }): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { status: "skipped_no_api_key" };
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: resolveFromAddress(),
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text,
+    });
+    if (result.error) return { status: "failed", error: result.error.message };
     return { status: "sent", providerId: result.data?.id };
   } catch (err) {
     return { status: "failed", error: err instanceof Error ? err.message : String(err) };

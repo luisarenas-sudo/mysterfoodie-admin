@@ -29,6 +29,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "En Usuarios se ve quién todavía no activa su cuenta y se puede reenviar su invitación.",
       "Eliminar usuarios: se les avisa por correo, sus visitas pasan a Master Chef y sus negocios quedan sin dueño hasta que decidas a quién asignarlos.",
       "Nueva pantalla de Bajas y un pendiente en el inicio para revisar los registros de cada baja.",
+      "El correo de invitación ahora explica qué puede hacer cada rol y propone una meta realizable para el primer mes con los lugares que ya visitas.",
     ],
   },
   {
