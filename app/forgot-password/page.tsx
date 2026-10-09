@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -21,16 +20,19 @@ export default function ForgotPasswordPage() {
     }
 
     setSending(true);
-    const supabase = await createSupabaseBrowserClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: `${window.location.origin}/set-password`,
-    });
-    setSending(false);
-
-    if (resetError) {
+    try {
+      const res = await fetch("/api/auth/recuperar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      if (!res.ok) throw new Error("fallo");
+    } catch {
+      setSending(false);
       setError("No pudimos procesar la solicitud. Intenta de nuevo en unos minutos.");
       return;
     }
+    setSending(false);
 
     setSent(true);
   }
@@ -41,7 +43,7 @@ export default function ForgotPasswordPage() {
       <h1 className="heading mt-2 text-3xl text-ink">Recupera tu contraseña</h1>
       <p className="mt-1 text-sm text-stone-500">
         Te enviaremos un correo con un link para crear una nueva contraseña. Si el link no
-        abre, el mismo correo trae un código de 6 dígitos que puedes ingresar a mano.
+        abre, el mismo correo trae un código de 6 dígitos que puedes ingresar a mano. Ambos valen 5 días.
       </p>
 
       {sent ? (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAutomation, renderTemplate } from "@/lib/automations";
 import { sendTemplatedEmail } from "@/lib/email";
+import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "@/lib/accessTokens";
 
 /**
  * 20 minutos despues de que un negocio compra el reporte completo
@@ -16,11 +17,10 @@ import { sendTemplatedEmail } from "@/lib/email";
  * con el de resultado de la visita que ya le llega justo al terminar
  * de pagar.
  *
- * No usa inviteUserByEmail (que manda el correo generico de Supabase)
- * sino generateLink(type: "invite"), que crea la cuenta y devuelve el
- * link SIN mandar ningun correo -- asi el negocio solo recibe un
- * correo, con la marca de MysterFoodie, en vez de uno de Supabase y
- * otro nuestro. El link lleva a /set-password, que ahora tambien
+ * No usa los links de Supabase (caducan en 1 hora): crea la cuenta y un
+ * acceso propio de 5 dias (link + codigo de 6 digitos, ver
+ * lib/accessTokens.ts) -- asi el negocio solo recibe un correo, con la
+ * marca de MysterFoodie. El link lleva a /set-password, que ahora tambien
  * ofrece "Continuar con Google" como alternativa a poner contraseña.
  *
  * clients.account_invited_at evita invitar dos veces al mismo
@@ -89,26 +89,35 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    const { data: generated, error: generateError } = await db.auth.admin.generateLink({
-      type: "invite",
+    // Cuenta sin correo de Supabase (su link caduca en 1 h): se crea el usuario y se
+    // genera un acceso propio de 5 días con link + código de 6 dígitos.
+    const { data: created, error: createError } = await db.auth.admin.createUser({
       email: client.email as string,
-      options: { redirectTo: `${baseUrl}/set-password` },
+      email_confirm: true,
     });
 
-    if (generateError || !generated?.user) {
-      results.push({ clientId: client.id, status: `error_invitacion: ${generateError?.message || "desconocido"}` });
+    if (createError || !created?.user) {
+      results.push({ clientId: client.id, status: `error_invitacion: ${createError?.message || "desconocido"}` });
       continue;
     }
 
     await db.from("profiles").upsert({
-      id: generated.user.id,
+      id: created.user.id,
       email: client.email as string,
       full_name: client.name,
       role: "cliente",
       client_id: client.id,
     });
 
-    const actionLink = generated.properties?.action_link || `${baseUrl}/set-password`;
+    const { token, code } = await issueAccessToken(db, {
+      userId: created.user.id,
+      email: client.email as string,
+      purpose: "invite",
+    });
+    const actionLink = accessUrl(baseUrl, token);
+    const codeNote =
+      `\n\nSi el botón no abre, entra a ${baseUrl}/set-password, escribe tu correo y este código de 6 dígitos: ` +
+      `${code.split("").join(" ")} (vale ${ACCESS_TTL_DAYS} días).`;
     const defaultSubject = "Activa tu cuenta en MysterFoodie";
     const defaultBody =
       `Hola equipo de ${client.name},\n\n` +
@@ -124,7 +133,7 @@ export async function GET(req: NextRequest) {
       ? renderTemplate(automation!.bodyTemplate, { negocio: client.name, link_acceso: actionLink })
       : defaultBody;
 
-    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText, ctaLabel: "Crear mi cuenta" });
+    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText: bodyText + codeNote, ctaLabel: "Crear mi cuenta" });
 
     await db.from("clients").update({ account_invited_at: new Date().toISOString() }).eq("id", client.id);
 

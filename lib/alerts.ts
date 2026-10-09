@@ -245,6 +245,30 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
       href: m.form_id ? `/visitas/${m.form_id}` : "/",
     });
   }
+
+  // Bajas de usuarios con registros por revisar (negocios sin dueño). Si aún no se
+  // corre supabase/acceso.sql la tabla no existe y simplemente no hay aviso.
+  const { data: removals } = await db
+    .from("user_removals")
+    .select("id, email, full_name, removed_at, moved")
+    .eq("status", "pendiente")
+    .order("removed_at", { ascending: false });
+  const ownerless = (removals || []).flatMap((r) => ((r.moved as Record<string, string[]> | null)?.["clients.created_by"] ?? []));
+  const ownerlessNow = ownerless.length
+    ? new Set(((await db.from("clients").select("id").in("id", ownerless).is("created_by", null)).data || []).map((c) => c.id as string))
+    : new Set<string>();
+  for (const r of removals || []) {
+    const ids = ((r.moved as Record<string, string[]> | null)?.["clients.created_by"] ?? []).filter((id) => ownerlessNow.has(id));
+    alerts.push({
+      key: `ad:baja:${r.id}`,
+      kind: "pendiente",
+      tone: "warn",
+      emoji: "🗂️",
+      title: `Revisa los registros de ${r.full_name || r.email}`,
+      detail: ids.length ? `${plural(ids.length, "negocio sin dueño", "negocios sin dueño")} · baja ${agoLabel(r.removed_at as string)}` : `Baja ${agoLabel(r.removed_at as string)} · falta marcar la revisión`,
+      href: "/admin/bajas",
+    });
+  }
   return alerts;
 }
 

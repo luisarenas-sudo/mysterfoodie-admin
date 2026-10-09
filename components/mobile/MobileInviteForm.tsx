@@ -55,7 +55,11 @@ export default function MobileInviteForm({
         setMessage({ type: "error", text: data.error || "No se pudo invitar" });
         return;
       }
-      setMessage({ type: "ok", text: `Invitación enviada a ${email}` });
+      if (data.warning) {
+        setMessage({ type: "error", text: data.warning });
+      } else {
+        setMessage({ type: "ok", text: data.resent ? `Invitación reenviada a ${email} (vale 5 días)` : `Invitación enviada a ${email} (vale 5 días)` });
+      }
       setEmail("");
       setFullName("");
       router.refresh();

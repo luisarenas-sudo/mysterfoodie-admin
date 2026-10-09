@@ -16,6 +16,14 @@ export default function SetPasswordPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Acceso propio (link ?t=... o código de 6 dígitos): vigente 5 días y no se
+  // gasta al abrir el link, solo al guardar la contraseña. Ver lib/accessTokens.ts.
+  const [ownToken, setOwnToken] = useState<string | null>(null);
+  const [ownCode, setOwnCode] = useState<string | null>(null);
+  const [ownEmail, setOwnEmail] = useState<string | null>(null);
+  const [invalidMessage, setInvalidMessage] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
+
   // Fallback manual: si el link fue consumido antes de que el usuario le
   // diera clic (por ejemplo, por un escaneo automático de seguridad del
   // proveedor de correo), permitimos ingresar el código de 6 dígitos que
@@ -53,6 +61,37 @@ export default function SetPasswordPage() {
       const code = url.searchParams.get("code");
       const emailFromLink = url.searchParams.get("email");
       if (emailFromLink) setOtpEmail(emailFromLink);
+
+      // Link propio de MysterFoodie (?t=...).
+      const ownT = url.searchParams.get("t");
+      if (ownT) {
+        try {
+          const res = await fetch("/api/auth/acceso", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "validate", token: ownT }),
+          });
+          const data = await res.json();
+          if (cancelled) return;
+          if (res.ok && data.ok) {
+            settled = true;
+            setOwnToken(ownT);
+            setOwnEmail(data.email);
+            setOtpEmail(data.email);
+            setReady(true);
+          } else {
+            settled = true;
+            setInvalidMessage(data.error || "Este link ya no es válido.");
+            setInvalid(true);
+          }
+        } catch {
+          if (cancelled) return;
+          settled = true;
+          setInvalidMessage("No pudimos validar el link. Revisa tu conexión e intenta de nuevo.");
+          setInvalid(true);
+        }
+        return;
+      }
 
       // Flujo PKCE (links generados por la propia app con `code=...`).
       if (code) {
@@ -108,24 +147,72 @@ export default function SetPasswordPage() {
     }
 
     setOtpVerifying(true);
+
+    // 1) Código propio (el que traen los correos nuevos, vigente 5 días).
+    try {
+      const res = await fetch("/api/auth/acceso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify", email: otpEmail.trim(), code: otpCode.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setOwnCode(otpCode.trim());
+        setOwnEmail(data.email);
+        setOwnToken(null);
+        setOtpVerifying(false);
+        setInvalid(false);
+        setReady(true);
+        return;
+      }
+      if (data.reason && data.reason !== "invalid") {
+        // vencido / usado / bloqueado: el mensaje ya dice qué hacer
+        setOtpVerifying(false);
+        setOtpError(data.error);
+        return;
+      }
+    } catch {
+      /* se intenta el código de Supabase abajo */
+    }
+
+    // 2) Códigos de correos anteriores (Supabase): invitación y recuperación.
     const supabase = await createSupabaseBrowserClient();
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email: otpEmail.trim(),
-      token: otpCode.trim(),
-      type: "recovery",
-    });
+    let session = null;
+    for (const type of ["invite", "recovery"] as const) {
+      const { data } = await supabase.auth.verifyOtp({ email: otpEmail.trim(), token: otpCode.trim(), type });
+      if (data.session) {
+        session = data.session;
+        break;
+      }
+    }
     setOtpVerifying(false);
 
-    if (verifyError || !data.session) {
-      setOtpError(
-        verifyError?.message ??
-          "El código no es válido o ya expiró. Solicita un nuevo correo de recuperación."
-      );
+    if (!session) {
+      setOtpError("El código no es correcto o ya no está vigente. Puedes pedir un correo nuevo aquí abajo.");
       return;
     }
 
     setInvalid(false);
     setReady(true);
+  }
+
+  async function handleResend() {
+    setOtpError(null);
+    if (!otpEmail.trim()) {
+      setOtpError("Escribe tu correo para enviarte uno nuevo.");
+      return;
+    }
+    setResendState("sending");
+    try {
+      await fetch("/api/auth/recuperar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: otpEmail.trim() }),
+      });
+    } catch {
+      /* misma respuesta siempre */
+    }
+    setResendState("sent");
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -143,12 +230,33 @@ export default function SetPasswordPage() {
 
     setSaving(true);
     const supabase = await createSupabaseBrowserClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    setSaving(false);
 
-    if (updateError) {
-      setError(updateError.message);
-      return;
+    if (ownToken || ownCode) {
+      const res = await fetch("/api/auth/acceso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        setSaving(false);
+        setError(data.error || "No se pudo guardar la contraseña.");
+        return;
+      }
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: data.email, password });
+      setSaving(false);
+      if (signInError) {
+        // La contraseña ya quedó guardada: que entre desde el inicio de sesión.
+        router.push("/login");
+        return;
+      }
+    } else {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      setSaving(false);
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
     }
 
     setSuccess(true);
@@ -170,8 +278,8 @@ export default function SetPasswordPage() {
       {invalid && (
         <div className="mt-6 space-y-4">
           <p className="rounded-md border border-brand-200 bg-brand-50 p-3 text-sm text-brand-700">
-            Este link de invitación ya no es válido o expiró. Si el correo también incluye un
-            código de 6 dígitos, puedes ingresarlo aquí en vez de usar el link.
+            {invalidMessage ?? "Este link ya no es válido o expiró."} Si el correo trae un código de
+            6 dígitos, puedes ingresarlo aquí en vez de usar el link.
           </p>
           <form onSubmit={handleVerifyOtp} className="space-y-3 rounded-md border border-stone-200 p-4">
             <label className="block">
@@ -210,16 +318,31 @@ export default function SetPasswordPage() {
           </form>
           <p className="text-sm text-stone-500">
             ¿No te llegó el correo o ya no tienes el código?{" "}
-            <Link href="/forgot-password" className="font-medium text-brand-600 hover:underline">
-              Pide uno nuevo
-            </Link>
-            .
+            {resendState === "sent" ? (
+              <span className="font-medium text-brand-600">
+                Si ese correo está registrado, te enviamos uno nuevo (vale 5 días). Revisa también spam.
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendState === "sending"}
+                className="font-medium text-brand-600 hover:underline disabled:opacity-50"
+              >
+                {resendState === "sending" ? "Enviando..." : "Pide uno nuevo"}
+              </button>
+            )}
           </p>
         </div>
       )}
 
       {ready && !success && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {ownEmail && (
+            <p className="text-sm text-stone-500">
+              Cuenta: <strong className="text-ink">{ownEmail}</strong>
+            </p>
+          )}
           <label className="block">
             <span className="text-sm font-medium text-ink">Nueva contraseña</span>
             <input

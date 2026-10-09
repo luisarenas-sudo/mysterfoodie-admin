@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.11.0",
+    date: "2026-10-09",
+    title: "Acceso de 5 días y bajas de usuarios",
+    emoji: "🔑",
+    highlights: [
+      "Las invitaciones y la recuperación de contraseña ahora valen 5 días (antes caducaban en una hora) y abrir el link ya no lo gasta.",
+      "El código de 6 dígitos del correo funciona de verdad, con límite de intentos, y «Pide uno nuevo» manda un correo en el momento.",
+      "En Usuarios se ve quién todavía no activa su cuenta y se puede reenviar su invitación.",
+      "Eliminar usuarios: se les avisa por correo, sus visitas pasan a Master Chef y sus negocios quedan sin dueño hasta que decidas a quién asignarlos.",
+      "Nueva pantalla de Bajas y un pendiente en el inicio para revisar los registros de cada baja.",
+    ],
+  },
+  {
     version: "0.10.0",
     date: "2026-10-09",
     title: "Pendientes y planes más claros",

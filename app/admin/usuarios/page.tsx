@@ -3,6 +3,8 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAdminStats } from "@/lib/dashboard";
 import InviteUserForm from "@/components/InviteUserForm";
 import UserRoleEditor from "@/components/UserRoleEditor";
+import UserActions from "@/components/UserActions";
+import Link from "next/link";
 import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
 
@@ -40,17 +42,26 @@ export default async function UsuariosPage() {
   const session = await requireRole("admin");
   const db = getSupabaseServiceClient();
 
-  const [{ data: profiles }, { data: clients }, stats] = await Promise.all([
+  const [{ data: profiles }, { data: clients }, stats, authUsers, removals] = await Promise.all([
     db.from("profiles").select("id, email, full_name, role, client_id").order("email"),
     db.from("clients").select("id, name").order("name"),
     getAdminStats(),
+    db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    // Si aún no se corre supabase/acceso.sql, la tabla no existe y simplemente no hay bajas.
+    db.from("user_removals").select("id", { count: "exact", head: true }).eq("status", "pendiente"),
   ]);
+  const pendingRemovals = removals.count ?? 0;
+  // Pendiente de activar = todavía no ha iniciado sesión nunca.
+  const neverSignedIn = new Set(
+    (authUsers.data?.users ?? []).filter((u) => !u.last_sign_in_at).map((u) => u.id)
+  );
 
   const clientNameById = new Map((clients || []).map((c) => [c.id, c.name as string]));
 
-  const rows: (ProfileRow & { client_name: string | null })[] = (profiles || []).map((p) => ({
+  const rows: (ProfileRow & { client_name: string | null; pending: boolean })[] = (profiles || []).map((p) => ({
     ...p,
     client_name: p.client_id ? clientNameById.get(p.client_id) ?? null : null,
+    pending: neverSignedIn.has(p.id),
   }));
 
   return (
@@ -64,8 +75,16 @@ export default async function UsuariosPage() {
         </div>
         <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
         <p className="mt-1 text-sm text-stone-500">
-          Invita agentes y dueños de negocio, y administra sus roles.
+          Invita agentes y dueños de negocio, y administra sus roles. Las invitaciones valen 5 días.
         </p>
+        {pendingRemovals > 0 && (
+          <Link href="/admin/bajas" className="mt-3 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <span>
+              🗂️ Tienes <strong>{pendingRemovals}</strong> {pendingRemovals === 1 ? "baja" : "bajas"} con registros por revisar
+            </span>
+            <span className="font-semibold">Revisar →</span>
+          </Link>
+        )}
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
@@ -106,12 +125,18 @@ export default async function UsuariosPage() {
                 <th className="px-4 py-2 font-medium">Nombre</th>
                 <th className="px-4 py-2 font-medium">Rol</th>
                 <th className="px-4 py-2 font-medium">Negocio</th>
+                <th className="px-4 py-2 font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-b border-stone-100 last:border-0">
-                  <td className="px-4 py-2">{r.email}</td>
+                  <td className="px-4 py-2">
+                    {r.email}
+                    {r.pending && (
+                      <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Por activar</span>
+                    )}
+                  </td>
                   <td className="px-4 py-2">{r.full_name || "-"}</td>
                   <td className="px-4 py-2">
                     <UserRoleEditor
@@ -121,11 +146,14 @@ export default async function UsuariosPage() {
                     />
                   </td>
                   <td className="px-4 py-2">{r.client_name || "-"}</td>
+                  <td className="px-4 py-2">
+                    <UserActions userId={r.id} email={r.email} name={r.full_name} pending={r.pending} isSelf={r.id === session.userId} />
+                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td className="px-4 py-6 text-center text-stone-400" colSpan={4}>
+                  <td className="px-4 py-6 text-center text-stone-400" colSpan={5}>
                     Aún no hay usuarios invitados.
                   </td>
                 </tr>
@@ -138,7 +166,12 @@ export default async function UsuariosPage() {
         <div className="mt-8 space-y-3 md:hidden">
           {rows.map((r) => (
             <div key={r.id} className="card p-4">
-              <p className="truncate text-sm font-semibold text-ink">{r.email}</p>
+              <p className="truncate text-sm font-semibold text-ink">
+                {r.email}
+                {r.pending && (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Por activar</span>
+                )}
+              </p>
               {r.full_name && <p className="mt-0.5 text-sm text-stone-500">{r.full_name}</p>}
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
                 <UserRoleEditor
@@ -149,6 +182,9 @@ export default async function UsuariosPage() {
                 {r.client_name && (
                   <span className="text-xs text-stone-500">{r.client_name}</span>
                 )}
+              </div>
+              <div className="mt-2">
+                <UserActions userId={r.id} email={r.email} name={r.full_name} pending={r.pending} isSelf={r.id === session.userId} />
               </div>
             </div>
           ))}
