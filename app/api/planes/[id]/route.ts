@@ -10,6 +10,7 @@ type Body = {
   defaultFoodieId?: string | null;
   markPaid?: { month?: string; paid?: boolean };
   resendTicket?: boolean;
+  ticketEmail?: string;
 };
 
 /** Administrar un plan (Master Chef): estatus, Foodie por default, cobro del mes y reenviar el ticket. */
@@ -37,17 +38,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.markPaid) {
     const month = body.markPaid.month;
     if (!isValidMonth(month)) return NextResponse.json({ error: "Mes no válido" }, { status: 400 });
+    // En una contratación de varias sucursales el cobro es uno solo: se marca para todas.
+    let planIds = [id];
+    if (plan.groupId) {
+      const { data: siblings } = await db.from("client_plans").select("id").eq("group_id", plan.groupId);
+      planIds = (siblings || []).map((x) => x.id as string);
+    }
     const { error } = await db
       .from("plan_periods")
       .update({ paid_at: body.markPaid.paid === false ? null : new Date().toISOString() })
-      .eq("plan_id", id)
+      .in("plan_id", planIds)
       .eq("month", month);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
 
   if (body.resendTicket) {
-    const ticket = await sendTicketForPlan(db, plan);
+    const ticket = await sendTicketForPlan(db, plan, { to: body.ticketEmail });
     return NextResponse.json({ ok: true, ticket });
   }
 

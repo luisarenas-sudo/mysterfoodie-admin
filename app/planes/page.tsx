@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getPlansOverview } from "@/lib/plans";
 import { formatMxn } from "@/lib/earningsMatrix";
 import BackLink from "@/components/BackLink";
+import PlanComparison from "@/components/PlanComparison";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +68,8 @@ export default async function PlanesPage() {
                   <div className="min-w-0">
                     <div className="truncate text-[15px] font-semibold">{r.clientName}</div>
                     <div className="text-[12px]" style={{ color: MUTED }}>
-                      Plan {r.planName} · {r.done} de {r.quota} visitas
+                      Plan {r.planName}
+                      {r.groupSize > 1 ? ` (${r.groupSize} sucursales)` : ""} · {r.done} de {r.quota} visitas
                       {r.status === "pausado" ? " · en pausa" : ""}
                     </div>
                   </div>
@@ -89,6 +91,8 @@ export default async function PlanesPage() {
             </div>
           </>
         )}
+
+        <PlanComparison />
       </main>
     </>
   );

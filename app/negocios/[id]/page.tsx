@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { getClientDetail, getFoodies, getPendingAssignmentForClient } from "@/lib/dashboard";
-import { PLAN_CATALOG, getClientPlanView, startMonthOptions } from "@/lib/plans";
+import { PLAN_CATALOG, PLAN_KEYS } from "@/lib/planCatalog";
+import { getClientPlanView, getPlanBranchOptions, startMonthOptions } from "@/lib/plans";
 import PlanCard from "@/components/PlanCard";
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
@@ -59,22 +60,24 @@ export default async function NegocioDetailPage({
   let planSlot = null;
   if (canAssign) {
     const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || undefined;
-    const [planView, foodies] = await Promise.all([getClientPlanView(id, { sync: true, baseUrl }), getFoodies()]);
+    const [planView, foodies, branchOptions] = await Promise.all([
+      getClientPlanView(id, { sync: true, baseUrl }),
+      getFoodies(),
+      getPlanBranchOptions(),
+    ]);
     const start = startMonthOptions();
     planSlot = (
       <PlanCard
         clientId={client.id}
+        clientName={client.name}
+        clientCity={client.city ?? null}
         clientEmail={client.email ?? null}
+        branchOptions={branchOptions}
         view={planView}
         foodies={foodies.map((f) => ({ id: f.id, name: f.fullName || f.email || "Foodie", pendingCount: f.pendingCount }))}
         suggestedStart={start.suggested}
         otherStart={start.other}
-        catalog={{
-          name: PLAN_CATALOG.starter.name,
-          tagline: PLAN_CATALOG.starter.tagline,
-          visitsPerMonth: PLAN_CATALOG.starter.visitsPerMonth,
-          pricePerVisit: PLAN_CATALOG.starter.pricePerVisit,
-        }}
+        catalogs={PLAN_KEYS.map((k) => PLAN_CATALOG[k])}
       />
     );
   }

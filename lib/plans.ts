@@ -12,28 +12,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  * visita asignada. Ver supabase/planes.sql.
  */
 
-export const PLAN_CATALOG = {
-  starter: {
-    key: "starter",
-    name: "Starter",
-    /** En lenguaje de cocina: la "entrada". */
-    tagline: "Entrada",
-    visitsPerMonth: 3,
-    pricePerVisit: 700,
-    includes: [
-      "Visitas Mystery Shopper anónimas, hechas por un Foodie",
-      "Reporte completo (PDF) de cada visita, sin costo extra",
-      "Avance mes con mes de tu calificación",
-      "Seguimiento personalizado del equipo MysterFoodie",
-    ],
-  },
-} as const;
-
-export type PlanKey = keyof typeof PLAN_CATALOG;
-
-export function isPlanKey(k: unknown): k is PlanKey {
-  return typeof k === "string" && k in PLAN_CATALOG;
-}
+export { PLAN_CATALOG, PLAN_KEYS, isPlanKey, isInPlanZone, type PlanKey } from "./planCatalog";
 
 export type PlanStatus = "activo" | "pausado" | "cancelado";
 
@@ -51,6 +30,8 @@ export type PlanRow = {
   ticketSentAt: string | null;
   createdBy: string | null;
   createdAt: string;
+  /** Une las sucursales de una misma contratación (Appetizer / Main course). */
+  groupId: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +50,7 @@ export function mapPlan(r: any): PlanRow {
     ticketSentAt: r.ticket_sent_at ?? null,
     createdBy: r.created_by ?? null,
     createdAt: r.created_at,
+    groupId: r.group_id ?? null,
   };
 }
 
@@ -167,6 +149,8 @@ export type ClientPlanView = {
   visits: PlanVisitView[];
   periods: PlanPeriodView[];
   currentPeriod: PlanPeriodView | null;
+  /** Contratación conjunta: todas las sucursales del mismo plan (incluye esta). */
+  group: { size: number; names: string[]; monthlyTotal: number } | null;
 };
 
 /** Plan vigente (activo o en pausa) de un negocio, con el avance del mes. */
@@ -187,6 +171,27 @@ export async function getClientPlanView(
   const month = currentMonthCdmx();
 
   if (opts.sync) await ensurePlanMonth(db, plan, month, opts.baseUrl);
+
+  let group: ClientPlanView["group"] = null;
+  if (plan.groupId) {
+    const { data: siblings } = await db
+      .from("client_plans")
+      .select("client_id, visits_per_month, price_per_visit")
+      .eq("group_id", plan.groupId)
+      .neq("status", "cancelado");
+    if (siblings && siblings.length > 1) {
+      const { data: sibClients } = await db
+        .from("clients")
+        .select("id, name")
+        .in("id", siblings.map((x) => x.client_id as string));
+      const nameById = new Map((sibClients || []).map((c) => [c.id as string, c.name as string]));
+      group = {
+        size: siblings.length,
+        names: siblings.map((x) => nameById.get(x.client_id as string) ?? "Sucursal"),
+        monthlyTotal: siblings.reduce((a, x) => a + (x.visits_per_month as number) * (x.price_per_visit as number), 0),
+      };
+    }
+  }
 
   const [{ data: assignRows }, { data: periodRows }] = await Promise.all([
     db
@@ -241,6 +246,7 @@ export async function getClientPlanView(
     visits,
     periods,
     currentPeriod: periods.find((p) => p.month === month) ?? null,
+    group,
   };
 }
 
@@ -255,6 +261,9 @@ export type PlanOverviewRow = {
   unassigned: number;
   amount: number;
   paid: boolean;
+  planKey: string;
+  /** Sucursales que comparten la contratación (1 = plan individual). */
+  groupSize: number;
 };
 
 /** Lista de planes con el avance del mes actual (pantalla /planes, solo admin). */
@@ -289,6 +298,8 @@ export async function getPlansOverview(baseUrl?: string): Promise<{ month: strin
       unassigned: mine.filter((a) => a.status === "pendiente" && !a.assigned_to).length,
       amount: p.visitsPerMonth * p.pricePerVisit,
       paid: Boolean(period?.paid_at),
+      planKey: p.planKey,
+      groupSize: p.groupId ? plans.filter((x) => x.groupId === p.groupId).length : 1,
     };
   });
   return { month, monthLabel: monthLabel(month), rows };
@@ -315,4 +326,19 @@ export function startMonthOptions(): {
   const thisMonth = opt(current, "Este mes");
   const nextMonth = opt(next, "Próximo mes");
   return day <= 15 ? { suggested: thisMonth, other: nextMonth } : { suggested: nextMonth, other: thisMonth };
+}
+
+export type PlanBranchOption = { id: string; name: string; city: string | null; email: string | null };
+
+/** Negocios que todavía no tienen plan vigente: candidatos a sumarse a una contratación de varias sucursales. */
+export async function getPlanBranchOptions(): Promise<PlanBranchOption[]> {
+  const db = getSupabaseServiceClient();
+  const [{ data: clients }, { data: planned }] = await Promise.all([
+    db.from("clients").select("id, name, city, email").order("name"),
+    db.from("client_plans").select("client_id").neq("status", "cancelado"),
+  ]);
+  const taken = new Set((planned || []).map((p) => p.client_id as string));
+  return (clients || [])
+    .filter((c) => !taken.has(c.id as string))
+    .map((c) => ({ id: c.id as string, name: c.name as string, city: (c.city as string | null) ?? null, email: (c.email as string | null) ?? null }));
 }

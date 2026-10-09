@@ -394,8 +394,11 @@ export type SendPlanTicketParams = {
   /** Copia oculta para el equipo (ADMIN_EMAIL), opcional. */
   bcc?: string | null;
   businessName: string;
+  /** Contratación de varias sucursales: nombres de todas (si no, un plan de un solo negocio). */
+  sucursales?: string[];
   planName: string;
   tagline: string;
+  /** Visitas al mes por sucursal. */
   visitsPerMonth: number;
   pricePerVisit: number;
   startMonthLabel: string;
@@ -419,7 +422,9 @@ export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
         <td style="padding: 3px 0; ${mono} font-size: 14px; color: #111827; text-align: right; white-space: nowrap; ${bold ? "font-weight: bold;" : ""}">${right}</td>
       </tr>
     </table>`;
-  const total = p.visitsPerMonth * p.pricePerVisit;
+  const branches = p.sucursales?.length ?? 1;
+  const totalVisits = p.visitsPerMonth * branches;
+  const total = totalVisits * p.pricePerVisit;
   const issued = new Intl.DateTimeFormat("es-MX", {
     day: "2-digit",
     month: "short",
@@ -444,18 +449,27 @@ export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
       ${dash}
       ${row("FOLIO", escapeHtml(p.folio))}
       ${row("FECHA", escapeHtml(issued))}
-      ${row("MESA", escapeHtml(p.businessName.toUpperCase()))}
+      ${row(branches > 1 ? "MARCA" : "MESA", escapeHtml(p.businessName.toUpperCase()))}
       ${row("INICIO", escapeHtml(p.startMonthLabel.toUpperCase()))}
       ${dash}
       <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">CANT  DESCRIPCIÓN</div>
-      ${row(`${p.visitsPerMonth} &nbsp;Visitas Mystery Shopper / mes`, mxn(total))}
-      <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ${escapeHtml(p.planName)} (${escapeHtml(p.tagline)}) · ${p.visitsPerMonth} × ${mxn(p.pricePerVisit)}</div>
+      ${row(`${totalVisits} &nbsp;Visitas Mystery Shopper / mes`, mxn(total))}
+      <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ${escapeHtml(p.planName)} (${escapeHtml(p.tagline)}) · ${branches > 1 ? `${branches} sucursales × ${p.visitsPerMonth} visitas × ` : `${p.visitsPerMonth} × `}${mxn(p.pricePerVisit)}</div>
       ${row("Consumo en cada visita", "REEMBOLSO")}
       <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Se cubre contra ticket del consumo</div>
       ${dash}
       ${row("TOTAL MENSUAL", mxn(total) + " MXN", true)}
       ${row("+ Reembolso del ticket de consumo", "según ticket")}
       ${dash}
+      ${
+        p.sucursales && p.sucursales.length > 1
+          ? `<div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">SUCURSALES (${p.sucursales.length})</div>` +
+            p.sucursales
+              .map((n) => `<div style="padding: 2px 0; ${mono} font-size: 13px; line-height: 1.5; color: #374151;">&bull; ${escapeHtml(n)} &middot; ${p.visitsPerMonth} visitas/mes</div>`)
+              .join("") +
+            dash
+          : ""
+      }
       <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">INCLUYE</div>
       ${includes}
       ${dash}

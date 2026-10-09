@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.9.0",
+    date: "2026-10-09",
+    title: "Appetizer y Main course",
+    emoji: "🍴",
+    highlights: [
+      "Appetizer: 4 visitas al mes en cada una de 3 sucursales, a $650 por visita.",
+      "Main course: 4 visitas al mes en cada una de 4 a 5 sucursales, a $600 por visita.",
+      "Una sola contratación para toda la cadena: un ticket, un cobro y aviso si alguna sucursal queda fuera de Veracruz – Boca del Río.",
+      "Comparativa de planes en Planes: ahorro por volumen, consistencia de la información y margen de error estimado.",
+      "El reparto de ganancias sigue la misma regla, proporcional a la tarifa de cada plan.",
+    ],
+  },
+  {
     version: "0.8.0",
     date: "2026-10-09",
     title: "Planes de visitas (segunda etapa)",
