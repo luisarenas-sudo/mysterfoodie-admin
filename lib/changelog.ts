@@ -31,6 +31,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Nueva pantalla Editar perfil: foto propia en vez de las iniciales (cámara o galería), nombre y teléfono. El login con Google ya no pisa la foto que elijas.",
       "Nueva pantalla Contraseña y acceso: cambiar o crear tu contraseña y conectar Google.",
       "La asesoría gratuita de 20 minutos ahora se incluye solo con el reporte completo: el reporte y la agenda solo la ofrecen a quien ya lo compró, y el correo de la asesoría sale al día siguiente del pago.",
+      "Estilo unificado con mysterfoodie.com: los títulos van en Poppins grande y la tipografía de marca (Nan Holo Gigawide) se usa como máximo en un título por página.",
     ],
   },
   {

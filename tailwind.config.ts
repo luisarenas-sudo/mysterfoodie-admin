@@ -27,7 +27,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-poppins)", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["var(--font-fredoka)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-poppins)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "brand-gradient": "linear-gradient(180deg, #f24444 0%, #f25631 100%)",

@@ -23,9 +23,21 @@ body {
   box-shadow: 0 0 0 1px #f24444;
 }
 
+/* Jerarquía tipográfica (igual que mysterfoodie.com):
+   - .heading  = títulos en Poppins bold (grande). Es el estándar de TODA la app.
+   - .title-brand = Nan Holo Gigawide (muy ancha). Máximo UN título por página. */
 .heading {
-  font-family: var(--font-fredoka);
-  letter-spacing: 0.01em;
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.title-brand {
+  font-family: var(--font-nan-holo), var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  overflow-wrap: break-word;
 }
 
 /* MysterFoodie visual refresh — matches the "MysterFoodie Rediseño"

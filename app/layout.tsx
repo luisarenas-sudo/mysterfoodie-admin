@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins, Fredoka } from "next/font/google";
+import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import AppHeader from "@/components/AppHeader";
 import { HeaderVisibility, MobileChromeBody } from "@/components/mobile/MobileChrome";
 import { getSessionProfile } from "@/lib/auth";
@@ -11,10 +12,12 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-const fredoka = Fredoka({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-fredoka",
+// Nan Holo Gigawide: tipografía de marca, MUY ancha. Máximo UN título por página.
+const nanHolo = localFont({
+  src: "./fonts/nan-holo-gigawide-ultra.woff2",
+  weight: "800",
+  display: "swap",
+  variable: "--font-nan-holo",
 });
 
 export const metadata: Metadata = {
@@ -51,7 +54,7 @@ export default async function RootLayout({
   const profile = await getSessionProfile();
 
   return (
-    <html lang="es" className={`${poppins.variable} ${fredoka.variable}`}>
+    <html lang="es" className={`${poppins.variable} ${nanHolo.variable}`}>
       <body className="font-sans">
         <HeaderVisibility role={profile?.role ?? null}>
           <AppHeader />

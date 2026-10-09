@@ -36,7 +36,7 @@ export default async function LoginPage({
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Iniciar sesión</h1>
+      <h1 className="title-brand mt-2 text-2xl text-ink">Iniciar sesión</h1>
       <p className="mt-1 text-sm text-stone-500">Acceso para el equipo y para negocios registrados.</p>
 
       {error && (
