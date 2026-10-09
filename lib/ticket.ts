@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
-import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail } from "./email";
+import { sendTemplatedEmail } from "./email";
+import { getAutomation, renderTemplate } from "./automations";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 
 /**
@@ -44,51 +45,59 @@ function visitDateLabel(iso: string): string {
 
 export type TicketEmailKind = "oferta" | "aviso";
 
-export function ticketEmailContent(p: {
-  kind: TicketEmailKind;
-  businessName: string;
-  visitDate: string;
-  reportUrl: string;
-}): { subject: string; html: string; text: string } {
-  const { kind, businessName, visitDate, reportUrl } = p;
-  const fecha = visitDateLabel(visitDate);
-  const price = `$${FULL_REPORT_PRICE_MXN} MXN`;
+/** Clave en Automatizaciones y etiqueta del botón de cada variante. */
+export const TICKET_AUTOMATION_KEY: Record<TicketEmailKind, string> = {
+  oferta: "ticket_oferta",
+  aviso: "ticket_aviso",
+};
+export const TICKET_CTA_LABEL: Record<TicketEmailKind, string> = {
+  oferta: "Ver el reporte completo",
+  aviso: "Ver el ticket en mi reporte",
+};
 
-  if (kind === "oferta") {
-    const subject = `Ya está el ticket de consumo de la visita a ${businessName}`;
-    const text =
-      `Hola equipo de ${businessName},\n\nEl mystery shopper que visitó ${businessName} el ${fecha} ya subió el ticket de consumo a su visita. ` +
-      `Conoce los indicadores evaluados, un reporte completo con todos ellos y el ticket del consumo por solo ${price}.\n\n${reportUrl}`;
-    const html = renderEmailShell(`
-      <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Ya está el ticket de tu visita</h2>
-      <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
-      <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.65; color: #4b5563;">
-        El mystery shopper que los visitó el <strong>${escapeHtml(fecha)}</strong> ya subió el <strong>ticket de consumo</strong> a su visita.
-      </p>
-      <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #4b5563;">
-        Conozcan los indicadores evaluados, un <strong>reporte completo</strong> con todos ellos y el ticket del consumo por solo <strong>${price}</strong>.
-      </p>
-      ${renderButton(reportUrl, `Ver el reporte completo · ${price}`)}
-    `);
-    return { subject, html, text };
-  }
+/** Textos originales (se usan si la plantilla de Automatizaciones está en "Texto original"). */
+export const TICKET_DEFAULTS: Record<TicketEmailKind, { subject: string; body: string }> = {
+  oferta: {
+    subject: "Ya está el ticket de consumo de la visita a {{negocio}}",
+    body:
+      "Hola equipo de {{negocio}},\n\n" +
+      "El mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
+      "Conozcan los indicadores evaluados, un reporte completo con todos ellos y el ticket del consumo por solo {{precio}}.\n\n" +
+      "{{link_reporte}}\n\nSaludos,\nMysterFoodie",
+  },
+  aviso: {
+    subject: "Tu visita a {{negocio}} ahora tiene más información",
+    body:
+      "Hola equipo de {{negocio}},\n\n" +
+      "El mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
+      "Como ya tienen el reporte completo, no tienen que hacer nada: ahora hay más información en su visita y el ticket ya aparece en su reporte en línea.\n\n" +
+      "{{link_reporte}}\n\nSaludos,\nMysterFoodie",
+  },
+};
 
-  const subject = `Tu visita a ${businessName} ahora tiene más información`;
-  const text =
-    `Hola equipo de ${businessName},\n\nEl mystery shopper que los visitó el ${fecha} ya subió el ticket de consumo a su visita. ` +
-    `Como ya tienen el reporte completo, no tienen que hacer nada: ahora hay más información en su visita.\n\n${reportUrl}`;
-  const html = renderEmailShell(`
-    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Hay más información en tu visita</h2>
-    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
-    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.65; color: #4b5563;">
-      El mystery shopper que los visitó el <strong>${escapeHtml(fecha)}</strong> ya subió el <strong>ticket de consumo</strong> a su visita.
-    </p>
-    <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #4b5563;">
-      Como ya tienen el reporte completo, no tienen que hacer nada: el ticket ya aparece en su reporte en línea.
-    </p>
-    ${renderButton(reportUrl, "Ver el ticket en mi reporte")}
-  `);
-  return { subject, html, text };
+export function ticketEmailVars(p: { businessName: string; visitDate: string; reportUrl: string }): Record<string, string> {
+  return {
+    negocio: p.businessName,
+    fecha_visita: visitDateLabel(p.visitDate),
+    precio: `$${FULL_REPORT_PRICE_MXN} MXN`,
+    link_reporte: p.reportUrl,
+  };
+}
+
+/** Asunto y texto finales: la plantilla de Automatizaciones si está activa, o el texto original. */
+export async function ticketEmailContent(
+  kind: TicketEmailKind,
+  vars: Record<string, string>
+): Promise<{ subject: string; bodyText: string; source: "plantilla" | "texto original" }> {
+  const automation = await getAutomation(TICKET_AUTOMATION_KEY[kind]);
+  const custom = Boolean(automation?.enabled && automation.subjectTemplate && automation.bodyTemplate);
+  const subjectTpl = custom ? automation!.subjectTemplate : TICKET_DEFAULTS[kind].subject;
+  const bodyTpl = custom ? automation!.bodyTemplate : TICKET_DEFAULTS[kind].body;
+  return {
+    subject: renderTemplate(subjectTpl, vars),
+    bodyText: renderTemplate(bodyTpl, vars),
+    source: custom ? "plantilla" : "texto original",
+  };
 }
 
 export type TicketEmailResult = { formId: string; status: string };
@@ -124,8 +133,16 @@ export async function sendDueTicketEmails(
 
     const kind: TicketEmailKind = form.report_unlocked_at || form.plan_id ? "aviso" : "oferta";
     const reportUrl = form.report_url || `${baseUrl.replace(/\/$/, "")}/r/${form.short_code}`;
-    const mail = ticketEmailContent({ kind, businessName: client.name, visitDate: form.created_at, reportUrl });
-    const outcome = await sendHtmlEmail({ to: client.email, subject: mail.subject, html: mail.html, text: mail.text });
+    const mail = await ticketEmailContent(
+      kind,
+      ticketEmailVars({ businessName: client.name, visitDate: form.created_at, reportUrl })
+    );
+    const outcome = await sendTemplatedEmail({
+      to: client.email,
+      subject: mail.subject,
+      bodyText: mail.bodyText,
+      ctaLabel: TICKET_CTA_LABEL[kind],
+    });
 
     await db.from("email_confirmations").insert({
       form_id: form.id,

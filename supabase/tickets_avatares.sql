@@ -29,3 +29,20 @@ values ('avatars', 'avatars', true, 2097152, array['image/jpeg','image/png'])
 on conflict (id) do update set public = true, file_size_limit = 2097152,
   allowed_mime_types = array['image/jpeg','image/png'];
 -- Sin policies adicionales: solo el servidor (service role) escribe y firma.
+
+-- 4) Correos del ticket de consumo, editables en Automatizaciones.
+insert into automations (key, enabled, subject_template, body_template)
+values
+  (
+    'ticket_oferta',
+    true,
+    'Ya está el ticket de consumo de la visita a {{negocio}}',
+    E'Hola equipo de {{negocio}},\n\nEl mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\nConozcan los indicadores evaluados, un reporte completo con todos ellos y el ticket del consumo por solo {{precio}}.\n\n{{link_reporte}}\n\nSaludos,\nMysterFoodie'
+  ),
+  (
+    'ticket_aviso',
+    true,
+    'Tu visita a {{negocio}} ahora tiene más información',
+    E'Hola equipo de {{negocio}},\n\nEl mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\nComo ya tienen el reporte completo, no tienen que hacer nada: ahora hay más información en su visita y el ticket ya aparece en su reporte en línea.\n\n{{link_reporte}}\n\nSaludos,\nMysterFoodie'
+  )
+on conflict (key) do nothing;

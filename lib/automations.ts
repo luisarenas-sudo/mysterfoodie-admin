@@ -89,6 +89,27 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  ticket_oferta: {
+    title: "Ticket de consumo subido (oferta del reporte)",
+    desc: "Se manda 3 días después de que el Foodie sube la foto del ticket de consumo a una visita, a los negocios que aún no tienen el reporte completo: les ofrece el reporte con indicadores y ticket. Sale una sola vez por visita.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "fecha_visita", desc: "Fecha de la visita, ej. \"5 de octubre\"" },
+      { tag: "precio", desc: "Precio del reporte completo, ej. \"$850 MXN\"" },
+      { tag: "link_reporte", desc: "Enlace al reporte público, donde pueden comprarlo (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
+  ticket_aviso: {
+    title: "Ticket de consumo subido (aviso a quien ya pagó)",
+    desc: "Igual que el anterior pero para negocios que ya tienen el reporte completo (pagado o de un plan): solo les avisa que hay más información en su visita, sin oferta.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "fecha_visita", desc: "Fecha de la visita, ej. \"5 de octubre\"" },
+      { tag: "link_reporte", desc: "Enlace a su reporte en línea (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
   instagram_dm: {
     title: "Mensaje de Instagram (DM, primer contacto)",
     desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",

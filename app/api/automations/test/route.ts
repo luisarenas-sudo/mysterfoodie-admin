@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ticketEmailContent, ticketEmailVars, TICKET_CTA_LABEL } from "@/lib/ticket";
 import { requireRole } from "@/lib/auth";
 import { getAutomation, renderTemplate, AUTOMATION_CATALOG, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 import { sendResultEmail, sendTemplatedEmail, sendFullReportEmail, formatSlot } from "@/lib/email";
@@ -147,6 +148,14 @@ export async function POST(req: NextRequest) {
           vars,
           `Hola equipo de ${SAMPLE.negocio},\n\nYa puedes crear tu cuenta en MysterFoodie para ver el historial de visitas de tu negocio, pedir nuevas visitas programadas y revisar tus reportes cuando quieras.\n\nEntra aquí para crear tu contraseña (o puedes continuar con tu cuenta de Google desde la misma pantalla):\n${link}\n\nSaludos,\nMysterFoodie`
         );
+      } else if (key === "ticket_oferta" || key === "ticket_aviso") {
+        const kind = key === "ticket_oferta" ? "oferta" : "aviso";
+        const mail = await ticketEmailContent(
+          kind,
+          ticketEmailVars({ businessName: SAMPLE.negocio, visitDate: new Date().toISOString(), reportUrl })
+        );
+        subject = prefix + mail.subject;
+        bodyText = mail.bodyText;
       } else if (key === "instagram_dm") {
         // No es un correo: se manda como texto para que veas cómo queda el DM.
         const vars = {
@@ -170,6 +179,8 @@ export async function POST(req: NextRequest) {
         asesoria_gratuita: "Agendar mi asesoría gratuita",
         asignacion_visita: "Ver mis visitas asignadas",
         activacion_cuenta_negocio: "Crear mi cuenta",
+        ticket_oferta: TICKET_CTA_LABEL.oferta,
+        ticket_aviso: TICKET_CTA_LABEL.aviso,
       };
       const out = await sendTemplatedEmail({ to, subject, bodyText, ctaLabel: ctaByKey[key] });
       results.push({ key, subject, source: useTemplate ? "plantilla" : "texto original", status: out.status, error: out.error });
