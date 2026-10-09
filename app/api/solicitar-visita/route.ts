@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
   if (email.length < 6 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return json(req, { ok: false, error: "Escribe un correo válido." }, 400);
   }
-  let phone: string | null = null;
-  if (phoneRaw) {
-    const digits = phoneRaw.replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 15) return json(req, { ok: false, error: "Revisa tu teléfono (10 dígitos)." }, 400);
-    phone = phoneRaw;
+  const phoneDigits = phoneRaw.replace(/\D/g, "");
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+    return json(req, { ok: false, error: "Escribe tu WhatsApp o teléfono (10 dígitos)." }, 400);
   }
+  const phone: string = phoneRaw;
+  if (instagram.length < 2) return json(req, { ok: false, error: "Escribe el Instagram de tu negocio." }, 400);
   if (p.consent !== true) return json(req, { ok: false, error: "Acepta el aviso de privacidad para continuar." }, 400);
 
   let db;
