@@ -92,6 +92,11 @@ export default async function LoginPage({
         Entra con Google usando el mismo correo de tu cuenta. ¿Te invitaron y aún no creas tu cuenta? Abre el link del correo de
         invitación: ahí puedes elegir «Crear cuenta con Google».
       </p>
+      <p className="mt-6 text-center text-xs text-stone-400">
+        <Link href="/privacidad" className="hover:underline">Aviso de Privacidad</Link>
+        {" · "}
+        <Link href="/terminos" className="hover:underline">Condiciones del Servicio</Link>
+      </p>
     </main>
   );
 }
