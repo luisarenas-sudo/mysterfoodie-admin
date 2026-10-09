@@ -7,7 +7,6 @@ function isPublicPath(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/set-password" || pathname === "/forgot-password") return true;
   if (pathname.startsWith("/r/")) return true;
   if (pathname.startsWith("/agendar/")) return true;
-  if (pathname === "/privacidad" || pathname === "/terminos") return true;
   return false;
 }
 

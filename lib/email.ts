@@ -55,6 +55,16 @@ function resolveFromAddress(): string {
   return `MysterFoodie <${raw}>`;
 }
 
+/**
+ * Las cuentas de envío (reportes@, etc.) no reciben correo: cualquier
+ * respuesta debe llegar a la cuenta de soporte. Se puede cambiar con
+ * RESEND_REPLY_TO.
+ */
+export const SUPPORT_EMAIL = "hola@mysterfoodie.com";
+function resolveReplyTo(): string {
+  return process.env.RESEND_REPLY_TO || SUPPORT_EMAIL;
+}
+
 export const BRAND_RED = "#f24444";
 
 /** "#RRGGBB" -> "rgba(r,g,b,a)" (los clientes de correo no siempre entienden #RRGGBBAA). */
@@ -98,6 +108,9 @@ export function renderEmailShell(cardHtml: string): string {
           <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
             MysterFoodie · Evaluaciones objetivas e independientes con el respaldo de
             <a href="https://flancoizquierdo.com/" style="color: #9ca3af; text-decoration: underline;">Flanco Izquierdo</a>.
+          </p>
+          <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
+            ¿Dudas? Escríbenos a <a href="mailto:hola@mysterfoodie.com" style="color: #9ca3af; text-decoration: underline;">hola@mysterfoodie.com</a>.
           </p>
         </div>
       </div>
@@ -195,6 +208,7 @@ export async function sendResultEmail(
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
       html: renderEmailHtml(params),
@@ -267,6 +281,7 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
       html: renderPlainEmailHtml(params.bodyText, params.ctaLabel),
@@ -289,6 +304,7 @@ export async function sendHtmlEmail(params: { to: string; subject: string; html:
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
       html: params.html,
@@ -389,6 +405,7 @@ export async function sendFullReportEmail(
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
       to: params.to,
       subject: fullReportSubject(params.businessName, params.planProgress),
       html: renderFullReportEmailHtml(params),
@@ -524,6 +541,7 @@ export async function sendPlanTicketEmail(params: SendPlanTicketParams): Promise
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
       to: params.to,
       ...(params.bcc && params.bcc.toLowerCase() !== params.to.toLowerCase() ? { bcc: params.bcc } : {}),
       subject: `Tu ticket de servicio · Plan ${params.planName} · ${params.businessName}`,

@@ -93,9 +93,9 @@ export default async function LoginPage({
         invitación: ahí puedes elegir «Crear cuenta con Google».
       </p>
       <p className="mt-6 text-center text-xs text-stone-400">
-        <Link href="/privacidad" className="hover:underline">Aviso de Privacidad</Link>
+        <a href="https://mysterfoodie.com/privacidad/" className="hover:underline">Aviso de Privacidad</a>
         {" · "}
-        <Link href="/terminos" className="hover:underline">Condiciones del Servicio</Link>
+        <a href="https://mysterfoodie.com/terminos/" className="hover:underline">Condiciones del Servicio</a>
       </p>
     </main>
   );
