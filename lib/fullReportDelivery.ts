@@ -3,6 +3,7 @@ import { categoryScores, overallScore, type Ratings } from "./scoring";
 import { buildReportPdf } from "./reportPdf";
 import { fullReportSubject, sendFullReportEmail, type SendEmailOutcome } from "./email";
 import { monthLabel } from "./months";
+import { downloadTicket } from "./ticket";
 
 export type UnlockedForm = {
   id: string;
@@ -69,6 +70,10 @@ export async function deliverFullReportEmail(
   const catScores = categoryScores(ratings, flags);
   const score = form.overall_score || overallScore(ratings, flags);
 
+  // Si la visita ya tiene foto del ticket de consumo, va como página del PDF.
+  const { data: ticketRow } = await db.from("forms").select("ticket_photo_path").eq("id", form.id).maybeSingle();
+  const ticketImage = await downloadTicket(db, ticketRow?.ticket_photo_path ?? null);
+
   const pdfBuffer = await buildReportPdf({
     businessName: client?.name || "Negocio",
     clientType: client?.type ?? null,
@@ -77,6 +82,7 @@ export async function deliverFullReportEmail(
     overallScore: score,
     categoryScores: catScores,
     shortCode: form.short_code,
+    ticketImage,
   });
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";

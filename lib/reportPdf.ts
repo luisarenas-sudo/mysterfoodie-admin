@@ -13,6 +13,8 @@ export type ReportPdfParams = {
   overallScore: number;
   categoryScores: CategoryScore[];
   shortCode: string;
+  /** Foto del ticket de consumo (JPEG/PNG); si viene, se agrega como página. */
+  ticketImage?: Buffer | null;
 };
 
 const RED = "#F24444";
@@ -87,7 +89,7 @@ function scoreBarColor(average: number): string {
  * MercadoPago confirma el pago del reporte completo.
  */
 export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
-  const { businessName, clientType, city, visitDate, overallScore, categoryScores, shortCode } = params;
+  const { businessName, clientType, city, visitDate, overallScore, categoryScores, shortCode, ticketImage } = params;
 
   return new Promise((resolve, reject) => {
     try {
@@ -212,6 +214,26 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
           .fontSize(11)
           .fillColor(MUTED)
           .text("Esta visita no registró indicadores calificados por categoría.", PAGE_MARGIN, rowY);
+      }
+
+      // ---------- Ticket de consumo (si la visita lo tiene) ----------
+      if (ticketImage) {
+        doc.addPage();
+        drawHeader(doc, logo);
+        doc.fontSize(18).fillColor(INK).text("Ticket de consumo", PAGE_MARGIN, 150);
+        doc
+          .fontSize(10)
+          .fillColor(MUTED)
+          .text("Foto del ticket de la visita, subida por el Myster Foodie.", PAGE_MARGIN, doc.y + 6, { width: contentWidth });
+        try {
+          const top = doc.y + 18;
+          doc.image(ticketImage, PAGE_MARGIN, top, {
+            fit: [contentWidth, doc.page.height - top - 70],
+            align: "center",
+          });
+        } catch {
+          doc.fontSize(10.5).fillColor(MUTED).text("No se pudo incluir la foto del ticket en este documento.", PAGE_MARGIN, doc.y + 18);
+        }
       }
 
       // ---------- Página 3: metodología ----------

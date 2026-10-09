@@ -8,6 +8,7 @@ import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "./ActivityRing";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import DeleteButton from "@/components/DeleteButton";
+import TicketCard from "@/components/ticket/TicketCard";
 
 function formatDateLong(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
@@ -120,6 +121,16 @@ export default function MobileVisitDetail({
             <p className="mt-2 text-[15px] leading-relaxed">{visit.comments}</p>
           </div>
         )}
+
+        <div className="mt-3.5">
+          <TicketCard
+            formId={visit.id}
+            hasTicket={visit.hasTicket}
+            uploadedAt={visit.ticketUploadedAt}
+            emailSentAt={visit.ticketEmailSentAt}
+            reportUnlocked={visit.reportUnlocked}
+          />
+        </div>
 
         <div className="mt-3.5">
           <EmailStatusPanel

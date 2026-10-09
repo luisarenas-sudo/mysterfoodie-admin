@@ -7,6 +7,7 @@ import EmailStatusPanel from "@/components/EmailStatusPanel";
 import MobileVisitDetail from "@/components/mobile/MobileVisitDetail";
 import DeleteButton from "@/components/DeleteButton";
 import BackLink from "@/components/BackLink";
+import TicketCard from "@/components/ticket/TicketCard";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,17 @@ export default async function VisitaDetailPage({
               <p className="text-xs text-stone-400">de 5</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <TicketCard
+            variant="desktop"
+            formId={visit.id}
+            hasTicket={visit.hasTicket}
+            uploadedAt={visit.ticketUploadedAt}
+            emailSentAt={visit.ticketEmailSentAt}
+            reportUnlocked={visit.reportUnlocked}
+          />
         </div>
 
         <div className="mt-6">

@@ -161,9 +161,17 @@ export async function GET(req: NextRequest) {
       .select("full_name")
       .eq("id", data.user.id)
       .maybeSingle();
+    // Si la persona eligió su propia foto (o quitó la foto para usar sus
+    // iniciales) en Perfil, no la pisamos con la de Google.
+    const { data: lockRow } = await db
+      .from("profiles")
+      .select("avatar_locked")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    const avatarLocked = Boolean(lockRow?.avatar_locked);
 
     const patch: Record<string, string> = {};
-    if (googleAvatar) patch.avatar_url = googleAvatar;
+    if (googleAvatar && !avatarLocked) patch.avatar_url = googleAvatar;
     if (googleName && !existing?.full_name) patch.full_name = googleName;
 
     if (Object.keys(patch).length > 0) {

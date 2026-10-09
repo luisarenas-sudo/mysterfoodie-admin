@@ -9,6 +9,7 @@ import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 import DeleteButton from "@/components/DeleteButton";
 import FlancoCredit from "@/components/FlancoCredit";
 import EasterEggBee from "@/components/EasterEggBee";
+import { Group, Row } from "@/components/perfil/ListRow";
 
 export const dynamic = "force-dynamic";
 
@@ -73,24 +74,12 @@ export default async function PerfilPage({
 
   return (
     <>
-    <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
+    <div className="md:hidden min-h-[70vh] pb-6" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pb-3.5 pt-5">
         <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
           MYSTERFOODIE
         </div>
         <div className="heading text-[34px] font-bold">Perfil</div>
-      </div>
-
-      <div className="card mx-5 mt-4 mb-5 flex items-center gap-3.5 p-[18px]">
-        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
-        <div className="min-w-0">
-          <div className="truncate text-[17px] font-bold">{displayName}</div>
-          {displayName !== profile.email && (
-            <div className="truncate text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              {profile.email}
-            </div>
-          )}
-        </div>
       </div>
 
       {google === "conectado" && (
@@ -104,27 +93,53 @@ export default async function PerfilPage({
         </p>
       )}
 
-      <div className="card mx-5 mb-5 p-[18px]">
-        {profile.hasGoogleIdentity ? (
-          <div className="flex items-center gap-2.5">
-            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
-              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 0 0 9 18z" />
-              <path fill="#FBBC05" d="M3.95 10.7a5.4 5.4 0 0 1 0-3.4V4.97H.95a9 9 0 0 0 0 8.06l3-2.33z" />
-              <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
-            </svg>
-            <span className="text-[14px] font-semibold">Cuenta de Google conectada</span>
-            <span className="ml-auto text-[13px]" style={{ color: "#248A3D" }}>✓</span>
+      {/* Tarjeta de identidad: toda es un botón hacia Editar perfil */}
+      <Link href="/perfil/editar" className="card mf-tap mx-5 mb-6 flex flex-col items-center px-5 pb-5 pt-6 text-center">
+        <div className="relative">
+          <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-24 w-24 text-3xl" />
+          <span
+            className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full text-[16px]"
+            style={{ background: "#F24444", border: "3px solid #fff" }}
+            aria-hidden="true"
+          >
+            📷
+          </span>
+        </div>
+        <div className="mt-3.5 max-w-full truncate text-[20px] font-bold">{displayName}</div>
+        {displayName !== profile.email && (
+          <div className="max-w-full truncate text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+            {profile.email}
           </div>
-        ) : (
-          <>
-            <p className="mb-3 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Conecta tu cuenta de Google para que tu foto de perfil se vea bien en toda la app.
+        )}
+        {currentRank && (
+          <div className="mt-2.5 rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ color: "#F24444", background: "rgba(242,68,68,0.1)" }}>
+            {currentRank.emoji} {currentRank.label}
+          </div>
+        )}
+        <div className="mt-3 text-[12.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
+          Toca para cambiar tu foto y tus datos
+        </div>
+      </Link>
+
+      <Group title="Cuenta">
+        <Row href="/perfil/editar" icon="📷" iconBg="#F24444" title="Foto y datos" subtitle="Tu foto, nombre y teléfono" />
+        <Row
+          href="/perfil/seguridad"
+          icon="🔑"
+          iconBg="#FF9500"
+          title="Contraseña y acceso"
+          detail={profile.hasGoogleIdentity ? "Google ✓" : undefined}
+          last={profile.hasGoogleIdentity}
+        />
+        {!profile.hasGoogleIdentity && (
+          <div className="px-4 py-3.5">
+            <p className="mb-3 text-[13px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
+              Conecta tu cuenta de Google para entrar con un toque.
             </p>
             <ConnectGoogleButton />
-          </>
+          </div>
         )}
-      </div>
+      </Group>
 
       {!isCliente && currentRank && (
       <>
@@ -204,11 +219,31 @@ export default async function PerfilPage({
       )}
 
       {(profile.role === "admin" || profile.role === "sibarita") && (
-        <div className="mx-5">
+        <div className="mx-5 mb-6">
           {profile.role === "admin" && <MobileInviteForm />}
           {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
         </div>
       )}
+
+      <Group title="Herramientas">
+        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+          <Row
+            href="/finanzas"
+            icon="💰"
+            iconBg="#34C759"
+            title="Finanzas"
+            subtitle={profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes"}
+            last={profile.role !== "admin"}
+          />
+        )}
+        {profile.role === "admin" && (
+          <>
+            <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Foodies y sus roles" />
+            <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
+            <Row href="/planes" icon="📅" iconBg="#007AFF" title="Planes" subtitle="Visitas mensuales contratadas por sucursal" last />
+          </>
+        )}
+      </Group>
 
       <div
         className="mx-5 mt-5 rounded-[18px] p-5 text-center"
@@ -239,76 +274,6 @@ export default async function PerfilPage({
       </div>
 
       {profile.role === "admin" && (
-        <Link
-          href="/admin/usuarios"
-          className="card mx-5 mt-4 flex items-center justify-between p-4"
-        >
-          <div>
-            <div className="text-[14.5px] font-bold">Usuarios</div>
-            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              Administra Sibaritas, Foodies y sus roles
-            </div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
-            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Link>
-      )}
-
-      {profile.role === "admin" && (
-        <Link
-          href="/automatizaciones"
-          className="card mx-5 mt-4 flex items-center justify-between p-4"
-        >
-          <div>
-            <div className="text-[14.5px] font-bold">Automatizaciones</div>
-            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              Correos automáticos y agenda de asesorías
-            </div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
-            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Link>
-      )}
-
-      {profile.role === "admin" && (
-        <Link
-          href="/planes"
-          className="card mx-5 mt-4 flex items-center justify-between p-4"
-        >
-          <div>
-            <div className="text-[14.5px] font-bold">Planes</div>
-            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              Visitas mensuales contratadas por sucursal
-            </div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
-            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Link>
-      )}
-
-      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-        <Link
-          href="/finanzas"
-          className="card mx-5 mt-4 flex items-center justify-between p-4"
-        >
-          <div>
-            <div className="text-[14.5px] font-bold">Finanzas</div>
-            <div className="mt-0.5 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              {profile.role === "admin"
-                ? "Ventas y ganancias de todos los perfiles, por mes"
-                : "Tus ganancias por mes"}
-            </div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
-            <path d="M9 6l6 6-6 6" stroke="rgba(60,60,67,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Link>
-      )}
-
-      {profile.role === "admin" && (
         <div className="mx-5">
           <DeleteButton
             endpoint="/api/admin/reset-demo-data"
@@ -321,11 +286,7 @@ export default async function PerfilPage({
       )}
 
       <form action={signOut} className="mx-5 mt-6 mb-8">
-        <button
-          type="submit"
-          className="card w-full py-3.5 text-[15px]"
-          style={{ color: "#FF3B30" }}
-        >
+        <button type="submit" className="card mf-tap flex min-h-[56px] w-full items-center justify-center text-[16px] font-semibold" style={{ color: "#FF3B30" }}>
           Cerrar sesión
         </button>
       </form>
@@ -353,6 +314,15 @@ export default async function PerfilPage({
             {displayName !== profile.email ? ` · ${profile.email}` : ""}
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link href="/perfil/editar" className="btn-secondary text-sm">
+          Editar foto y datos
+        </Link>
+        <Link href="/perfil/seguridad" className="btn-secondary text-sm">
+          Contraseña y acceso
+        </Link>
       </div>
 
       {google === "conectado" && (

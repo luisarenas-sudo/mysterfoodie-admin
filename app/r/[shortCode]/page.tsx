@@ -29,7 +29,7 @@ async function loadReport(shortCode: string) {
 
   const { data: form } = await db
     .from("forms")
-    .select("id, overall_score, created_at, client_id, report_unlocked_at, menu_type, comments")
+    .select("id, overall_score, created_at, client_id, report_unlocked_at, menu_type, comments, ticket_photo_path")
     .eq("short_code", shortCode)
     .maybeSingle();
 
@@ -133,11 +133,13 @@ function FullReportDetail({
   flags,
   menuType,
   comments,
+  ticketHref,
 }: {
   ratings: Ratings;
   flags: Record<string, boolean>;
   menuType: string | null;
   comments: string | null;
+  ticketHref?: string | null;
 }) {
   return (
     <div className="mt-10 space-y-8">
@@ -204,6 +206,15 @@ function FullReportDetail({
         <div className="card p-4">
           <p className="text-sm font-medium text-ink">Comentarios del mystery shopper</p>
           <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">{comments}</p>
+        </div>
+      )}
+      {ticketHref && (
+        <div className="card p-4">
+          <p className="text-sm font-medium text-ink">Ticket de consumo</p>
+          <a href={ticketHref} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-lg bg-stone-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={ticketHref} alt="Ticket de consumo de la visita" className="mx-auto max-h-[28rem] w-auto object-contain" />
+          </a>
         </div>
       )}
     </div>
@@ -275,6 +286,7 @@ export default async function ReportPage({
         flags={flags}
         menuType={form.menu_type}
         comments={form.comments}
+        hasTicket={Boolean(form.ticket_photo_path)}
       />
 
     <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
@@ -344,13 +356,15 @@ export default async function ReportPage({
           flags={flags}
           menuType={form.menu_type}
           comments={form.comments}
+          ticketHref={form.ticket_photo_path ? `/r/${shortCode}/ticket` : null}
         />
       ) : (
         <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
           <p className="font-medium text-ink">Este es un resumen por categoría.</p>
           <p className="mt-2 font-medium text-ink">
             El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores
-            evaluados dentro de cada categoría y los comentarios del mystery shopper.
+            evaluados dentro de cada categoría y los comentarios del mystery shopper
+            {form.ticket_photo_path ? ", además del ticket de consumo de la visita" : ""}.
           </p>
           {mercadopagoConfigured ? (
             <CheckoutPayerForm shortCode={shortCode} price={FULL_REPORT_PRICE_MXN} />

@@ -286,6 +286,12 @@ export type VisitFullDetail = {
   /** Promedio y número de visitas del negocio (todas, no solo esta), para dar contexto en el detalle. */
   clientAverageScore: number | null;
   clientVisitCount: number;
+  /** Ticket de consumo (foto) de la visita y estado de su aviso al negocio. */
+  hasTicket: boolean;
+  ticketUploadedAt: string | null;
+  ticketEmailSentAt: string | null;
+  /** El negocio ya tiene el reporte completo (pagado o de plan): el aviso del ticket no lleva oferta. */
+  reportUnlocked: boolean;
 };
 
 /**
@@ -305,7 +311,7 @@ export async function getVisitDetail(
   let query = db
     .from("forms")
     .select(
-      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments, created_by"
+      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments, created_by, ticket_photo_path, ticket_uploaded_at, ticket_email_sent_at, report_unlocked_at, plan_id"
     )
     .eq("id", formId);
   // Un agente/sibarita solo puede ver el detalle de visitas que él mismo
@@ -389,6 +395,10 @@ export async function getVisitDetail(
       : null,
     clientAverageScore,
     clientVisitCount: clientScores.length,
+    hasTicket: Boolean(form.ticket_photo_path),
+    ticketUploadedAt: form.ticket_uploaded_at ?? null,
+    ticketEmailSentAt: form.ticket_email_sent_at ?? null,
+    reportUnlocked: Boolean(form.report_unlocked_at || form.plan_id),
   };
 }
 

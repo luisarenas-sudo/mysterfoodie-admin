@@ -19,6 +19,20 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.12.0",
+    date: "2026-10-09",
+    title: "Ticket de consumo y Perfil con foto",
+    emoji: "🧾",
+    highlights: [
+      "En cada visita ya enviada puedes subir la foto del ticket de consumo (tomarla o elegirla de la galería), cambiarla o quitarla.",
+      "3 días después de subirlo, el negocio recibe un correo: si aún no tiene el reporte completo, con la oferta de $850 MXN y el botón a su reporte; si ya lo pagó, solo se le avisa que hay más información en su visita.",
+      "El ticket aparece en el reporte público una vez desbloqueado y como página del PDF del reporte completo.",
+      "Perfil rediseñado con listas estilo iOS: renglones grandes para el dedo, tarjeta de identidad con tu foto y accesos claros a tus datos, contraseña, herramientas y cerrar sesión.",
+      "Nueva pantalla Editar perfil: foto propia en vez de las iniciales (cámara o galería), nombre y teléfono. El login con Google ya no pisa la foto que elijas.",
+      "Nueva pantalla Contraseña y acceso: cambiar o crear tu contraseña y conectar Google.",
+    ],
+  },
+  {
     version: "0.11.0",
     date: "2026-10-09",
     title: "Acceso de 5 días y bajas de usuarios",

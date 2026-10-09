@@ -62,11 +62,14 @@ function FullDetail({
   flags,
   menuType,
   comments,
+  ticketHref,
 }: {
   ratings: Ratings;
   flags: Record<string, boolean>;
   menuType: string | null;
   comments: string | null;
+  /** Foto del ticket de consumo (solo se pasa si la visita la tiene). */
+  ticketHref?: string | null;
 }) {
   return (
     <div className="px-5 pb-8 pt-2">
@@ -115,6 +118,15 @@ function FullDetail({
           </div>
         </div>
       )}
+      {ticketHref && (
+        <div className="card mt-3 p-4">
+          <div className="text-[13px] font-semibold">Ticket de consumo</div>
+          <a href={ticketHref} target="_blank" rel="noreferrer" className="mt-2.5 block overflow-hidden rounded-xl" style={{ background: "#F2F2F7" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={ticketHref} alt="Ticket de consumo de la visita" className="mx-auto max-h-96 w-auto object-contain" />
+          </a>
+        </div>
+      )}
     </div>
   );
 }
@@ -134,7 +146,10 @@ export default function MobileReportePublico({
   flags,
   menuType,
   comments,
+  hasTicket = false,
 }: {
+  /** La visita tiene foto del ticket de consumo. */
+  hasTicket?: boolean;
   shortCode: string;
   /** Link a /agendar/[shortCode] cuando hay calendario conectado; null = no se ofrece. */
   agendaHref?: string | null;
@@ -237,7 +252,7 @@ export default function MobileReportePublico({
       )}
 
       {unlocked ? (
-        <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} />
+        <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} />
       ) : (
         <>
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
@@ -245,6 +260,11 @@ export default function MobileReportePublico({
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
               <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
               tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro Myster Foodie.
+              {hasTicket && (
+                <>
+                  {" "}Incluye también el <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>ticket de consumo</span> de la visita.
+                </>
+              )}
             </div>
           </div>
 
