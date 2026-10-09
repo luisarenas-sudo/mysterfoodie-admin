@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 
-export default function GoogleSignInButton({ next }: { next?: string }) {
+/**
+ * `invite`: token de una invitación (viene de /set-password?t=...). Con él, "Crear cuenta con
+ * Google" funciona aunque la cuenta de Google tenga un correo distinto al de la invitación:
+ * el callback liga esa cuenta a la invitación (rol y negocio incluidos).
+ */
+export default function GoogleSignInButton({ next, invite, label }: { next?: string; invite?: string | null; label?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,6 +19,7 @@ export default function GoogleSignInButton({ next }: { next?: string }) {
       const supabase = await createSupabaseBrowserClient();
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (next) redirectTo.searchParams.set("next", next);
+      if (invite) redirectTo.searchParams.set("invite", invite);
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -59,7 +65,7 @@ export default function GoogleSignInButton({ next }: { next?: string }) {
             d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"
           />
         </svg>
-        {loading ? "Conectando…" : "Continuar con Google"}
+        {loading ? "Conectando…" : label ?? "Continuar con Google"}
       </button>
       {error && <p className="mt-2 text-sm text-brand-700">{error}</p>}
     </div>

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { safeNextPath } from "@/lib/safeNext";
+import { checkToken, consumeAccessToken } from "@/lib/accessTokens";
 
 /**
  * Callback de OAuth (Google Sign-In). Supabase redirige aquí con un
@@ -67,6 +68,62 @@ export async function GET(req: NextRequest) {
     await clearStaleCodeVerifierCookies();
     const qs = new URLSearchParams({ error: error?.message || "No se pudo completar la conexión con Google." });
     return NextResponse.redirect(new URL(`${errorRedirectPath}?${qs.toString()}`, baseUrl));
+  }
+
+  // --- Cuentas nuevas con Google ---------------------------------------------------
+  // El acceso es por invitación. Si esta cuenta de Google es NUEVA (no existía), solo
+  // se acepta cuando viene de una invitación vigente: se liga la cuenta a esa
+  // invitación (rol y negocio) aunque el correo de Google sea otro. Sin invitación, no
+  // se deja una cuenta "cliente" vacía dando vueltas: se elimina y se avisa.
+  const inviteToken = req.nextUrl.searchParams.get("invite");
+  const adminDb = getSupabaseServiceClient();
+  const createdMsAgo = Date.now() - new Date(data.user.created_at).getTime();
+  const { data: gProfile } = await adminDb
+    .from("profiles")
+    .select("role, client_id")
+    .eq("id", data.user.id)
+    .maybeSingle();
+  let boundToInvite = false;
+  const isFreshStray = createdMsAgo < 10 * 60 * 1000 && (!gProfile || (gProfile.role === "cliente" && !gProfile.client_id));
+
+  if (inviteToken) {
+    const check = await checkToken(adminDb, inviteToken);
+    if (check.ok && check.row.purpose === "invite") {
+      const invitedId = check.row.user_id;
+      if (invitedId === data.user.id) {
+        await consumeAccessToken(adminDb, check.row.id); // mismo correo: Supabase ya la vinculó
+      } else if (isFreshStray) {
+        const { data: invitedAuth } = await adminDb.auth.admin.getUserById(invitedId);
+        const { data: invitedProfile } = await adminDb
+          .from("profiles")
+          .select("full_name, role, client_id")
+          .eq("id", invitedId)
+          .maybeSingle();
+        if (invitedProfile && !invitedAuth?.user?.last_sign_in_at) {
+          await adminDb.from("profiles").upsert({
+            id: data.user.id,
+            email: data.user.email ?? check.row.email,
+            full_name: invitedProfile.full_name,
+            role: invitedProfile.role,
+            client_id: invitedProfile.client_id,
+          });
+          await adminDb.auth.admin.deleteUser(invitedId); // el perfil provisional se va en cascada
+          await consumeAccessToken(adminDb, check.row.id);
+          boundToInvite = true;
+        }
+      }
+    }
+  }
+
+  if (isFreshStray && !boundToInvite && !next.startsWith("/perfil")) {
+    await adminDb.auth.admin.deleteUser(data.user.id);
+    await supabase.auth.signOut();
+    await clearStaleCodeVerifierCookies();
+    const qs = new URLSearchParams({
+      error:
+        "Ese correo de Google no tiene una invitación a MysterFoodie. Abre el link de tu invitación y elige «Crear cuenta con Google», o usa el mismo correo al que llegó la invitación.",
+    });
+    return NextResponse.redirect(new URL(`/login?${qs.toString()}`, baseUrl));
   }
 
   // Copiamos foto y nombre de Google al perfil (con service role porque

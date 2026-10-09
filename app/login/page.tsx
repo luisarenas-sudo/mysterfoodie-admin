@@ -88,6 +88,10 @@ export default async function LoginPage({
       </div>
 
       <GoogleSignInButton next={next} />
+      <p className="mt-2 text-xs leading-relaxed text-stone-400">
+        Entra con Google usando el mismo correo de tu cuenta. ¿Te invitaron y aún no creas tu cuenta? Abre el link del correo de
+        invitación: ahí puedes elegir «Crear cuenta con Google».
+      </p>
     </main>
   );
 }

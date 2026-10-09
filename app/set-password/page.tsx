@@ -393,7 +393,12 @@ export default function SetPasswordPage() {
             <span className="h-px flex-1 bg-stone-200" />
           </div>
           <div className="mt-4">
-            <GoogleSignInButton />
+            <GoogleSignInButton invite={ownToken} label={ownToken ? "Crear cuenta con Google" : "Continuar con Google"} />
+            <p className="mt-2 text-xs leading-relaxed text-stone-400">
+              {ownToken
+                ? "Con Google no necesitas contraseña. Puedes usar cualquier cuenta de Google: quedará ligada a esta invitación con tu mismo rol."
+                : "Si te invitaron, abre el link de tu invitación para crear tu cuenta con Google. Si ya tienes cuenta, entra con el mismo correo de siempre."}
+            </p>
           </div>
         </div>
       )}
