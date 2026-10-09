@@ -18,6 +18,8 @@ export type InviteRoleContent = {
 };
 
 const mxn = (n: number) => formatMxn(n).replace(" MXN", "");
+/** Cifras redondeadas a la decena (más claras en un correo) y siempre con "hasta": nunca se asegura un ingreso. */
+const hasta = (n: number) => `hasta ${mxn(Math.round(n / 10) * 10)}`;
 
 export function inviteContentForRole(role: string, businessName?: string | null): InviteRoleContent {
   const sc2 = scenarioByKey("2"); // Master Chef vende y el Foodie visita
@@ -39,11 +41,11 @@ export function inviteContentForRole(role: string, businessName?: string | null)
         {
           emoji: "💸",
           title: "Ganas por cada reporte",
-          text: `${mxn(foodieReport)} por reporte entregado. En los planes mensuales, ${mxn(foodiePlan(PLAN_CATALOG.starter.pricePerVisit))}, ${mxn(foodiePlan(PLAN_CATALOG.appetizer.pricePerVisit))} o ${mxn(foodiePlan(PLAN_CATALOG.main_course.pricePerVisit))} por visita, cada mes que el plan siga activo.`,
+          text: `${hasta(foodieReport)} por reporte entregado. En los planes mensuales, ${hasta(foodiePlan(PLAN_CATALOG.starter.pricePerVisit))} por visita, cada mes que el plan siga activo.`,
         },
       ],
       goal: {
-        title: `Tu meta del primer mes: ${goalVisits} visitas = ${mxn(foodieReport * goalVisits)} extra`,
+        title: `Tu meta del primer mes: ${goalVisits} visitas = ${hasta(foodieReport * goalVisits)} extra`,
         body:
           `Piensa en tus ${goalVisits} salidas normales del mes: el desayuno de siempre, la comida del fin de semana, una cena con amigos, el café de la tarde. ` +
           `Cuéntale a quien te invitó cuáles son; si el lugar es de los que evaluamos, te lo asignamos y esa salida se convierte en una visita pagada. Sin salir de tu rutina.`,
@@ -69,15 +71,15 @@ export function inviteContentForRole(role: string, businessName?: string | null)
         {
           emoji: "💸",
           title: "Ganas por cada reporte vendido",
-          text: `${mxn(sibaritaSelf)} si lo vendes y lo visitas tú; ${mxn(sibaritaAssign)} si asignas la visita a un Foodie.`,
+          text: `${hasta(sibaritaSelf)} si lo vendes y lo visitas tú; ${hasta(sibaritaAssign)} si asignas la visita a un Foodie.`,
         },
         { emoji: "👥", title: "Invitas Foodies", text: "Sumas gente a tu red para repartir las visitas." },
       ],
       goal: {
-        title: `Tu meta del primer mes: ${goalSales} negocios con reporte = ${mxn(sibaritaSelf * goalSales)} extra`,
+        title: `Tu meta del primer mes: ${goalSales} negocios con reporte = ${hasta(sibaritaSelf * goalSales)} extra`,
         body:
           `Elige ${goalSales} lugares donde ya eres cliente: tu café, tu restaurante favorito, el bar de los viernes. ` +
-          `Dalos de alta, visítalos y comparte el resultado con el dueño; cada vez que un negocio adquiere el estudio completo, ${mxn(sibaritaSelf)} son tuyos.`,
+          `Dalos de alta, visítalos y comparte el resultado con el dueño; cada vez que un negocio adquiere el estudio completo, puedes ganar ${hasta(sibaritaSelf)}.`,
         footnote: "Es un ejemplo, no una promesa de ingreso: se gana cuando el negocio adquiere el reporte, y eso depende de cada dueño.",
       },
       steps: [
