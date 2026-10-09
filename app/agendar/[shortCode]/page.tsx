@@ -16,7 +16,7 @@ async function loadClientByShortCode(shortCode: string) {
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id")
+    .select("id, client_id, report_unlocked_at")
     .eq("short_code", shortCode)
     .maybeSingle();
   if (!form) return null;
@@ -27,7 +27,7 @@ async function loadClientByShortCode(shortCode: string) {
     .eq("id", form.client_id)
     .maybeSingle();
 
-  return { client };
+  return { client, unlocked: Boolean(form.report_unlocked_at) };
 }
 
 export default async function AgendarPage({
@@ -53,6 +53,32 @@ export default async function AgendarPage({
     );
   }
   if (!data) return notFound();
+
+  // La asesoría gratuita se incluye con el reporte completo: sin él no se agenda.
+  if (!data.unlocked) {
+    return (
+      <main className="min-h-screen pb-16 pt-8" style={{ background: "#F2F2F7" }}>
+        <div className="mx-auto max-w-sm px-5 text-center">
+          <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>
+            MysterFoodie
+          </p>
+          <h1 className="heading mt-1 text-[22px] font-bold">Asesoría gratuita</h1>
+        </div>
+        <div className="card mx-auto mt-6 max-w-sm p-6 text-center">
+          <p className="text-[14.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
+            La asesoría gratuita de 20 minutos se incluye al obtener el reporte completo de tu visita.
+          </p>
+          <a
+            href={`/r/${shortCode}`}
+            className="mf-tap mt-4 block rounded-[14px] py-3.5 text-center text-[15px] font-bold text-white"
+            style={{ background: "#F24444" }}
+          >
+            Ver mi reporte
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   let slots: SlotOption[] = [];
   let loadError: string | null = null;

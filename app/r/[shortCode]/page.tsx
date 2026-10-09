@@ -260,10 +260,17 @@ export default async function ReportPage({
 
   // La asesoría gratuita solo se ofrece si hay un calendario conectado (si
   // no, /agendar solo mostraría "no disponible").
+  // La asesoría gratuita es parte del reporte completo: solo se ofrece (link a
+  // agendar) cuando ya está desbloqueado; mientras tanto solo se menciona que
+  // se incluye al comprarlo.
   let agendaHref: string | null = null;
+  let agendaIncluded = false;
   try {
     const { connected } = await isCalendarConnected();
-    if (connected) agendaHref = `/agendar/${shortCode}`;
+    if (connected) {
+      if (unlocked) agendaHref = `/agendar/${shortCode}`;
+      else agendaIncluded = true;
+    }
   } catch {
     agendaHref = null;
   }
@@ -274,6 +281,7 @@ export default async function ReportPage({
       <MobileReportePublico
         shortCode={shortCode}
         agendaHref={agendaHref}
+        agendaIncluded={agendaIncluded}
         clientName={client?.name ?? "tu negocio"}
         overallScore={form.overall_score}
         categories={visibleCategories}
@@ -366,6 +374,11 @@ export default async function ReportPage({
             evaluados dentro de cada categoría y los comentarios del mystery shopper
             {form.ticket_photo_path ? ", además del ticket de consumo de la visita" : ""}.
           </p>
+          {agendaIncluded && (
+            <p className="mt-2 text-sm text-stone-600">
+              Incluye una asesoría gratuita de 20 minutos para platicar qué mover primero.
+            </p>
+          )}
           {mercadopagoConfigured ? (
             <CheckoutPayerForm shortCode={shortCode} price={FULL_REPORT_PRICE_MXN} />
           ) : whatsappFallbackLink ? (

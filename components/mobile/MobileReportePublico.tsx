@@ -142,6 +142,7 @@ export default function MobileReportePublico({
   whatsappFallbackLink,
   paymentStatus,
   agendaHref = null,
+  agendaIncluded = false,
   ratings,
   flags,
   menuType,
@@ -151,8 +152,10 @@ export default function MobileReportePublico({
   /** La visita tiene foto del ticket de consumo. */
   hasTicket?: boolean;
   shortCode: string;
-  /** Link a /agendar/[shortCode] cuando hay calendario conectado; null = no se ofrece. */
+  /** Link a /agendar/[shortCode] solo cuando hay calendario y el reporte ya está desbloqueado; null = no se ofrece. */
   agendaHref?: string | null;
+  /** Reporte bloqueado con calendario conectado: se menciona que la asesoría se incluye al comprarlo. */
+  agendaIncluded?: boolean;
   clientName: string;
   overallScore: number;
   categories: { key: string; label: string; average: number; count: number }[];
@@ -263,6 +266,11 @@ export default function MobileReportePublico({
               {hasTicket && (
                 <>
                   {" "}Incluye también el <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>ticket de consumo</span> de la visita.
+                </>
+              )}
+              {agendaIncluded && (
+                <>
+                  {" "}Y una <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>asesoría gratuita de 20 minutos</span> para platicar qué mover primero.
                 </>
               )}
             </div>

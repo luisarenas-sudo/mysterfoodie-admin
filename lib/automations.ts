@@ -32,7 +32,7 @@ export type AutomationCatalogEntry = {
 export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
   asesoria_gratuita: {
     title: "Asesoría gratuita (correo de seguimiento)",
-    desc: "Se manda a las 8am (CDMX) del día después de la visita, ofreciendo 20 min gratis para hablar del negocio. Si la desactivas, ese correo deja de mandarse.",
+    desc: "Se manda a las 8am (CDMX) del día siguiente a que el negocio compra el reporte completo, ofreciéndole 20 min gratis para hablar del negocio (la asesoría se incluye con el reporte; sin compra no se ofrece). Si la desactivas, ese correo deja de mandarse.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "link_agenda", desc: "Enlace para agendar la asesoría" },

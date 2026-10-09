@@ -5,8 +5,10 @@ import { sendTemplatedEmail } from "@/lib/email";
 
 /**
  * Dispara el correo de "asesoría gratuita" (automatización
- * "asesoria_gratuita") para las visitas de AYER (hora CDMX) que
- * todavía no lo reciben. Pensado para llamarse una vez al día a las
+ * "asesoria_gratuita") a los negocios que compraron el reporte completo
+ * AYER (hora CDMX) y todavía no lo reciben: la asesoría se incluye con el
+ * reporte, así que se cuenta desde el pago (report_unlocked_at), no desde
+ * la visita. Pensado para llamarse una vez al día a las
  * 8am CDMX desde un Cron Job de Supabase (Database > Cron) apuntando
  * a esta URL con el header `x-cron-secret: ${CRON_SECRET}` -- ver
  * lib/googleCalendar.ts para el resto de la automatización.
@@ -56,15 +58,16 @@ export async function GET(req: NextRequest) {
   void todayCdmx;
 
   // Solo negocios que compraron el reporte detallado (report_unlocked_at):
-  // la asesoría gratuita es parte de ese servicio, no se ofrece a todos.
+  // la asesoría gratuita es parte de ese servicio, no se ofrece a todos. Se
+  // manda al día siguiente del pago, aunque la visita haya sido días antes.
   const { data: forms, error } = await db
     .from("forms")
     .select("id, short_code, client_id, created_at")
     .is("followup_sent_at", null)
     .is("plan_id", null) // las visitas de un plan no llevan el correo de venta de la asesoría
     .not("report_unlocked_at", "is", null)
-    .gte("created_at", start.toISOString())
-    .lt("created_at", end.toISOString());
+    .gte("report_unlocked_at", start.toISOString())
+    .lt("report_unlocked_at", end.toISOString());
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

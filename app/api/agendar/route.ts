@@ -30,11 +30,17 @@ export async function POST(req: NextRequest) {
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id")
+    .select("id, client_id, report_unlocked_at")
     .eq("short_code", shortCode)
     .maybeSingle();
   if (!form) {
     return NextResponse.json({ error: "No se encontró el enlace" }, { status: 404 });
+  }
+  if (!form.report_unlocked_at) {
+    return NextResponse.json(
+      { error: "La asesoría gratuita se incluye al obtener el reporte completo." },
+      { status: 403 }
+    );
   }
 
   const { data: client } = await db
