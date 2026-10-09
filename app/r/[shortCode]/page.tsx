@@ -16,6 +16,8 @@ import FlancoCredit from "@/components/FlancoCredit";
 import MobileReportePublico from "@/components/mobile/MobileReportePublico";
 import CheckoutPayerForm from "@/components/CheckoutPayerForm";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { getShareData, starsText } from "@/lib/reportShare";
 
 export const dynamic = "force-dynamic";
 
@@ -219,6 +221,28 @@ function FullReportDetail({
       )}
     </div>
   );
+}
+
+/**
+ * Vista previa al compartir el enlace (Instagram, WhatsApp, etc.): título con
+ * estrellas y calificación, y descripción amistosa. La imagen sale de
+ * opengraph-image.tsx (misma carpeta).
+ */
+export async function generateMetadata({ params }: { params: Promise<{ shortCode: string }> }): Promise<Metadata> {
+  const { shortCode } = await params;
+  const d = await getShareData(shortCode);
+  if (!d) {
+    return { title: "MysterFoodie · Resultado de la evaluación" };
+  }
+  const where = d.city ? ` en ${d.city}` : "";
+  const title = `${d.name}: ${d.score.toFixed(1)} de 5 ${starsText(d.score)} · ${d.verdictLabel}`;
+  const description = `Así salió la visita Mystery Shopper a ${d.name}${where}. ${d.verdictSummary} Mira el resultado y desbloquea el reporte completo con asesoría gratuita. Palabra Foodie.`;
+  return {
+    title,
+    description,
+    openGraph: { type: "website", siteName: "MysterFoodie", locale: "es_MX", title, description },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export default async function ReportPage({

@@ -20,9 +20,28 @@ const nanHolo = localFont({
   variable: "--font-nan-holo",
 });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://app.mysterfoodie.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "MysterFoodie - Evaluación Mystery Shopper",
   description: "Levantamiento de evaluaciones Mystery Shopper para restaurantes y bares",
+  // Tarjeta por defecto para cualquier enlace de la app que se pegue en un chat
+  // (el reporte público la reemplaza con su propia tarjeta, ver app/r/[shortCode]).
+  openGraph: {
+    type: "website",
+    siteName: "MysterFoodie",
+    locale: "es_MX",
+    title: "MysterFoodie · Evaluaciones Mystery Shopper",
+    description: "Palabra Foodie, orgullo sibarita: visitas anónimas, 52 indicadores y un reporte claro para tu restaurante o bar.",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "MysterFoodie" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MysterFoodie · Evaluaciones Mystery Shopper",
+    description: "Palabra Foodie, orgullo sibarita: visitas anónimas, 52 indicadores y un reporte claro para tu restaurante o bar.",
+    images: ["/og.jpg"],
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
