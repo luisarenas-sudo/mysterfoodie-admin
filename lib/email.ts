@@ -344,6 +344,16 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
   `);
 }
 
+/** Asunto del correo del reporte completo (también se guarda en el registro de correos). */
+export function fullReportSubject(
+  businessName: string,
+  planProgress?: { done: number; total: number }
+): string {
+  return planProgress
+    ? `Visita ${planProgress.done} de ${planProgress.total}: reporte de ${businessName}`
+    : `Tu reporte completo de ${businessName} ya está listo`;
+}
+
 /** Correo con el PDF del reporte completo adjunto, mandado al comprador
  * cuando MercadoPago confirma el pago (ver app/api/mercadopago/webhook). */
 export async function sendFullReportEmail(
@@ -360,9 +370,7 @@ export async function sendFullReportEmail(
     const result = await resend.emails.send({
       from: resolveFromAddress(),
       to: params.to,
-      subject: params.planProgress
-        ? `Visita ${params.planProgress.done} de ${params.planProgress.total}: reporte de ${params.businessName}`
-        : `Tu reporte completo de ${params.businessName} ya está listo`,
+      subject: fullReportSubject(params.businessName, params.planProgress),
       html: renderFullReportEmailHtml(params),
       attachments: [
         {

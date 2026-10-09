@@ -1,7 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PRICE_MXN, SCENARIOS, type ScenarioKey } from "@/lib/earningsMatrix";
+import { PRICE_MXN, SCENARIOS, splitForPrice, type ScenarioKey } from "@/lib/earningsMatrix";
+import { PLAN_CATALOG, PLAN_KEYS } from "@/lib/planCatalog";
+
+/** Precios que se pueden simular: el reporte suelto y la tarifa por visita de cada plan. */
+const PRICE_OPTIONS: { value: string; label: string; price: number }[] = [
+  { value: "report", label: `Reporte suelto · ${PRICE_MXN}`, price: PRICE_MXN },
+  ...PLAN_KEYS.map((k) => ({
+    value: k,
+    label: `Plan ${PLAN_CATALOG[k].name} · ${PLAN_CATALOG[k].pricePerVisit} por visita`,
+    price: PLAN_CATALOG[k].pricePerVisit,
+  })),
+];
 
 const ROLE_LABEL = { admin: "Master Chef (Admin)", sibarita: "Sibarita", foodie: "Foodie" } as const;
 
@@ -19,6 +30,8 @@ function mxn(n: number) {
  * visita, sin excepción.
  */
 export default function FinanzasCalculator() {
+  const [priceKey, setPriceKey] = useState("report");
+  const price = PRICE_OPTIONS.find((o) => o.value === priceKey)?.price ?? PRICE_MXN;
   const [counts, setCounts] = useState<Record<ScenarioKey, string>>({
     "1": "",
     "2": "",
@@ -35,16 +48,17 @@ export default function FinanzasCalculator() {
   const rows = useMemo(() => {
     return SCENARIOS.map((s) => {
       const n = Math.max(0, parseInt(counts[s.key], 10) || 0);
+      const sp = splitForPrice(s, price);
       return {
         scenario: s,
         n,
-        admin: s.admin * n,
-        sibarita: s.sibarita * n,
-        foodie: s.foodie * n,
-        total: PRICE_MXN * n,
+        admin: sp.admin * n,
+        sibarita: sp.sibarita * n,
+        foodie: sp.foodie * n,
+        total: price * n,
       };
     });
-  }, [counts]);
+  }, [counts, price]);
 
   const totals = useMemo(() => {
     return rows.reduce(
@@ -67,7 +81,7 @@ export default function FinanzasCalculator() {
   const applicableScenarios = SCENARIOS.filter((s) => s[indRole] > 0);
   const chosenScenario = SCENARIOS.find((s) => s.key === indScenario) || applicableScenarios[0];
   const indN = Math.max(0, parseInt(indCount, 10) || 0);
-  const indRate = chosenScenario ? chosenScenario[indRole] : 0;
+  const indRate = chosenScenario ? splitForPrice(chosenScenario, price)[indRole] : 0;
   const indTotal = indRate * indN;
 
   return (
@@ -75,10 +89,20 @@ export default function FinanzasCalculator() {
       <div>
         <h2 className="text-base font-bold text-ink">1. Simulación por volumen de visitas</h2>
         <p className="mt-1 text-sm text-stone-500">
-          Escribe cuántas visitas hubo en cada acción/escenario. El reporte siempre cuesta{" "}
-          {mxn(PRICE_MXN)}; cada fila reparte ese mismo monto distinto según quién vendió y quién
-          visitó.
+          Escribe cuántas visitas hubo en cada acción/escenario. Cada fila reparte el precio de la
+          visita distinto según quién vendió y quién visitó; en los planes se mantiene la misma
+          proporción que en el reporte.
         </p>
+        <label className="mt-3 block max-w-sm">
+          <span className="text-xs font-medium text-stone-500">Precio por visita a simular</span>
+          <select value={priceKey} onChange={(e) => setPriceKey(e.target.value)} className="input mt-1 w-full text-sm">
+            {PRICE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="mt-4 overflow-x-auto card">
           <table className="w-full text-sm">

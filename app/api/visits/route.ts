@@ -1,5 +1,4 @@
-import { deliverFullReportEmail } from "@/lib/fullReportDelivery";
-import { monthLabel } from "@/lib/earnings";
+import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -93,12 +92,11 @@ export async function POST(req: NextRequest) {
   let assignmentId: string | null = null;
   // Visita de un plan mensual (segunda etapa): el reporte ya viene incluido.
   let planId: string | null = null;
-  let planMonth: string | null = null;
 
   if (body.assignmentId) {
     const { data: assignment } = await db
       .from("visit_assignments")
-      .select("id, client_id, assigned_to, status, plan_id, plan_month")
+      .select("id, client_id, assigned_to, status, plan_id")
       .eq("id", body.assignmentId)
       .maybeSingle();
 
@@ -120,7 +118,6 @@ export async function POST(req: NextRequest) {
 
     assignmentId = assignment.id;
     planId = (assignment.plan_id as string | null) ?? null;
-    planMonth = (assignment.plan_month as string | null) ?? null;
     clientId = client.id;
     business = {
       name: client.name,
@@ -301,36 +298,17 @@ export async function POST(req: NextRequest) {
 
   await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
 
-  if (planId && planMonth) {
+  let planReport: Awaited<ReturnType<typeof deliverPlanReportEmail>> | null = null;
+  if (planId) {
     try {
-      const [{ data: plan }, { count: doneCount }] = await Promise.all([
-        db.from("client_plans").select("plan_name, visits_per_month").eq("id", planId).maybeSingle(),
-        db
-          .from("visit_assignments")
-          .select("id", { count: "exact", head: true })
-          .eq("plan_id", planId)
-          .eq("plan_month", planMonth)
-          .eq("status", "completada"),
-      ]);
-      await deliverFullReportEmail(
-        db,
-        {
-          id: form.id,
-          overall_score: score,
-          client_id: clientId,
-          report_url: reportUrl,
-          short_code: shortCode,
-          created_at: new Date().toISOString(),
-        },
-        {
-          planProgress: {
-            done: doneCount ?? 1,
-            total: plan?.visits_per_month ?? 1,
-            monthLabel: monthLabel(planMonth),
-            planName: plan?.plan_name ?? "mensual",
-          },
-        }
-      );
+      planReport = await deliverPlanReportEmail(db, {
+        id: form.id,
+        overall_score: score,
+        client_id: clientId,
+        report_url: reportUrl,
+        short_code: shortCode,
+        created_at: new Date().toISOString(),
+      });
     } catch (err) {
       // El reporte ya quedó guardado y abierto; un fallo de correo no debe tirar la visita.
       console.error("No se pudo mandar el reporte de la visita del plan:", err);
@@ -404,7 +382,8 @@ export async function POST(req: NextRequest) {
     reportUrl,
     overallScore: score,
     categoryScores: catScores,
-    email: emailOutcome,
+    email: planReport ? planReport.outcome : emailOutcome,
+    plan: planReport?.progress ?? null,
     dmMessage,
     dmLink,
     profileLink,

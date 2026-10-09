@@ -5,6 +5,7 @@ import { businessTypePhrase } from "@/lib/categories";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import { sendResultEmail } from "@/lib/email";
 import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
+import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 
 /**
  * Reenvia el correo de resultado de una evaluacion ya guardada, o lo
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id, overall_score, short_code, report_url, waiter_name")
+    .select("id, client_id, overall_score, short_code, report_url, waiter_name, plan_id, created_at")
     .eq("id", formId)
     .maybeSingle();
 
@@ -73,6 +74,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
       { error: "No hay correo destino: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado" },
       { status: 400 }
     );
+  }
+
+  // Visita de un plan mensual: el negocio ya pagó, así que se reenvía el reporte
+  // completo con PDF (no el resumen "gancho" de venta).
+  if (form.plan_id) {
+    const { outcome } = await deliverPlanReportEmail(
+      db,
+      {
+        id: form.id,
+        overall_score: form.overall_score,
+        client_id: form.client_id,
+        report_url: form.report_url,
+        short_code: form.short_code,
+        created_at: form.created_at,
+      },
+      { to: recipientEmail }
+    );
+    return NextResponse.json({ email: outcome, recipientEmail });
   }
 
   const { data: ratingRows } = await db

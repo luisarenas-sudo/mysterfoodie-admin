@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { currentMonthCdmx, isValidMonth } from "@/lib/earnings";
 import { ensurePlanMonth, mapPlan } from "@/lib/plans";
+import { sendAssignmentEmail } from "@/lib/assignments";
 import { sendTicketForPlan } from "@/lib/planTicket";
 
 type Body = {
@@ -15,8 +16,9 @@ type Body = {
 
 /** Administrar un plan (Master Chef): estatus, Foodie por default, cobro del mes y reenviar el ticket. */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let session;
   try {
-    await requireRole("admin");
+    session = await requireRole("admin");
   } catch {
     return NextResponse.json({ error: "Necesitas iniciar sesión como admin" }, { status: 401 });
   }
@@ -79,6 +81,36 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { data: updated, error } = await db.from("client_plans").update(update).eq("id", id).select("*").single();
   if (error || !updated) return NextResponse.json({ error: error?.message || "No se pudo actualizar" }, { status: 500 });
   plan = mapPlan(updated);
+
+  // Un Foodie por default también se lleva las visitas que ya estaban sin Foodie (si no,
+  // el cambio solo se notaría hasta el mes siguiente y parecería que no hizo nada).
+  if (body.defaultFoodieId) {
+    const { data: moved } = await db
+      .from("visit_assignments")
+      .update({ assigned_to: body.defaultFoodieId, assigned_by: session.userId, notified_at: null })
+      .eq("plan_id", id)
+      .eq("status", "pendiente")
+      .is("assigned_to", null)
+      .select("id");
+    if (moved && moved.length > 0) {
+      const [{ data: foodie }, { data: client }] = await Promise.all([
+        db.from("profiles").select("email, full_name").eq("id", body.defaultFoodieId).maybeSingle(),
+        db.from("clients").select("name, type, city").eq("id", plan.clientId).maybeSingle(),
+      ]);
+      if (foodie && client) {
+        const outcome = await sendAssignmentEmail(db, {
+          assignmentId: moved[0].id as string,
+          client: { name: client.name, type: client.type, city: client.city },
+          foodie: { email: foodie.email, full_name: foodie.full_name },
+          note: `Plan ${plan.planName}: ${moved.length} ${moved.length === 1 ? "visita" : "visitas"} por hacer. Todas están en tu lista; el consumo se reembolsa con el ticket.${plan.notes ? ` Indicaciones: ${plan.notes}` : ""}`,
+          baseUrl,
+        });
+        if (outcome.status === "sent" && moved.length > 1) {
+          await db.from("visit_assignments").update({ notified_at: new Date().toISOString() }).in("id", moved.map((r) => r.id as string));
+        }
+      }
+    }
+  }
 
   if (body.status === "cancelado") {
     // Las visitas que aún no se hacen ya no deben aparecerle a nadie.

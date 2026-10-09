@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { getHomeSummary, getReyNegocio, getPendingAssignmentsFor } from "@/lib/dashboard";
+import { getHomeAlerts, type HomeAlert } from "@/lib/alerts";
+import PendientesPanel from "@/components/PendientesPanel";
 import MobileHome from "@/components/mobile/MobileHome";
 import DesktopWizard from "@/components/wizard/DesktopWizard";
 
@@ -26,10 +28,14 @@ export default async function Page() {
 
   // Un Foodie solo puede levantar visitas que le asignaron: el Inicio le avisa
   // cuántas tiene esperando (antes tenía que entrar a "Nueva visita" para saberlo).
-  const [stats, rey, pending] = await Promise.all([
+  const [stats, rey, pending, alerts] = await Promise.all([
     getHomeSummary(scope),
     getReyNegocio(),
     profile?.role === "agente" && profile.userId ? getPendingAssignmentsFor(profile.userId) : Promise.resolve(null),
+    // Un fallo al armar los avisos nunca debe tumbar el Inicio.
+    profile?.userId
+      ? getHomeAlerts({ userId: profile.userId, role: profile.role }).catch((): HomeAlert[] => [])
+      : Promise.resolve([] as HomeAlert[]),
   ]);
   const displayName = profile?.fullName || profile?.email || "MysterFoodie";
 
@@ -41,6 +47,7 @@ export default async function Page() {
         stats={stats}
         rey={rey}
         pendingAssignments={pending ? pending.length : null}
+        alerts={alerts}
       />
       <div className="hidden md:block">
         {profile?.role === "agente" ? (
@@ -50,7 +57,12 @@ export default async function Page() {
             <p className="mt-2 text-sm text-stone-500">Esta pantalla está diseñada para móvil.</p>
           </main>
         ) : (
-          <DesktopWizard />
+          <>
+            <div className="mx-auto max-w-3xl px-6 pt-6">
+              <PendientesPanel alerts={alerts} />
+            </div>
+            <DesktopWizard />
+          </>
         )}
       </div>
     </>

@@ -19,6 +19,20 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.10.0",
+    date: "2026-10-09",
+    title: "Pendientes y planes más claros",
+    emoji: "🔔",
+    highlights: [
+      "Nuevo espacio de Pendientes en el inicio: visitas asignadas, avisos y cobros por atender, cada uno con su X para quitarlo.",
+      "Las visitas de un plan tienen su ventana del mes (por ejemplo «del 8 al 15 de octubre») y se marcan «atrasada» si se pasa; es solo informativo.",
+      "Al terminar una visita de plan, el cliente recibe su reporte con el avance «visita 2 de 4» y no le llegan correos de venta.",
+      "Finanzas cuenta cada visita de plan contra el cobro del mes de su plan, y el simulador ya permite elegir el precio de cada plan.",
+      "Las indicaciones del plan llegan al Foodie y, si cambias el Foodie por default, también se llevan las visitas que seguían sin asignar.",
+      "Los negocios con plan activo muestran su insignia en la lista de Negocios.",
+    ],
+  },
+  {
     version: "0.9.0",
     date: "2026-10-09",
     title: "Appetizer y Main course",

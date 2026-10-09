@@ -99,6 +99,8 @@ type SubmitResult = {
   overallScore: number;
   categoryScores: CategoryScoreResult[];
   email: EmailOutcome | null;
+  /** Visita de un plan mensual: avance del mes (el reporte ya se envió completo). */
+  plan: { done: number; total: number; monthLabel: string; planName: string } | null;
   dmMessage: string;
   dmLink: string | null;
   profileLink: string | null;
@@ -381,10 +383,28 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
             </div>
           </div>
 
+          {result.plan && (
+            <div className="card mt-3.5 flex items-center gap-3 p-4">
+              <span aria-hidden className="inline-flex gap-1">
+                {Array.from({ length: result.plan.total }, (_, i) => (
+                  <span
+                    key={i}
+                    className="inline-block h-3 w-3 rounded-full"
+                    style={{ background: i < result.plan!.done ? "#34C759" : "rgba(60,60,67,0.18)" }}
+                  />
+                ))}
+              </span>
+              <div className="text-[13.5px] font-semibold">
+                Plan {result.plan.planName}: visita {result.plan.done} de {result.plan.total} de {result.plan.monthLabel.toLowerCase()}
+              </div>
+            </div>
+          )}
+
           <div className="mt-2">
             <EmailStatusPanel formId={result.formId} initialStatus={result.email} />
           </div>
 
+          {!result.plan && (
           <div className="card mt-3.5 p-4">
             <p className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
               Mensaje para Instagram DM
@@ -412,6 +432,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
               </a>
             )}
           </div>
+          )}
 
           <div className="card mt-3 flex items-center justify-between p-4">
             <div className="min-w-0">

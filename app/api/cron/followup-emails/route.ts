@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
     .from("forms")
     .select("id, short_code, client_id, created_at")
     .is("followup_sent_at", null)
+    .is("plan_id", null) // las visitas de un plan no llevan el correo de venta de la asesoría
     .not("report_unlocked_at", "is", null)
     .gte("created_at", start.toISOString())
     .lt("created_at", end.toISOString());

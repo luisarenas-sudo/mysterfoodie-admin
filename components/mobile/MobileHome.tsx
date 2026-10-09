@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { HomeSummary, ReyNegocio } from "@/lib/dashboard";
 import Avatar from "@/components/Avatar";
+import PendientesPanel from "@/components/PendientesPanel";
+import type { HomeAlert } from "@/lib/alerts";
 
 export default function MobileHome({
   displayName,
@@ -8,6 +10,7 @@ export default function MobileHome({
   stats,
   rey,
   pendingAssignments = null,
+  alerts = [],
 }: {
   displayName: string;
   avatarUrl?: string | null;
@@ -15,6 +18,8 @@ export default function MobileHome({
   rey: ReyNegocio;
   /** Solo para un Foodie: cuántas visitas asignadas tiene pendientes (null = no aplica a este rol). */
   pendingAssignments?: number | null;
+  /** Pendientes del usuario (ya filtrados: sin los que cerró). */
+  alerts?: HomeAlert[];
 }) {
   const promedioLabel = stats.promedioGeneral !== null ? String(stats.promedioGeneral) : "—";
   const promedioColor =
@@ -39,6 +44,8 @@ export default function MobileHome({
           </Link>
         </div>
       </div>
+
+      <PendientesPanel alerts={alerts} />
 
       <div className="flex gap-3 px-5 pt-3.5">
         <div className="card flex-1 p-4">

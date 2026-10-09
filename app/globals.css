@@ -246,3 +246,14 @@ a,
 @media (prefers-reduced-motion: reduce) {
   .mf-bee-idle, .mf-bee-buzz, .mf-sheet-up { animation: none; }
 }
+
+/* Pendientes del Inicio: un aviso se cierra deslizándose y colapsando. */
+@keyframes mfAlertOut {
+  0% { opacity: 1; max-height: 120px; transform: translateX(0); }
+  60% { opacity: 0; transform: translateX(24px); }
+  100% { opacity: 0; max-height: 0; transform: translateX(24px); }
+}
+.mf-alert-out { animation: mfAlertOut 220ms ease-in forwards; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .mf-alert-out { animation-duration: 1ms; }
+}

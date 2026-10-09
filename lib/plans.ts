@@ -1,5 +1,5 @@
 import { getSupabaseServiceClient } from "./supabase";
-import { currentMonthCdmx, monthLabel, shiftMonth } from "./earnings";
+import { currentMonthCdmx, isVisitOverdue, monthLabel, shiftMonth, visitWindowLabel } from "./months";
 import { sendAssignmentEmail } from "./assignments";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
@@ -84,7 +84,7 @@ export async function ensurePlanMonth(db: Db, plan: PlanRow, month: string, base
     assigned_to: plan.defaultFoodieId,
     assigned_by: plan.createdBy,
     status: "pendiente",
-    note: `Visita ${i + 1} de ${plan.visitsPerMonth} · ${label} · Plan ${plan.planName}. El consumo se reembolsa con el ticket.`,
+    note: `Visita ${i + 1} de ${plan.visitsPerMonth} · ${visitWindowLabel(month, i + 1, plan.visitsPerMonth)} · Plan ${plan.planName}. El consumo se reembolsa con el ticket.${plan.notes ? ` Indicaciones: ${plan.notes}` : ""}`,
   }));
 
   const { data: inserted } = await db
@@ -135,6 +135,9 @@ export type PlanVisitView = {
   assignedTo: string | null;
   assignedToName: string | null;
   shortCode: string | null;
+  /** "del 8 al 15 de octubre": ventana informativa de la visita. */
+  windowLabel: string | null;
+  /** Sigue pendiente y ya pasó su ventana. */
   overdue: boolean;
 };
 
@@ -228,7 +231,8 @@ export async function getClientPlanView(
     assignedTo: (a.assigned_to as string | null) ?? null,
     assignedToName: a.assigned_to ? nameById.get(a.assigned_to as string) ?? null : null,
     shortCode: a.completed_form_id ? codeByForm.get(a.completed_form_id as string) ?? null : null,
-    overdue: (a.plan_month as string) < month && a.status === "pendiente",
+    windowLabel: a.plan_seq ? visitWindowLabel(a.plan_month as string, a.plan_seq as number, plan.visitsPerMonth) : null,
+    overdue: a.status === "pendiente" && Boolean(a.plan_seq) && isVisitOverdue(a.plan_month as string, a.plan_seq as number, plan.visitsPerMonth),
   }));
 
   const periods: PlanPeriodView[] = (periodRows || []).map((p) => ({

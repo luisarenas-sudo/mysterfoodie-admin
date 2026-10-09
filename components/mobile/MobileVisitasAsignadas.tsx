@@ -63,9 +63,28 @@ export default function MobileVisitasAsignadas({ assignments }: { assignments: P
                   <div className="min-w-0">
                     <div className="truncate text-[15.5px] font-bold">{a.clientName}</div>
                     <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-                      {TYPE_LABEL[a.clientType] ?? "Negocio"} · Asignada el {formatDateLong(a.createdAt)}
+                      {TYPE_LABEL[a.clientType] ?? "Negocio"} ·{" "}
+                      {a.plan ? `Plan ${a.plan.name}` : `Asignada el ${formatDateLong(a.createdAt)}`}
                     </div>
-                    {a.note && (
+                    {a.plan && (
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12.5px]">
+                        <span className="font-semibold">
+                          Visita {a.plan.seq} de {a.plan.quota}
+                        </span>
+                        <span style={{ color: "rgba(60,60,67,0.6)" }}>· {a.plan.windowLabel}</span>
+                        {a.plan.overdue && (
+                          <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
+                            atrasada
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {a.plan?.notes && (
+                      <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[12.5px]" style={{ background: "#FFF9E5", color: "rgba(60,60,67,0.8)" }}>
+                        <strong>Indicaciones:</strong> {a.plan.notes}
+                      </div>
+                    )}
+                    {!a.plan && a.note && (
                       <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[12.5px]" style={{ background: "#F2F2F7", color: "rgba(60,60,67,0.7)" }}>
                         {a.note}
                       </div>

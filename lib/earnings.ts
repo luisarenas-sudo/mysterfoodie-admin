@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { PRICE_MXN, scenarioByKey, splitForPrice, type ScenarioKey } from "./earningsMatrix";
+import { CDMX_OFFSET, currentMonthCdmx, isValidMonth, monthLabel, shiftMonth } from "./months";
 
 /**
  * Cálculo REAL de ganancias por periodo (mes, hora CDMX).
@@ -39,29 +40,7 @@ export type PaidVisit = {
 
 export type ProfileLite = { id: string; name: string; role: string };
 
-// Mexico no tiene horario de verano desde 2022: CDMX es UTC-6 todo el año.
-const CDMX_OFFSET = "-06:00";
-
-export function currentMonthCdmx(): string {
-  const s = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City", year: "numeric", month: "2-digit" }).format(new Date());
-  return s.slice(0, 7);
-}
-
-export function isValidMonth(m: string | undefined): m is string {
-  return !!m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m);
-}
-
-export function shiftMonth(month: string, delta: number): string {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-export function monthLabel(month: string): string {
-  const [y, m] = month.split("-").map(Number);
-  const label = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+export { currentMonthCdmx, isValidMonth, shiftMonth, monthLabel };
 
 function monthBounds(month: string): { start: Date; end: Date } {
   return {
@@ -110,19 +89,22 @@ export async function getMonthEarnings(
 
   const [{ data: clients }, { data: assignments }, { data: plans }, { data: periods }] = await Promise.all([
     db.from("clients").select("id, name, created_by").in("id", clientIds),
-    db.from("visit_assignments").select("completed_form_id, assigned_by").in("completed_form_id", formIds),
+    db.from("visit_assignments").select("completed_form_id, assigned_by, plan_month").in("completed_form_id", formIds),
     planIds.length
       ? db.from("client_plans").select("id, plan_name, price_per_visit").in("id", planIds)
       : Promise.resolve({ data: [] as { id: string; plan_name: string; price_per_visit: number }[] }),
     planIds.length
-      ? db.from("plan_periods").select("plan_id, paid_at").in("plan_id", planIds).eq("month", month)
-      : Promise.resolve({ data: [] as { plan_id: string; paid_at: string | null }[] }),
+      ? db.from("plan_periods").select("plan_id, month, paid_at").in("plan_id", planIds)
+      : Promise.resolve({ data: [] as { plan_id: string; month: string; paid_at: string | null }[] }),
   ]);
 
   const clientById = new Map((clients || []).map((c) => [c.id as string, c]));
   const assignerByForm = new Map((assignments || []).map((a) => [a.completed_form_id as string, a.assigned_by as string | null]));
   const planById = new Map((plans || []).map((p) => [p.id as string, p]));
-  const paidPlanIds = new Set((periods || []).filter((p) => p.paid_at).map((p) => p.plan_id as string));
+  // El cobro que cuenta es el del mes DEL PLAN al que pertenece la visita (una visita de
+  // octubre hecha en noviembre se paga con el cobro de octubre), no el del mes en que se hizo.
+  const paidPeriods = new Set((periods || []).filter((p) => p.paid_at).map((p) => `${p.plan_id}:${p.month}`));
+  const planMonthByForm = new Map((assignments || []).map((a) => [a.completed_form_id as string, a.plan_month as string | null]));
 
   const profileIds = new Set<string>();
   allRows.forEach((f) => f.created_by && profileIds.add(f.created_by as string));
@@ -210,7 +192,8 @@ export async function getMonthEarnings(
     const plan = planById.get(f.plan_id as string);
     const price = (plan?.price_per_visit as number | undefined) ?? 0;
     if (!plan || price <= 0) continue;
-    if (paidPlanIds.has(f.plan_id as string)) {
+    const planMonth = planMonthByForm.get(f.id as string) ?? month;
+    if (paidPeriods.has(`${f.plan_id}:${planMonth}`)) {
       visits.push(build(f, f.created_at as string, "plan", price, plan.plan_name as string));
     } else {
       unpaidPlan.count += 1;

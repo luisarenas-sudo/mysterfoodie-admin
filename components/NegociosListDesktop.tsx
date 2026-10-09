@@ -39,7 +39,14 @@ export default function NegociosListDesktop({ clients }: { clients: ClientSummar
             className="flex items-center justify-between card p-4 transition-colors hover:border-brand-300"
           >
             <div>
-              <p className="font-semibold text-ink">{client.name}</p>
+              <p className="font-semibold text-ink">
+                {client.name}
+                {client.planName && (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 align-middle text-[11px] font-bold text-amber-800">
+                    Plan {client.planName}
+                  </span>
+                )}
+              </p>
               <p className="text-sm text-stone-500">
                 {client.city || "Sin ciudad"} - {client.visitCount}{" "}
                 {client.visitCount === 1 ? "visita" : "visitas"}

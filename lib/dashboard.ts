@@ -1,3 +1,4 @@
+import { isVisitOverdue, visitWindowLabel } from "./months";
 import { getSupabaseServiceClient } from "./supabase";
 import { ROLE_LABELS } from "./brand";
 import { categoryScores, type Ratings } from "./scoring";
@@ -12,6 +13,8 @@ export type ClientSummary = {
   lastScore: number | null;
   /** "Rango Primer Nombre" de quién dio de alta el negocio (ver clients.created_by), o null si no se pudo resolver. */
   creatorLabel: string | null;
+  /** Nombre del plan activo (Starter, Appetizer, Main course) o null si no tiene. */
+  planName: string | null;
 };
 
 export async function getClientsSummary(): Promise<ClientSummary[]> {
@@ -32,6 +35,11 @@ export async function getClientsSummary(): Promise<ClientSummary[]> {
     clients.map((c) => c.created_by).filter((id): id is string => Boolean(id))
   );
 
+  // Si aún no se corre supabase/planes.sql la consulta falla y simplemente no hay insignias.
+  const { data: activePlans } = await db.from("client_plans").select("client_id, plan_name").eq("status", "activo");
+  const planByClient = new Map<string, string>();
+  for (const p of activePlans || []) planByClient.set(p.client_id as string, p.plan_name as string);
+
   return clients
     .map((client) => {
       const clientForms = (forms || []).filter((f) => f.client_id === client.id);
@@ -45,6 +53,7 @@ export async function getClientsSummary(): Promise<ClientSummary[]> {
         lastVisitAt: last?.created_at ?? null,
         lastScore: last?.overall_score ?? null,
         creatorLabel: client.created_by ? creatorLabelById.get(client.created_by) ?? null : null,
+        planName: planByClient.get(client.id) ?? null,
       };
     })
     .sort((a, b) => {
@@ -798,6 +807,8 @@ export type PendingAssignment = {
   clientType: string;
   note: string | null;
   createdAt: string;
+  /** Solo si es una visita de un plan mensual. */
+  plan: { planId: string; month: string; name: string; seq: number; quota: number; windowLabel: string; overdue: boolean; notes: string | null } | null;
 };
 
 /** Visitas asignadas y pendientes (status="pendiente") para un Foodie, en "/nueva-visita". */
@@ -806,12 +817,18 @@ export async function getPendingAssignmentsFor(userId: string): Promise<PendingA
 
   const { data: assignments } = await db
     .from("visit_assignments")
-    .select("id, client_id, note, created_at")
+    .select("id, client_id, note, created_at, plan_id, plan_month, plan_seq")
     .eq("assigned_to", userId)
     .eq("status", "pendiente")
     .order("created_at", { ascending: false });
 
   if (!assignments || assignments.length === 0) return [];
+
+  const planIds = [...new Set(assignments.map((a) => a.plan_id as string | null).filter(Boolean) as string[])];
+  const { data: planRows } = planIds.length
+    ? await db.from("client_plans").select("id, plan_name, visits_per_month, notes").in("id", planIds)
+    : { data: [] as { id: string; plan_name: string; visits_per_month: number; notes: string | null }[] };
+  const planById = new Map((planRows || []).map((p) => [p.id, p]));
 
   const { data: clients } = await db
     .from("clients")
@@ -831,6 +848,20 @@ export async function getPendingAssignmentsFor(userId: string): Promise<PendingA
         clientType: client.type,
         note: a.note,
         createdAt: a.created_at,
+        plan: (() => {
+          const p = a.plan_id ? planById.get(a.plan_id as string) : null;
+          if (!p || !a.plan_month || !a.plan_seq) return null;
+          return {
+            planId: p.id,
+            month: a.plan_month as string,
+            name: p.plan_name,
+            seq: a.plan_seq as number,
+            quota: p.visits_per_month,
+            notes: p.notes ?? null,
+            windowLabel: visitWindowLabel(a.plan_month as string, a.plan_seq as number, p.visits_per_month),
+            overdue: isVisitOverdue(a.plan_month as string, a.plan_seq as number, p.visits_per_month),
+          };
+        })(),
       };
     })
     .filter((a): a is PendingAssignment => a !== null);

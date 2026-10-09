@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { ClientPlanView, PlanBranchOption } from "@/lib/plans";
 import { PLAN_ZONE_LABEL, isInPlanZone, sucursalesRangeLabel, type PlanCatalogEntry } from "@/lib/planCatalog";
 import { formatMxn } from "@/lib/earningsMatrix";
+import { monthLabel as monthName } from "@/lib/months";
 import { friendlyError } from "@/lib/friendlyError";
 
 const MUTED = "rgba(60,60,67,0.6)";
@@ -26,12 +27,6 @@ type Props = {
   otherStart: { month: string; label: string };
   catalogs: PlanCatalogEntry[];
 };
-
-function monthName(month: string): string {
-  const [y, m] = month.split("-").map(Number);
-  const label = new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
 
 function Dots({ done, total }: { done: number; total: number }) {
   return (
@@ -142,7 +137,7 @@ export default function PlanCard({
     };
 
     return (
-      <div id="plan" className="card mx-5 mt-4 p-4 md:mx-0">
+      <div id="plan" className="card mx-5 mt-4 scroll-mt-20 p-4 md:mx-0">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-[15px] font-bold">Plan de visitas</div>
@@ -338,7 +333,7 @@ export default function PlanCard({
             )}
 
             <label className="block text-[13px] font-semibold">
-              Notas internas (opcional)
+              Indicaciones para el Foodie (opcional)
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -422,15 +417,17 @@ export default function PlanCard({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 text-[14px]">
           <span className="font-semibold">Visita {v.seq ?? ""}</span>
-          {v.overdue && <span className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>{monthName(v.month)} · atrasada</span>}
+          {v.overdue && (
+            <span className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
+              {v.month < view.month ? `${monthName(v.month)} · ` : ""}atrasada
+            </span>
+          )}
           <div className="truncate text-[12px]" style={{ color: MUTED }}>
             {v.status === "completada"
               ? "Hecha"
               : v.status === "cancelada"
                 ? "Cancelada"
-                : v.assignedToName
-                  ? `Foodie: ${v.assignedToName}`
-                  : "Sin Foodie asignado"}
+                : `${v.assignedToName ? `Foodie: ${v.assignedToName}` : "Sin Foodie asignado"}${v.windowLabel ? ` · ${v.windowLabel}` : ""}`}
           </div>
         </div>
         {v.status === "completada" && v.shortCode && (
@@ -470,11 +467,11 @@ export default function PlanCard({
   );
 
   return (
-    <div className="card mx-5 mt-4 p-4 md:mx-0">
+    <div id="plan" className="card mx-5 mt-4 scroll-mt-20 p-4 md:mx-0">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-[15px] font-bold">
-            Plan {plan.planName} · {formatMxn(monthTotal)}/mes
+            Plan {plan.planName} · {formatMxn(monthTotal)}/mes{view.group ? " por sucursal" : ""}
           </div>
           <div className="mt-0.5 text-[12px]" style={{ color: MUTED }}>
             {plan.visitsPerMonth} × {formatMxn(plan.pricePerVisit)} + reembolso del ticket · desde {monthName(plan.startMonth)}
@@ -502,7 +499,7 @@ export default function PlanCard({
       {view.currentPeriod && (
         <div className="mt-3 flex items-center justify-between gap-3">
           <div className="text-[13px]">
-            Cobro de {view.monthLabel}: <strong>{formatMxn(view.currentPeriod.amount)}</strong>
+            Cobro de {view.monthLabel}: <strong>{formatMxn(view.group ? view.group.monthlyTotal : view.currentPeriod.amount)}</strong>
             <span className="ml-2 font-semibold" style={{ color: view.currentPeriod.paidAt ? "#248A3D" : "#C77700" }}>
               {view.currentPeriod.paidAt ? "Cobrado" : "Pendiente"}
             </span>
@@ -531,7 +528,7 @@ export default function PlanCard({
       </div>
 
       <label className="mt-3 block text-[12px] font-semibold" style={{ color: MUTED }}>
-        Foodie por default de los próximos meses
+        Foodie por default (también para las visitas que sigan sin Foodie)
         <select
           value={plan.defaultFoodieId ?? ""}
           disabled={busy}
@@ -549,14 +546,14 @@ export default function PlanCard({
 
       {plan.notes && (
         <p className="mt-3 rounded-[12px] px-3 py-2 text-[13px]" style={{ background: "#FFF9E5" }}>
-          <strong>Notas:</strong> {plan.notes}
+          <strong>Indicaciones para el Foodie:</strong> {plan.notes}
         </p>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={busy || !clientEmail}
+          disabled={busy || (!clientEmail && !view.group)}
           onClick={() => call(`/api/planes/${plan.id}`, "PATCH", { resendTicket: true }, ticketMessage)}
           className="mf-tap rounded-[12px] px-3 py-2 text-[13px] font-semibold disabled:opacity-40"
           style={{ background: "#fff", border: "1px solid rgba(60,60,67,0.18)" }}
