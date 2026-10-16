@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.14.0",
+    date: "2026-10-16",
+    title: "Auditoría de textos: web y app dicen lo mismo",
+    emoji: "🔍",
+    highlights: [
+      "El PDF del reporte completo ahora trae el detalle de los 52 indicadores (estrellas, Sí/No y tipo de menú) y los comentarios del MysterFoodie, tal como lo prometen la web y los correos.",
+      "Un solo perfil del MysterFoodie en web, app, PDF y correos: profesionales de la industria restaurantera con experiencia en servicio, capacitación, ventas y comunicación.",
+      "La escala se explica igual en todas partes: casi todos los indicadores van de 1 a 5; los de Sí/No (como accesibilidad) se convierten a esa escala para el promedio.",
+      "Marca unificada como «MysterFoodie» (antes «Myster Foodie» en el PDF y algunos textos).",
+    ],
+  },
+  {
     version: "0.13.0",
     date: "2026-10-09",
     title: "Solicita una visita GRATIS y Foodie Academy",

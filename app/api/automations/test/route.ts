@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { getAutomation, renderTemplate, AUTOMATION_CATALOG, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 import { sendResultEmail, sendTemplatedEmail, sendFullReportEmail, formatSlot } from "@/lib/email";
 import { buildReportPdf } from "@/lib/reportPdf";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, STAR_ITEMS, BOOLEAN_ITEMS } from "@/lib/categories";
 import type { CategoryScore } from "@/lib/scoring";
 
 /**
@@ -75,6 +75,10 @@ export async function POST(req: NextRequest) {
           overallScore: SAMPLE.promedio,
           categoryScores: catScores,
           shortCode: "EJEMPLO",
+          ratings: Object.fromEntries(STAR_ITEMS.map((i, n) => [i.key, 3 + (n % 3)])),
+          flags: Object.fromEntries(BOOLEAN_ITEMS.map((i, n) => [i.key, n % 2 === 0])),
+          menuType: "fisico_qr",
+          comments: "Comentarios de ejemplo del MysterFoodie: el servicio fue cálido y la comida llegó caliente; sugerimos reforzar la limpieza de baños en hora pico.",
         });
         const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
         const out = await sendFullReportEmail({

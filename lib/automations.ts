@@ -197,7 +197,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
  */
 export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas";
 export const DEFAULT_RESULTADO_INTRO =
-  "Un **Myster Foodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. " +
+  "Un **MysterFoodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. " +
   "Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** " +
   "la experiencia real recibida.{{mesero_linea}}";
 

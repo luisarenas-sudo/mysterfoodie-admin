@@ -71,7 +71,7 @@ export async function deliverFullReportEmail(
   const score = form.overall_score || overallScore(ratings, flags);
 
   // Si la visita ya tiene foto del ticket de consumo, va como página del PDF.
-  const { data: ticketRow } = await db.from("forms").select("ticket_photo_path").eq("id", form.id).maybeSingle();
+  const { data: ticketRow } = await db.from("forms").select("ticket_photo_path, menu_type, comments").eq("id", form.id).maybeSingle();
   const ticketImage = await downloadTicket(db, ticketRow?.ticket_photo_path ?? null);
 
   const pdfBuffer = await buildReportPdf({
@@ -83,6 +83,10 @@ export async function deliverFullReportEmail(
     categoryScores: catScores,
     shortCode: form.short_code,
     ticketImage,
+    ratings,
+    flags,
+    menuType: ticketRow?.menu_type ?? null,
+    comments: ticketRow?.comments ?? null,
   });
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";

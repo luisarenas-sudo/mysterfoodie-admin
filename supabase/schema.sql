@@ -207,7 +207,7 @@ values
     'resultado_visita',
     true,
     'Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas',
-    'Un **Myster Foodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** la experiencia real recibida.{{mesero_linea}}'
+    'Un **MysterFoodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** la experiencia real recibida.{{mesero_linea}}'
   ),
   (
     'asignacion_visita',

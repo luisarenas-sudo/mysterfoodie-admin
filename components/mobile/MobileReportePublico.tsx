@@ -262,7 +262,7 @@ export default function MobileReportePublico({
             <div className="mb-1.5 text-[21px] font-bold">Obtén el reporte completo</div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
               <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
-              tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro Myster Foodie.
+              tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro MysterFoodie.
               {hasTicket && (
                 <>
                   {" "}Incluye también el <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>ticket de consumo</span> de la visita.
@@ -375,7 +375,7 @@ export default function MobileReportePublico({
 
           <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
-              El costo de este reporte retribuye a nuestros Myster Foodies, quienes visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
+              El costo de este reporte retribuye a nuestros MysterFoodies, quienes visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
             </div>
           </div>
         </>

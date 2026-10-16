@@ -8,10 +8,17 @@
 export const PALABRA_FOODIE_QUOTE =
   "Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.";
 
+/**
+ * Quién es el MysterFoodie, en una sola frase para web, app, PDF y correos
+ * (la misma que usa mysterfoodie.com en Nosotros y Metodología).
+ */
+export const FOODIE_PROFILE =
+  "profesionales de la industria restaurantera (alimentos, restauración y entretenimiento) con experiencia en servicio, capacitación, ventas y comunicación";
+
 /** Párrafo de confianza que acompaña a Palabra Foodie en el reporte público. */
 export function foodieTrustText(totalItems: number): string {
   return (
-    "Nuestros Myster Foodies son perfiles que trabajan dentro de la industria restaurantera y con el " +
+    `Nuestros MysterFoodies son ${FOODIE_PROFILE}, con el ` +
     "poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican " +
     `${totalItems} indicadores de servicio, sabor, limpieza y experiencia — con total honestidad, Palabra Foodie.`
   );

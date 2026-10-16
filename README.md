@@ -42,11 +42,11 @@ cuentas" mas abajo.
 1. Un agente o admin inicia sesion y se captura el negocio (nombre, tipo, usuario de
    Instagram, correo opcional, ciudad, etc.)
 2. Se recorre un wizard con barra de progreso, dividido en 5 categorias reales del
-   cuestionario (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad; ~50 indicadores
-   tipo estrella en total), mas un selector de tipo de menu y un paso final de
+   cuestionario (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad; 52 indicadores en total:
+   46 tipo estrella, 5 Si/No y 1 selector de tipo de menu), mas un paso final de
    comentarios libres opcionales. Ver `lib/categories.ts` para el detalle exacto.
 3. El promedio general de la visita es el promedio de los 5 promedios de categoria (no
-   un promedio plano de los ~50 indicadores) - ver `lib/scoring.ts`.
+   un promedio plano de los 52 indicadores) - ver `lib/scoring.ts`.
 4. Al enviar: se guarda en Supabase (`clients`, `forms`, `form_ratings`, `form_flags`), se
    calcula el promedio, se intenta enviar el correo (`email_confirmations` guarda el
    resultado del envio), y se muestra en pantalla:
@@ -86,9 +86,9 @@ Cada negocio evaluado queda disponible en `/negocios`:
 - **Lista de negocios** con su ultima calificacion y veredicto
 - **Detalle por negocio** (`/negocios/[id]`) con:
   - Veredicto basico segun el promedio: Excelente (4.5+), Bueno (3.5-4.4), Regular
-    (2.5-3.4), Necesita atencion (menos de 2.5) - logica en `lib/verdict.ts`
+    (2.5-3.4), Malo (1.5-2.4) y Muy malo (menos de 1.5) - logica en `lib/verdict.ts`
   - Grafica de evolucion del promedio a lo largo de las visitas (linea)
-  - Grafica comparativa de los 11 indicadores: visita actual contra la visita
+  - Grafica comparativa por categoria: visita actual contra la visita
     anterior (barras horizontales)
   - Historial completo de visitas con link al reporte publico de cada una
 
