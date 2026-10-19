@@ -206,8 +206,8 @@ values
   (
     'resultado_visita',
     true,
-    'Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas',
-    'Un **MysterFoodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** la experiencia real recibida.{{mesero_linea}}'
+    'Resultado de tu visita MysterFoodie: {{promedio}} de 5 estrellas',
+    'Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y calificó de forma independiente** la experiencia real.{{mesero_linea}} Este es el resultado:'
   ),
   (
     'asignacion_visita',
@@ -231,7 +231,7 @@ values
     'instagram_dm',
     true,
     '',
-    'Hola equipo de {{negocio}}, hoy los visitamos e hicimos un Mystery Shopper.{{mesero_linea}} Obtuvimos {{promedio}} estrellas de promedio. Aquí puedes ver el reporte completo: {{link_reporte}}'
+    'Hola equipo de {{negocio}}. Un MysterFoodie visitó su {{tipo_negocio}} sin avisar, pagó su consumo y calificó de forma independiente la experiencia real.{{mesero_linea}} El resultado fue de {{promedio}} de 5 estrellas. Aquí lo puedes ver: {{link_reporte}}'
   )
 on conflict (key) do nothing;
 

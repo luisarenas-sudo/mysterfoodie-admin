@@ -45,7 +45,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (puede venir vacío)" },
       { tag: "mesero", desc: "Nombre del mesero que atendió, si se capturó (puede venir vacío)" },
-      { tag: "mesero_linea", desc: "Frase lista (\" Los atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco" },
+      { tag: "mesero_linea", desc: "Frase lista (\" Lo atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco" },
       { tag: "promedio", desc: "Promedio general obtenido (solo útil en el asunto)" },
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
@@ -138,7 +138,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (si no hay uno claro, \"negocio\")" },
       { tag: "mesero", desc: "Solo el nombre del mesero que atendió, sin texto alrededor (puede venir vacío)" },
-      { tag: "mesero_linea", desc: "Frase lista (\" Los atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco si falta el dato" },
+      { tag: "mesero_linea", desc: "Frase lista (\" Lo atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco si falta el dato" },
       { tag: "promedio", desc: "Promedio general obtenido" },
       { tag: "link_reporte", desc: "Enlace al reporte" },
     ],
@@ -198,7 +198,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
  */
 export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu visita MysterFoodie: {{promedio}} de 5 estrellas";
 export const DEFAULT_RESULTADO_INTRO =
-  "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo de su bolsillo y evaluó de forma independiente** " +
+  "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y calificó de forma independiente** " +
   "la experiencia real.{{mesero_linea}} Este es el resultado:";
 
 /** Variables que acepta la plantilla "resultado_visita". */
@@ -213,7 +213,7 @@ export function resultadoVars(params: {
     negocio: params.negocio,
     tipo_negocio: params.tipoNegocio,
     mesero,
-    mesero_linea: mesero ? ` Los atendió ${mesero}.` : "",
+    mesero_linea: mesero ? ` Lo atendió ${mesero}.` : "",
     promedio: String(params.promedio),
   };
 }

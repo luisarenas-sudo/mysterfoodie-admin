@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
           negocio: SAMPLE.negocio,
           mesero: SAMPLE.mesero,
           tipo_negocio: "restaurante",
-          mesero_linea: ` Los atendió ${SAMPLE.mesero}.`,
+          mesero_linea: ` Lo atendió ${SAMPLE.mesero}.`,
           promedio: String(SAMPLE.promedio),
           link_reporte: reportUrl,
         };
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
           tpl(
             automation?.bodyTemplate,
             vars,
-            `Hola equipo de ${SAMPLE.negocio}. Un MysterFoodie visitó su restaurante sin avisar, pagó su consumo de su bolsillo y evaluó de forma independiente la experiencia real. Los atendió ${SAMPLE.mesero}. El resultado fue de ${SAMPLE.promedio} de 5 estrellas. Aquí lo puedes ver: ${reportUrl}`
+            `Hola equipo de ${SAMPLE.negocio}. Un MysterFoodie visitó su restaurante sin avisar, pagó su consumo y calificó de forma independiente la experiencia real. Lo atendió ${SAMPLE.mesero}. El resultado fue de ${SAMPLE.promedio} de 5 estrellas. Aquí lo puedes ver: ${reportUrl}`
           );
       }
 
