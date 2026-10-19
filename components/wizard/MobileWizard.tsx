@@ -720,6 +720,22 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
               </span>
             </div>
 
+            {current.category.key === "atencion" && (
+              <div className="mb-3.5">
+                <MobileField label="Nombre de quien te atendió (opcional)">
+                  <input
+                    value={waiterName}
+                    onChange={(e) => setWaiterName(e.target.value)}
+                    style={inputStyle}
+                    placeholder="Ej. Fermín"
+                    type="text"
+                    autoComplete="off"
+                    enterKeyHint="done"
+                  />
+                </MobileField>
+              </div>
+            )}
+
             <div className="space-y-3.5">
               {groupCategoryItems(current.category.items).map((block, blockIdx) =>
                 block.kind === "standalone" ? (
@@ -793,17 +809,6 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
 
         {current.kind === "comments" && (
           <div className="space-y-5">
-            <MobileField label="Nombre del mesero que te atendió (opcional)">
-              <input
-                value={waiterName}
-                onChange={(e) => setWaiterName(e.target.value)}
-                style={inputStyle}
-                placeholder="Ej. Fermín"
-                type="text"
-                autoComplete="off"
-                enterKeyHint="next"
-              />
-            </MobileField>
             <div>
               <div className="heading mb-1 text-[22px] font-bold">¿Cómo te fue?</div>
               <div className="mb-3 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>

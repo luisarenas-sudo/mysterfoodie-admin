@@ -12,29 +12,35 @@ export function buildDmMessage(
     score: number;
     reportUrl: string;
     waiterName?: string | null;
+    /** "cafetería", "restaurante"… (ver businessTypePhrase). */
+    tipoNegocio?: string;
   },
   customTemplate?: string
 ): string {
   const { businessName, score, reportUrl, waiterName } = params;
+  const tipo = params.tipoNegocio?.trim() || "negocio";
 
   if (customTemplate) {
     const waiter = waiterName?.trim() || "";
     return renderTemplate(customTemplate, {
       negocio: businessName,
+      tipo_negocio: tipo,
       mesero: waiter,
-      // Frase ya armada ("Nos atendió X.") para no dejar un hueco raro
-      // en el mensaje cuando la visita no tiene mesero capturado.
-      mesero_linea: waiter ? ` Nos atendió ${waiter}.` : "",
+      // Frase ya armada ("Los atendió X.", igual que en el correo) para no
+      // dejar un hueco raro cuando la visita no tiene mesero capturado.
+      mesero_linea: waiter ? ` Los atendió ${waiter}.` : "",
       promedio: String(score),
       link_reporte: reportUrl,
     });
   }
 
-  const waiterPart = waiterName?.trim() ? ` Nos atendió ${waiterName.trim()}.` : "";
+  // Mismo mensaje que el correo (ver DEFAULT_RESULTADO_INTRO en lib/automations.ts):
+  // mismas palabras, misma persona gramatical y UNA sola acción (ver el resultado).
+  const waiterPart = waiterName?.trim() ? ` Los atendió ${waiterName.trim()}.` : "";
   return (
-    `Hola equipo de ${businessName}, hoy los visitamos e hicimos un Mystery Shopper.` +
-    `${waiterPart} Obtuvimos ${score} estrellas de promedio. ` +
-    `Aquí puedes ver el reporte completo: ${reportUrl}`
+    `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo de su bolsillo ` +
+    `y evaluó de forma independiente la experiencia real.${waiterPart} ` +
+    `El resultado fue de ${score} de 5 estrellas. Aquí lo puedes ver: ${reportUrl}`
   );
 }
 

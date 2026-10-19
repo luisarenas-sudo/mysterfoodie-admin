@@ -136,8 +136,9 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (si no hay uno claro, \"negocio\")" },
       { tag: "mesero", desc: "Solo el nombre del mesero que atendió, sin texto alrededor (puede venir vacío)" },
-      { tag: "mesero_linea", desc: "Frase lista (\" Nos atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco si falta el dato" },
+      { tag: "mesero_linea", desc: "Frase lista (\" Los atendió Juan.\"); vacía si la visita no tiene mesero capturado -- úsala en vez de {{mesero}} para que no quede un hueco si falta el dato" },
       { tag: "promedio", desc: "Promedio general obtenido" },
       { tag: "link_reporte", desc: "Enlace al reporte" },
     ],
@@ -195,11 +196,10 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
  * plantilla está desactivada). Las partes entre **doble asterisco** salen en
  * negritas en el correo.
  */
-export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu evaluación Mystery Shopper - {{promedio}} estrellas";
+export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu visita MysterFoodie: {{promedio}} de 5 estrellas";
 export const DEFAULT_RESULTADO_INTRO =
-  "Un **MysterFoodie** calificado de nuestra comunidad visitó recientemente su {{tipo_negocio}} sin previo aviso. " +
-  "Como cliente sibarita habitual, **pagó su consumo de su propio bolsillo y evaluó de forma 100% independiente** " +
-  "la experiencia real recibida.{{mesero_linea}}";
+  "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo de su bolsillo y evaluó de forma independiente** " +
+  "la experiencia real.{{mesero_linea}} Este es el resultado:";
 
 /** Variables que acepta la plantilla "resultado_visita". */
 export function resultadoVars(params: {

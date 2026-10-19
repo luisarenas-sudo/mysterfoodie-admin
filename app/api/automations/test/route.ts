@@ -184,7 +184,8 @@ export async function POST(req: NextRequest) {
         const vars = {
           negocio: SAMPLE.negocio,
           mesero: SAMPLE.mesero,
-          mesero_linea: ` Nos atendió ${SAMPLE.mesero}.`,
+          tipo_negocio: "restaurante",
+          mesero_linea: ` Los atendió ${SAMPLE.mesero}.`,
           promedio: String(SAMPLE.promedio),
           link_reporte: reportUrl,
         };
@@ -194,7 +195,7 @@ export async function POST(req: NextRequest) {
           tpl(
             automation?.bodyTemplate,
             vars,
-            `Hola equipo de ${SAMPLE.negocio}, hoy los visitamos e hicimos un Mystery Shopper. Nos atendió ${SAMPLE.mesero}. Obtuvimos ${SAMPLE.promedio} estrellas de promedio. Aquí puedes ver el reporte completo: ${reportUrl}`
+            `Hola equipo de ${SAMPLE.negocio}. Un MysterFoodie visitó su restaurante sin avisar, pagó su consumo de su bolsillo y evaluó de forma independiente la experiencia real. Los atendió ${SAMPLE.mesero}. El resultado fue de ${SAMPLE.promedio} de 5 estrellas. Aquí lo puedes ver: ${reportUrl}`
           );
       }
 

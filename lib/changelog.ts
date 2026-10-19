@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.15.1",
+    date: "2026-10-19",
+    title: "Un solo mensaje para el dueño",
+    emoji: "💬",
+    highlights: [
+      "El DM de Instagram y el correo con el resultado ahora dicen lo mismo, con las mismas palabras y la misma voz («Un MysterFoodie visitó su restaurante sin avisar…», «Los atendió Fermín»). Antes uno hablaba en «nosotros» y el otro en tercera persona.",
+      "Una sola acción en ambos: «Ver mi resultado». En el correo, el estudio completo se menciona abajo, con el precio sin IVA, sin presionar.",
+      "El nombre de quien te atendió se anota en el paso de Atención, cuando lo estás evaluando, en vez de al final.",
+      "En escritorio, «Tu nombre» ya viene con el de tu perfil.",
+    ],
+  },
+  {
     version: "0.15.0",
     date: "2026-10-19",
     title: "Visita más ligera de llenar",

@@ -168,7 +168,7 @@ function renderEmailHtml(params: SendResultEmailParams): string {
   const rated = categoryScores.filter((c) => c.count > 0).length;
 
   return renderEmailShell(`
-    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de tu evaluación Mystery Shopper</h2>
+    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de tu visita MysterFoodie</h2>
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="white-space: pre-line; margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">${renderRichText(introText)}</p>
 
@@ -186,8 +186,8 @@ function renderEmailHtml(params: SendResultEmailParams): string {
       desarrollado bajo la metodología técnica de <strong>Flanco Izquierdo</strong>.
     </p>
 
-    ${renderButton(reportUrl, `👉 Obtener Reporte Completo de ${TOTAL_ITEM_COUNT} Indicadores ($${FULL_REPORT_PRICE_MXN} MXN)`)}
-    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">Acceso inmediato por correo tras confirmar la solicitud.</p>
+    ${renderButton(reportUrl, "Ver mi resultado")}
+    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.</p>
   `);
 }
 

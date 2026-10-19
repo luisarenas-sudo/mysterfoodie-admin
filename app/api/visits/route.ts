@@ -372,6 +372,7 @@ export async function POST(req: NextRequest) {
       score,
       reportUrl,
       waiterName,
+      tipoNegocio: businessTypePhrase(business.type) || "negocio",
     },
     dmAutomation?.enabled && dmAutomation.bodyTemplate ? dmAutomation.bodyTemplate : undefined
   );

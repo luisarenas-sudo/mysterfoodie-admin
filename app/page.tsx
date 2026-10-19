@@ -61,7 +61,7 @@ export default async function Page() {
             <div className="mx-auto max-w-3xl px-6 pt-6">
               <PendientesPanel alerts={alerts} />
             </div>
-            <DesktopWizard />
+            <DesktopWizard defaultShopperName={profile?.fullName ?? undefined} />
           </>
         )}
       </div>

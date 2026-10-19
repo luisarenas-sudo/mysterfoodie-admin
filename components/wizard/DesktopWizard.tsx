@@ -132,14 +132,15 @@ function stepLabel(step: StepDef): string {
   return "Revisar";
 }
 
-export default function DesktopWizard({ boundAssignment }: { boundAssignment?: BoundAssignment } = {}) {
+export default function DesktopWizard({ boundAssignment, defaultShopperName }: { boundAssignment?: BoundAssignment; defaultShopperName?: string } = {}) {
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
   const [business, setBusiness] = useState<Business>(
     boundAssignment ? businessFromAssignment(boundAssignment) : EMPTY_BUSINESS
   );
-  const [shopperName, setShopperName] = useState("");
+  // Prellenado con el nombre del perfil; se puede cambiar.
+  const [shopperName, setShopperName] = useState(defaultShopperName ?? "");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [na, setNa] = useState<Record<string, boolean>>({});
@@ -165,7 +166,7 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
     const draft = loadWizardDraft<WizardDraft>(draftId);
     if (draft) {
       setBusiness(draft.business);
-      setShopperName(draft.shopperName);
+      setShopperName(draft.shopperName || defaultShopperName || "");
       setWaiterName(draft.waiterName);
       setRatings(draft.ratings);
       setFlags(draft.flags);
@@ -502,6 +503,16 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
 
       {current.kind === "category" && (
         <div className="mt-8 space-y-6">
+          {current.category.key === "atencion" && (
+            <Field label="Nombre de quien te atendió (opcional)">
+              <input
+                value={waiterName}
+                onChange={(e) => setWaiterName(e.target.value)}
+                className="input max-w-sm"
+                placeholder="Ej. Fermín"
+              />
+            </Field>
+          )}
           {groupCategoryItems(current.category.items).map((block, blockIdx) =>
             block.kind === "standalone" ? (
               <div
@@ -575,14 +586,6 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
 
       {current.kind === "comments" && (
         <div className="mt-8 max-w-xl space-y-6">
-          <Field label="Nombre del mesero que te atendió (opcional)">
-            <input
-              value={waiterName}
-              onChange={(e) => setWaiterName(e.target.value)}
-              className="input"
-              placeholder="Ej. Fermín"
-            />
-          </Field>
           <div className="space-y-3">
             <p className="text-sm font-medium text-ink">¿Cómo te fue?</p>
             <p className="text-xs text-stone-500">Marca lo que aplique. Todo es opcional.</p>
