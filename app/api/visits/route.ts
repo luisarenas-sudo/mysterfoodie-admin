@@ -257,17 +257,23 @@ export async function POST(req: NextRequest) {
   // Ninguna de estas 3 escrituras depende de las otras (todas solo
   // necesitan form.id, que ya tenemos) -- se lanzan juntas en vez de
   // esperarlas una por una.
-  const ratingRows = STAR_ITEMS.map((item) => ({
+  // Solo se guarda lo que el Foodie SÍ contestó: una estrella sin calificar
+  // o un Sí/No marcado "No aplica" no genera fila (score es NOT NULL 1-5, así
+  // que una fila vacía haría fallar todo el guardado de calificaciones).
+  const ratingRows = STAR_ITEMS.filter((item) => {
+    const v = body.ratings?.[item.key];
+    return Number.isInteger(v) && v >= 1 && v <= 5;
+  }).map((item) => ({
     form_id: form.id,
     category_key: item.key,
     category_label: fullItemLabel(item),
     score: body.ratings[item.key],
   }));
-  const flagRows = BOOLEAN_ITEMS.map((item) => ({
+  const flagRows = BOOLEAN_ITEMS.filter((item) => typeof body.flags?.[item.key] === "boolean").map((item) => ({
     form_id: form.id,
     flag_key: item.key,
     flag_label: fullItemLabel(item),
-    flag_value: Boolean(body.flags?.[item.key]),
+    flag_value: body.flags[item.key],
   }));
 
   await Promise.all([

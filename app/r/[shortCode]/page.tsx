@@ -92,7 +92,8 @@ function ItemValue({
     return <StarsReadonly value={ratings[item.key] || 0} />;
   }
   if (item.type === "boolean") {
-    const value = Boolean(flags[item.key]);
+    const raw = flags[item.key];
+    const value = raw === true;
     return (
       <span
         className={
@@ -100,7 +101,7 @@ function ItemValue({
           (value ? "bg-green-100 text-green-700" : "bg-stone-200 text-stone-600")
         }
       >
-        {value ? "Sí" : "No"}
+        {typeof raw !== "boolean" ? "No aplica" : value ? "Sí" : "No"}
       </span>
     );
   }

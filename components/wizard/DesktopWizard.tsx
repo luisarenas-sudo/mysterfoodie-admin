@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
-import BooleanToggle from "@/components/BooleanToggle";
+import TriState, { type TriValue } from "@/components/wizard/TriState";
+import { QUICK_TAGS, composeComments, commentPartsHaveContent } from "@/lib/visitComments";
 import SelectChips from "@/components/SelectChips";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
@@ -72,12 +73,19 @@ type WizardDraft = {
   flags: Record<string, boolean>;
   selects: Record<string, string>;
   comments: string;
+  /** Opcionales: borradores anteriores no los traen. */
+  na?: Record<string, boolean>;
+  tagsGood?: string[];
+  tagsImprove?: string[];
+  notes?: Record<string, string>;
   step: number;
   savedAt: number;
 };
 
-function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName">) {
+function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName" | "na" | "tagsGood" | "tagsImprove" | "notes">) {
   return (
+    Object.keys(d.na ?? {}).length > 0 ||
+    commentPartsHaveContent({ good: d.tagsGood ?? [], improve: d.tagsImprove ?? [], notes: d.notes ?? {}, free: "" }) ||
     Boolean(d.business.name.trim()) ||
     Boolean(d.shopperName.trim()) ||
     Boolean(d.waiterName.trim()) ||
@@ -134,8 +142,12 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
   const [shopperName, setShopperName] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [na, setNa] = useState<Record<string, boolean>>({});
   const [selects, setSelects] = useState<Record<string, string>>({});
   const [comments, setComments] = useState("");
+  const [tagsGood, setTagsGood] = useState<string[]>([]);
+  const [tagsImprove, setTagsImprove] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [waiterName, setWaiterName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -157,8 +169,12 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
       setWaiterName(draft.waiterName);
       setRatings(draft.ratings);
       setFlags(draft.flags);
+      setNa(draft.na ?? {});
       setSelects(draft.selects);
       setComments(draft.comments);
+      setTagsGood(draft.tagsGood ?? []);
+      setTagsImprove(draft.tagsImprove ?? []);
+      setNotes(draft.notes ?? {});
       setStep(Math.min(draft.step, steps.length - 1));
       setDraftRestored(true);
     }
@@ -169,13 +185,13 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
 
   useEffect(() => {
     if (!draftLoadedRef.current || result) return;
-    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, selects, comments, step, savedAt: Date.now() };
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now() };
     if (draftHasContent(draft)) {
       saveWizardDraft(draftId, draft);
     } else {
       clearWizardDraft(draftId);
     }
-  }, [draftId, business, shopperName, waiterName, ratings, flags, selects, comments, step, result]);
+  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, result]);
 
   function discardDraft() {
     clearWizardDraft(draftId);
@@ -185,8 +201,12 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
     setWaiterName("");
     setRatings({});
     setFlags({});
+    setNa({});
     setSelects({});
     setComments("");
+    setTagsGood([]);
+    setTagsImprove([]);
+    setNotes({});
     setStep(0);
   }
 
@@ -231,11 +251,12 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
       const payload = boundAssignment
         ? boundAssignment.assignmentId
-          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
-          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments, waiterName }
-        : { business, shopperName, ratings, flags, selects, comments, waiterName };
+          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
+          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
+        : { business, shopperName, ratings, flags, selects, comments: finalComments, waiterName };
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,8 +289,12 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
     setShopperName("");
     setRatings({});
     setFlags({});
+    setNa({});
     setSelects({});
     setComments("");
+    setTagsGood([]);
+    setTagsImprove([]);
+    setNotes({});
     setWaiterName("");
     setResult(null);
     setSubmitError(null);
@@ -493,6 +518,8 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
                     setRatings={setRatings}
                     setFlags={setFlags}
                     setSelects={setSelects}
+                    na={na}
+                    setNa={setNa}
                   />
                 ))}
               </div>
@@ -523,6 +550,8 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
                             setRatings={setRatings}
                             setFlags={setFlags}
                             setSelects={setSelects}
+                            na={na}
+                            setNa={setNa}
                           />
                         ))}
                       </div>
@@ -532,6 +561,15 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
               </div>
             )
           )}
+          <Field label={`Nota sobre ${current.category.label.toLowerCase()} (opcional)`}>
+            <textarea
+              value={notes[current.category.key] ?? ""}
+              onChange={(e) => setNotes((prev) => ({ ...prev, [current.category.key]: e.target.value }))}
+              rows={2}
+              className="input"
+              placeholder="Algo que quieras dejar anotado de esta parte de la visita"
+            />
+          </Field>
         </div>
       )}
 
@@ -545,20 +583,21 @@ export default function DesktopWizard({ boundAssignment }: { boundAssignment?: B
               placeholder="Ej. Fermín"
             />
           </Field>
-          <div className="space-y-2">
-          <p className="text-sm font-medium text-ink">Sugerencias, mejoras y más</p>
-          <p className="text-xs text-stone-500">
-            Opcional: cualquier observación adicional sobre la visita que no quede reflejada en
-            los indicadores.
-          </p>
-          <textarea
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            rows={6}
-            className="input"
-            placeholder="Escribe aquí cualquier comentario adicional..."
-          />
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-ink">¿Cómo te fue?</p>
+            <p className="text-xs text-stone-500">Marca lo que aplique. Todo es opcional.</p>
+            <TagRow title="Lo mejor" tags={QUICK_TAGS.good} selected={tagsGood} onToggle={(t) => setTagsGood((l) => (l.includes(t) ? l.filter((x) => x !== t) : [...l, t]))} />
+            <TagRow title="Para mejorar" tags={QUICK_TAGS.improve} selected={tagsImprove} onToggle={(t) => setTagsImprove((l) => (l.includes(t) ? l.filter((x) => x !== t) : [...l, t]))} />
           </div>
+          <Field label="Algo más que quieras contar (opcional)">
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              rows={4}
+              className="input"
+              placeholder="Escribe aquí cualquier comentario adicional..."
+            />
+          </Field>
         </div>
       )}
 
@@ -636,23 +675,91 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function TagRow({
+  title,
+  tags,
+  selected,
+  onToggle,
+}: {
+  title: string;
+  tags: readonly string[];
+  selected: string[];
+  onToggle: (tag: string) => void;
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">{title}</p>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => {
+          const active = selected.includes(tag);
+          return (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onToggle(tag)}
+              className={
+                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors " +
+                (active ? "border-transparent bg-brand-gradient text-white" : "border-black/10 bg-white text-stone-600 hover:bg-black/5")
+              }
+            >
+              {tag}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function ItemField({
   item,
   ratings,
   flags,
+  na,
   selects,
   setRatings,
   setFlags,
+  setNa,
   setSelects,
 }: {
   item: CategoryItem;
   ratings: Record<string, number>;
   flags: Record<string, boolean>;
+  na: Record<string, boolean>;
   selects: Record<string, string>;
   setRatings: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   setFlags: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setNa: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   setSelects: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
+  const tri: TriValue =
+    item.type !== "boolean"
+      ? undefined
+      : na[item.key]
+        ? "na"
+        : typeof flags[item.key] === "boolean"
+          ? flags[item.key]
+            ? "yes"
+            : "no"
+          : undefined;
+
+  function setTri(v: TriValue) {
+    setFlags((prev) => {
+      const next = { ...prev };
+      if (v === "yes") next[item.key] = true;
+      else if (v === "no") next[item.key] = false;
+      else delete next[item.key];
+      return next;
+    });
+    setNa((prev) => {
+      const next = { ...prev };
+      if (v === "na") next[item.key] = true;
+      else delete next[item.key];
+      return next;
+    });
+  }
+
   return (
     <div>
       <p className="text-sm font-medium text-ink">{item.label}</p>
@@ -663,12 +770,7 @@ function ItemField({
             onChange={(v) => setRatings((prev) => ({ ...prev, [item.key]: v }))}
           />
         )}
-        {item.type === "boolean" && (
-          <BooleanToggle
-            value={Boolean(flags[item.key])}
-            onChange={(v) => setFlags((prev) => ({ ...prev, [item.key]: v }))}
-          />
-        )}
+        {item.type === "boolean" && <TriState variant="desktop" value={tri} onChange={setTri} />}
         {item.type === "select" && item.options && (
           <SelectChips
             options={item.options}

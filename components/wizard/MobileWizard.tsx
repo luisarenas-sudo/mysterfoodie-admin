@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import SelectChips from "@/components/SelectChips";
+import TriState, { type TriValue } from "@/components/wizard/TriState";
+import { QUICK_TAGS, composeComments, commentPartsHaveContent } from "@/lib/visitComments";
 import {
   CATEGORIES,
   BUSINESS_TYPES,
@@ -74,12 +76,19 @@ type WizardDraft = {
   flags: Record<string, boolean>;
   selects: Record<string, string>;
   comments: string;
+  /** Opcionales: borradores guardados antes de esta versión no los traen. */
+  na?: Record<string, boolean>;
+  tagsGood?: string[];
+  tagsImprove?: string[];
+  notes?: Record<string, string>;
   step: number;
   savedAt: number;
 };
 
-function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName">) {
+function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName" | "na" | "tagsGood" | "tagsImprove" | "notes">) {
   return (
+    Object.keys(d.na ?? {}).length > 0 ||
+    commentPartsHaveContent({ good: d.tagsGood ?? [], improve: d.tagsImprove ?? [], notes: d.notes ?? {}, free: "" }) ||
     Boolean(d.business.name.trim()) ||
     Boolean(d.shopperName.trim()) ||
     Boolean(d.waiterName.trim()) ||
@@ -116,16 +125,18 @@ const STEPS: StepDef[] = [
 
 const ACCENT = "#F24444";
 
-function Star({ filled, onClick }: { filled: boolean; onClick: () => void }) {
+const RATING_WORDS = ["", "Malo", "Bajo", "Regular", "Bueno", "Excelente"];
+
+function Star({ filled, onClick, n }: { filled: boolean; onClick: () => void; n: number }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label="Calificar"
-      className="mf-tap flex items-center justify-center p-1.5"
-      style={{ cursor: "pointer" }}
+      aria-label={`${n} de 5`}
+      className="mf-tap flex flex-1 items-center justify-center"
+      style={{ cursor: "pointer", height: 46 }}
     >
-      <svg width="28" height="28" viewBox="0 0 24 24">
+      <svg width="32" height="32" viewBox="0 0 24 24">
         <path
           d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.2l7.1-.6L12 2z"
           fill={filled ? ACCENT : "rgba(60,60,67,0.15)"}
@@ -135,33 +146,74 @@ function Star({ filled, onClick }: { filled: boolean; onClick: () => void }) {
   );
 }
 
-function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+function TagGroup({
+  title,
+  tags,
+  selected,
+  color,
+  onToggle,
+}: {
+  title: string;
+  tags: readonly string[];
+  selected: string[];
+  color: string;
+  onToggle: (tag: string) => void;
+}) {
   return (
-    <div
-      onClick={() => onChange(!value)}
-      className="mf-tap"
-      style={{
-        width: 51,
-        height: 31,
-        borderRadius: 16,
-        background: value ? "#34C759" : "rgba(120,120,128,0.32)",
-        position: "relative",
-        cursor: "pointer",
-        flexShrink: 0,
-      }}
-    >
-      <div
-        style={{
-          width: 27,
-          height: 27,
-          borderRadius: 14,
-          background: "#fff",
-          position: "absolute",
-          top: 2,
-          left: value ? 22 : 2,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          transition: "left 0.15s ease",
-        }}
+    <div>
+      <div className="mb-1.5 text-[12.5px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.55)" }}>
+        {title}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => {
+          const active = selected.includes(tag);
+          return (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onToggle(tag)}
+              className="mf-tap rounded-full px-3.5 text-[13.5px] font-semibold"
+              style={{
+                height: 38,
+                background: active ? color : "#fff",
+                color: active ? "#fff" : "rgba(60,60,67,0.8)",
+                boxShadow: active ? "none" : "inset 0 0 0 1px rgba(60,60,67,0.15)",
+              }}
+            >
+              {tag}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CategoryNote({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(Boolean(value));
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mf-tap mt-4 w-full rounded-xl py-3 text-center text-[14px] font-semibold"
+        style={{ background: "rgba(0,122,255,0.08)", color: "#007AFF" }}
+      >
+        + Agregar una nota sobre {label.toLowerCase()} (opcional)
+      </button>
+    );
+  }
+  return (
+    <div className="mt-4">
+      <div className="mb-1.5 text-[13px] font-medium" style={{ color: "rgba(60,60,67,0.6)" }}>
+        Nota sobre {label.toLowerCase()} (opcional)
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Escríbela ahora que lo tienes fresco"
+        style={{ ...inputStyle, height: 90, lineHeight: 1.4, resize: "none" }}
       />
     </div>
   );
@@ -207,8 +259,13 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
   const [waiterName, setWaiterName] = useState("");
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
+  // "No aplica" en un Sí/No: no entra al puntaje ni se guarda (igual que sin contestar).
+  const [na, setNa] = useState<Record<string, boolean>>({});
   const [selects, setSelects] = useState<Record<string, string>>({});
   const [comments, setComments] = useState("");
+  const [tagsGood, setTagsGood] = useState<string[]>([]);
+  const [tagsImprove, setTagsImprove] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -228,8 +285,12 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
       setWaiterName(draft.waiterName);
       setRatings(draft.ratings);
       setFlags(draft.flags);
+      setNa(draft.na ?? {});
       setSelects(draft.selects);
       setComments(draft.comments);
+      setTagsGood(draft.tagsGood ?? []);
+      setTagsImprove(draft.tagsImprove ?? []);
+      setNotes(draft.notes ?? {});
       setStep(Math.min(draft.step, steps.length - 1));
       setDraftRestored(true);
     }
@@ -240,13 +301,13 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
 
   useEffect(() => {
     if (!draftLoadedRef.current || result) return;
-    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, selects, comments, step, savedAt: Date.now() };
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now() };
     if (draftHasContent(draft)) {
       saveWizardDraft(draftId, draft);
     } else {
       clearWizardDraft(draftId);
     }
-  }, [draftId, business, shopperName, waiterName, ratings, flags, selects, comments, step, result]);
+  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, result]);
 
   function discardDraft() {
     clearWizardDraft(draftId);
@@ -256,8 +317,12 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     setWaiterName("");
     setRatings({});
     setFlags({});
+    setNa({});
     setSelects({});
     setComments("");
+    setTagsGood([]);
+    setTagsImprove([]);
+    setNotes({});
     setStep(0);
   }
 
@@ -285,6 +350,24 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     return true;
   }
 
+  function answeredIn(category: Category) {
+    return category.items.filter((item) => {
+      if (item.type === "star") return (ratings[item.key] || 0) > 0;
+      if (item.type === "boolean") return typeof flags[item.key] === "boolean" || Boolean(na[item.key]);
+      return Boolean(selects[item.key]);
+    }).length;
+  }
+
+  function toggleTag(list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, tag: string) {
+    setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
+  }
+
+  function sendDm() {
+    if (!result) return;
+    copyToClipboard(result.dmMessage, "dm");
+    if (result.dmLink) window.open(result.dmLink, "_blank", "noopener");
+  }
+
   function goBack() {
     if (step > 0) {
       setStep((s) => s - 1);
@@ -303,11 +386,12 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
       const payload = boundAssignment
         ? boundAssignment.assignmentId
-          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments, waiterName }
-          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments, waiterName }
-        : { business, shopperName, ratings, flags, selects, comments, waiterName };
+          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
+          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
+        : { business, shopperName, ratings, flags, selects, comments: finalComments, waiterName };
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -400,58 +484,64 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
             </div>
           )}
 
-          <div className="mt-2">
-            <EmailStatusPanel formId={result.formId} initialStatus={result.email} />
-          </div>
+          {(() => {
+            const emailOk = result.email?.status === "sent";
+            return (
+              <div className="mt-3.5 flex items-center gap-2 px-1 text-[13px] font-medium" style={{ color: emailOk ? "#248A3D" : "#B45309" }}>
+                <span aria-hidden>{emailOk ? "✓" : "!"}</span>
+                <span>{emailOk ? "Correo enviado al negocio." : "Aún no se envió el correo al negocio. Puedes hacerlo en “Más opciones”."}</span>
+              </div>
+            );
+          })()}
 
           {!result.plan && (
-          <div className="card mt-3.5 p-4">
-            <p className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Mensaje para Instagram DM
-            </p>
-            <div className="mt-2 rounded-xl p-3 text-[13.5px] leading-relaxed" style={{ background: "#F2F2F7" }}>
-              {result.dmMessage}
-            </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(result.dmMessage, "dm")}
-              className="mf-tap mt-2.5 w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
-              style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}
-            >
-              {copied === "dm" ? "Copiado" : "Copiar texto"}
-            </button>
-            {result.dmLink && (
-              <a
-                href={result.dmLink}
-                target="_blank"
-                rel="noreferrer"
-                className="mf-tap mt-2 block w-full rounded-xl py-2.5 text-center text-[14.5px] font-semibold"
-                style={{ border: "1px solid rgba(60,60,67,0.15)" }}
+            <div className="card mt-3 p-4">
+              <p className="text-[15px] font-bold">Avísale al dueño</p>
+              <p className="mt-0.5 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+                Un toque: copia el mensaje y abre su Instagram para que solo lo pegues.
+              </p>
+              <button
+                type="button"
+                onClick={sendDm}
+                className="mf-tap mt-3 w-full rounded-2xl py-[14px] text-center text-[15.5px] font-bold text-white"
+                style={{ background: ACCENT }}
               >
-                Abrir DM en Instagram
-              </a>
-            )}
-          </div>
+                {copied === "dm" ? "Mensaje copiado" : result.dmLink ? "Copiar mensaje y abrir Instagram" : "Copiar mensaje"}
+              </button>
+            </div>
           )}
 
-          <div className="card mt-3 flex items-center justify-between p-4">
-            <div className="min-w-0">
-              <p className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
-                Link del reporte
-              </p>
-              <p className="mt-0.5 truncate text-[14.5px]" style={{ color: ACCENT }}>
-                {result.reportUrl}
-              </p>
+          <details className="card mt-3 p-4" open={result.email?.status === "failed"}>
+            <summary className="mf-tap cursor-pointer text-[14.5px] font-semibold" style={{ listStyle: "none" }}>
+              Más opciones
+            </summary>
+            <div className="mt-3">
+              <EmailStatusPanel formId={result.formId} initialStatus={result.email} />
             </div>
-            <button
-              type="button"
-              onClick={() => copyToClipboard(result.reportUrl, "link")}
-              className="mf-tap flex-shrink-0 rounded-xl px-3.5 py-2 text-[13.5px] font-semibold"
-              style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}
-            >
-              {copied === "link" ? "Copiado" : "Copiar"}
-            </button>
-          </div>
+            {!result.plan && (
+              <div className="mt-3 rounded-xl p-3 text-[13px] leading-relaxed" style={{ background: "#F2F2F7" }}>
+                {result.dmMessage}
+              </div>
+            )}
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
+                  Link del reporte
+                </p>
+                <p className="mt-0.5 truncate text-[14px]" style={{ color: ACCENT }}>
+                  {result.reportUrl}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(result.reportUrl, "link")}
+                className="mf-tap flex-shrink-0 rounded-xl px-3.5 py-2 text-[13.5px] font-semibold"
+                style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}
+              >
+                {copied === "link" ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+          </details>
         </div>
 
         <div
@@ -620,8 +710,14 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
               <div className="text-[30px] leading-none">{CATEGORY_EMOJI[current.category.key] ?? "⭐"}</div>
               <div className="heading text-[22px] font-bold">{current.category.label}</div>
             </div>
-            <div className="mb-2.5 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Califica cada aspecto de 1 a 5 estrellas
+            <div className="mb-2.5 flex items-center justify-between gap-3 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              <span>De 1 (malo) a 5 (excelente). Si algo no aplica, déjalo sin marcar.</span>
+              <span
+                className="flex-shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold"
+                style={{ background: "rgba(60,60,67,0.08)", color: "rgba(60,60,67,0.7)" }}
+              >
+                {answeredIn(current.category)}/{current.category.items.length}
+              </span>
             </div>
 
             <div className="space-y-3.5">
@@ -638,6 +734,8 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
                         setRatings={setRatings}
                         setFlags={setFlags}
                         setSelects={setSelects}
+                        na={na}
+                        setNa={setNa}
                         last={i === block.items.length - 1}
                       />
                     ))}
@@ -671,6 +769,8 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
                               setRatings={setRatings}
                               setFlags={setFlags}
                               setSelects={setSelects}
+                              na={na}
+                              setNa={setNa}
                               last={subIdx === block.subBlocks.length - 1 && i === sub.items.length - 1}
                             />
                           ))}
@@ -681,6 +781,13 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
                 )
               )}
             </div>
+
+            <CategoryNote
+              key={current.category.key}
+              label={current.category.label}
+              value={notes[current.category.key] ?? ""}
+              onChange={(v) => setNotes((prev) => ({ ...prev, [current.category.key]: v }))}
+            />
           </>
         )}
 
@@ -698,18 +805,23 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
               />
             </MobileField>
             <div>
-              <div className="heading mb-1 text-[22px] font-bold">Sugerencias, mejoras y más</div>
-              <div className="mb-3.5 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-                Opcional, pero ayuda mucho al negocio
+              <div className="heading mb-1 text-[22px] font-bold">¿Cómo te fue?</div>
+              <div className="mb-3 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+                Toca lo que aplique. Todo es opcional y ayuda mucho al negocio.
               </div>
+              <TagGroup title="Lo mejor" tags={QUICK_TAGS.good} selected={tagsGood} color="#34C759" onToggle={(t) => toggleTag(tagsGood, setTagsGood, t)} />
+              <div className="h-3.5" />
+              <TagGroup title="Para mejorar" tags={QUICK_TAGS.improve} selected={tagsImprove} color="#F24444" onToggle={(t) => toggleTag(tagsImprove, setTagsImprove, t)} />
+            </div>
+            <MobileField label="Algo más que quieras contar (opcional)">
               <textarea
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
-                placeholder="Ej. el mesero tardó en tomar la orden, el menú está desactualizado..."
-                style={{ ...inputStyle, height: 160, lineHeight: 1.4, resize: "none" }}
+                placeholder="Ej. el mesero fue muy amable pero el menú no tenía precios..."
+                style={{ ...inputStyle, height: 110, lineHeight: 1.4, resize: "none" }}
                 enterKeyHint="done"
               />
-            </div>
+            </MobileField>
             {submitError && <p className="text-sm text-red-600">{submitError}</p>}
           </div>
         )}
@@ -764,51 +876,87 @@ function CategoryRow({
   item,
   ratings,
   flags,
+  na,
   selects,
   setRatings,
   setFlags,
+  setNa,
   setSelects,
   last,
 }: {
   item: CategoryItem;
   ratings: Record<string, number>;
   flags: Record<string, boolean>;
+  na: Record<string, boolean>;
   selects: Record<string, string>;
   setRatings: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   setFlags: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setNa: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   setSelects: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   last: boolean;
 }) {
+  const rating = ratings[item.key] || 0;
+  const tri: TriValue =
+    item.type !== "boolean"
+      ? undefined
+      : na[item.key]
+        ? "na"
+        : typeof flags[item.key] === "boolean"
+          ? flags[item.key]
+            ? "yes"
+            : "no"
+          : undefined;
+
+  function setTri(v: TriValue) {
+    setFlags((prev) => {
+      const next = { ...prev };
+      if (v === "yes") next[item.key] = true;
+      else if (v === "no") next[item.key] = false;
+      else delete next[item.key];
+      return next;
+    });
+    setNa((prev) => {
+      const next = { ...prev };
+      if (v === "na") next[item.key] = true;
+      else delete next[item.key];
+      return next;
+    });
+  }
+
+  // Etiqueta arriba y control debajo, a todo el ancho: la etiqueta ya no se
+  // parte en 3-4 renglones y cada estrella mide ~60x46 px (antes 40x40).
   return (
-    <div
-      className="flex items-center justify-between py-3.5"
-      style={!last ? { borderBottom: "1px solid rgba(60,60,67,0.08)" } : undefined}
-    >
-      <div className="max-w-[190px] text-[14.5px] leading-tight">{item.label}</div>
-      {item.type === "star" && (
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <Star
-              key={n}
-              filled={n <= (ratings[item.key] || 0)}
-              onClick={() => setRatings((prev) => ({ ...prev, [item.key]: n === prev[item.key] ? 0 : n }))}
-            />
-          ))}
-        </div>
-      )}
-      {item.type === "boolean" && (
-        <Toggle
-          value={Boolean(flags[item.key])}
-          onChange={(v) => setFlags((prev) => ({ ...prev, [item.key]: v }))}
-        />
-      )}
-      {item.type === "select" && item.options && (
-        <SelectChips
-          options={item.options}
-          value={selects[item.key]}
-          onChange={(v) => setSelects((prev) => ({ ...prev, [item.key]: v }))}
-        />
-      )}
+    <div className="py-3.5" style={!last ? { borderBottom: "1px solid rgba(60,60,67,0.08)" } : undefined}>
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="text-[14.5px] leading-tight">{item.label}</div>
+        {item.type === "star" && rating > 0 && (
+          <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color: ACCENT }}>
+            {RATING_WORDS[rating]}
+          </span>
+        )}
+      </div>
+      <div className="mt-2">
+        {item.type === "star" && (
+          <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Star
+                key={n}
+                n={n}
+                filled={n <= rating}
+                onClick={() => setRatings((prev) => ({ ...prev, [item.key]: n === prev[item.key] ? 0 : n }))}
+              />
+            ))}
+          </div>
+        )}
+        {item.type === "boolean" && <TriState value={tri} onChange={setTri} />}
+        {item.type === "select" && item.options && (
+          <SelectChips
+            options={item.options}
+            value={selects[item.key]}
+            onChange={(v) => setSelects((prev) => ({ ...prev, [item.key]: v }))}
+          />
+        )}
+      </div>
     </div>
   );
 }

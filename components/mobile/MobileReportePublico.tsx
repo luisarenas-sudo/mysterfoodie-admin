@@ -40,13 +40,14 @@ function ItemValue({
 }) {
   if (item.type === "star") return <StarsReadonly value={ratings[item.key] || 0} />;
   if (item.type === "boolean") {
-    const value = Boolean(flags[item.key]);
+    const raw = flags[item.key];
+    const value = raw === true;
     return (
       <span
         className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
         style={value ? { background: "rgba(52,199,89,0.14)", color: "#248A3D" } : { background: "rgba(60,60,67,0.08)", color: "rgba(60,60,67,0.55)" }}
       >
-        {value ? "Sí" : "No"}
+        {typeof raw !== "boolean" ? "No aplica" : value ? "Sí" : "No"}
       </span>
     );
   }

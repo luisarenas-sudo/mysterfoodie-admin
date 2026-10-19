@@ -19,6 +19,20 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.15.0",
+    date: "2026-10-19",
+    title: "Visita más ligera de llenar",
+    emoji: "⭐",
+    highlights: [
+      "Las estrellas ahora se ven grandes y a todo lo ancho, con la etiqueta arriba: ya no se parte el texto y es más fácil acertar con el pulgar. Al calificar aparece la palabra (Malo, Regular, Excelente…).",
+      "Cada categoría muestra cuántos indicadores llevas (por ejemplo 9/13) y puedes dejar sin marcar lo que no aplique.",
+      "Los Sí/No ahora tienen tres opciones: Sí, No y No aplica. Arrancan sin respuesta, así que «No» ya significa que realmente no lo tienen.",
+      "Al cerrar la visita tocas etiquetas rápidas («Trato excelente», «Servicio lento»…) y, si quieres, dejas una nota en cada categoría mientras la tienes fresca.",
+      "La pantalla de resultado tiene una sola acción principal: copiar el mensaje y abrir el Instagram del dueño. El correo, el link y demás quedan en «Más opciones».",
+      "Arreglo: si dejabas alguna estrella sin calificar, el guardado de calificaciones podía fallar; ahora solo se guarda lo contestado.",
+    ],
+  },
+  {
     version: "0.14.0",
     date: "2026-10-16",
     title: "Auditoría de textos: web y app dicen lo mismo",
