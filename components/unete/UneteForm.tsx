@@ -318,7 +318,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
                   >
                     <span>
                       <span className="block text-[14.5px] font-semibold"><span aria-hidden="true">{BLOCK_EMOJI[b.key]} </span>{b.label}</span>
-                      <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Nivel {b.tier === "passport" ? "Passport" : "ID"} · ganas {b.pct}%</span>
+                      <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Nivel {b.tier === "passport" ? "Passport" : "ID"} · ganas ${Math.round((b.pct / 100) * TIER_INCREMENT[b.tier] * 100) / 100} por venta</span>
                     </span>
                     <span className="text-[13px] font-bold" style={{ color: on ? "#34C759" : "rgba(60,60,67,0.45)" }}>{on ? "Comparto" : "No comparto"}</span>
                   </button>

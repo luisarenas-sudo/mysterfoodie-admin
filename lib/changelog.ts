@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.25.0",
+    date: "2026-10-20",
+    title: "Cargo por uso de la plataforma y ganancias claras por perfil",
+    emoji: "🧾",
+    highlights: [
+      "Al comprar un perfil (ID o Passport) el negocio ve el precio, el 10% de cargo por uso de la plataforma y el total.",
+      "El MysterFoodie recibe el 50% del precio, repartido entre los bloques que comparte; el cargo no se le descuenta.",
+      "En Finanzas, cada mes, cada MysterFoodie ve sus ventas de perfil: negocio, precio, cargo y su parte bloque por bloque.",
+      "La web explica cómo se manejan los datos (Aviso de Privacidad y Condiciones) y Metodología cuenta el buyer persona.",
+    ],
+  },
+  {
     version: "0.24.0",
     date: "2026-10-20",
     title: "Tu nombre anónimo: 3 intentos y queda fijo",

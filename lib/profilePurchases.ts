@@ -91,7 +91,7 @@ export async function settleProfilePurchase(
   purchaseId: string,
   payment: { id: string | number; status?: string | null; transaction_amount?: number | null }
 ): Promise<void> {
-  const { data: purchase } = await db.from("profile_purchases").select("id, mysterfoodie_id, status, blocks").eq("id", purchaseId).maybeSingle();
+  const { data: purchase } = await db.from("profile_purchases").select("id, mysterfoodie_id, client_id, status, blocks, tier, price_amount, platform_fee").eq("id", purchaseId).maybeSingle();
   if (!purchase) return;
   const patch: Record<string, string | number | null> = {
     mercadopago_payment_id: String(payment.id),
@@ -112,7 +112,20 @@ export async function settleProfilePurchase(
     if (amount > 0) {
       await db
         .from("profile_earnings")
-        .upsert({ purchase_id: purchaseId, mysterfoodie_id: purchase.mysterfoodie_id, amount, blocks }, { onConflict: "purchase_id", ignoreDuplicates: true });
+        .upsert(
+          {
+            purchase_id: purchaseId,
+            mysterfoodie_id: purchase.mysterfoodie_id,
+            amount,
+            blocks,
+            // Foto de la venta para el detalle mensual: precio del perfil, cargo por uso de la plataforma, nivel y negocio.
+            sale_price: purchase.price_amount ?? null,
+            platform_fee: purchase.platform_fee ?? 0,
+            tier: purchase.tier ?? null,
+            client_id: purchase.client_id ?? null,
+          },
+          { onConflict: "purchase_id", ignoreDuplicates: true }
+        );
     }
   }
 }

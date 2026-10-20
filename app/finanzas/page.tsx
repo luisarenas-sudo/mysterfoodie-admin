@@ -11,7 +11,10 @@ import {
   type ProfileLite,
   type UnpaidPlanVisits,
 } from "@/lib/earnings";
+import type { ProfileSale } from "@/lib/profileSales";
 import { formatMxn, scenarioByKey } from "@/lib/earningsMatrix";
+import { ProfileSalesAdmin, ProfileSalesPersonal } from "@/components/finanzas/ProfileSalesSection";
+import { getMonthProfileSales } from "@/lib/profileSales";
 import FinanzasCalculator from "@/components/admin/FinanzasCalculator";
 import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
@@ -73,7 +76,7 @@ function MonthNav({ month }: { month: string }) {
 }
 
 /** Vista de un Sibarita o un Shopper: solo sus ventas del mes y su ganancia. */
-function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; userId: string; visits: PaidVisit[] }) {
+function PersonalView({ role, userId, visits, profileSales }: { role: "sibarita" | "agente"; userId: string; visits: PaidVisit[]; profileSales: ProfileSale[] }) {
   const mine = visits.filter((v) => (role === "sibarita" ? v.sibaritaId === userId : v.foodieId === userId));
   const share = (v: PaidVisit) => (role === "sibarita" ? v.sibarita : v.foodie);
   const total = mine.reduce((acc, v) => acc + share(v), 0);
@@ -158,6 +161,8 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
         del ticket de consumo no es ganancia: se paga aparte al Shopper. La comisión por uso de la aplicación cubre la
         plataforma, la gestión de reportes y el cobro.
       </p>
+
+      <ProfileSalesPersonal sales={profileSales} />
     </>
   );
 }
@@ -167,10 +172,12 @@ function AdminView({
   visits,
   profiles,
   unpaidPlan,
+  profileSales,
 }: {
   visits: PaidVisit[];
   profiles: Map<string, ProfileLite>;
   unpaidPlan: UnpaidPlanVisits;
+  profileSales: ProfileSale[];
 }) {
   const bruto = visits.reduce((a, v) => a + v.price, 0);
   const adminTotal = visits.reduce((a, v) => a + v.admin, 0);
@@ -300,6 +307,8 @@ function AdminView({
         el mes del plan como cobrado. Quien visita es quien guardó la visita; quien vende, quien dio de alta el negocio.
       </p>
 
+      <ProfileSalesAdmin sales={profileSales} names={new Map(profileSales.map((s) => [s.mysterfoodieId, s.mysterfoodieName]))} />
+
       <details className="card mt-6 p-4">
         <summary className="cursor-pointer text-[15px] font-bold">Simulador de reparto</summary>
         <div className="mt-4">
@@ -315,6 +324,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   const { mes } = await searchParams;
   const month = isValidMonth(mes) && mes <= currentMonthCdmx() ? mes : currentMonthCdmx();
   const { visits, profiles, unpaidPlan } = await getMonthEarnings(month);
+  const profileSales = await getMonthProfileSales(month, profile.role === "admin" ? undefined : profile.userId).catch((): ProfileSale[] => []);
 
   return (
     <>
@@ -335,9 +345,9 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
         <MonthNav month={month} />
 
         {profile.role === "admin" ? (
-          <AdminView visits={visits} profiles={profiles} unpaidPlan={unpaidPlan} />
+          <AdminView visits={visits} profiles={profiles} unpaidPlan={unpaidPlan} profileSales={profileSales} />
         ) : (
-          <PersonalView role={profile.role as "sibarita" | "agente"} userId={profile.userId} visits={visits} />
+          <PersonalView role={profile.role as "sibarita" | "agente"} userId={profile.userId} visits={visits} profileSales={profileSales} />
         )}
       </main>
     </>

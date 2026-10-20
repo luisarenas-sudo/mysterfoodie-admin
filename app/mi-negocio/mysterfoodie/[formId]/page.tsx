@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { buildMysterfoodieProfile, getProfileOffer } from "@/lib/mysterfoodieProfile";
-import { BLOCKS_OF_TIER, PERFIL_PITCH, PERFIL_PITCH_TITLE, TIERS, type TierKey } from "@/lib/personaCatalog";
+import { BLOCKS_OF_TIER, MYSTERFOODIE_SHARE_PCT, PERFIL_PITCH, PERFIL_PITCH_TITLE, PLATFORM_FEE_PCT, TIERS, platformFee, priceWithFee, type TierKey } from "@/lib/personaCatalog";
 import { getOwnedTiers, highestTier, priceFor } from "@/lib/profilePurchases";
 import MysterfoodieProfileView from "@/components/negocio/MysterfoodieProfileView";
 
@@ -15,6 +15,8 @@ const AVISOS: Record<string, { text: string; tone: "ok" | "warn" | "bad" }> = {
   fallido: { text: "El pago no se completó. No se hizo ningún cargo; puedes intentarlo de nuevo.", tone: "bad" },
   error: { text: "No pudimos iniciar el pago. Intenta de nuevo o escríbenos a hola@mysterfoodie.com.", tone: "bad" },
 };
+
+const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
 
 export default async function PerfilMysterfoodiePage({
   params,
@@ -65,6 +67,9 @@ export default async function PerfilMysterfoodiePage({
           ${price} <span className="text-[12px] font-semibold text-stone-500">MXN + IVA</span>
         </div>
       </div>
+      <p className="mt-0.5 text-right text-[12px] text-stone-500">
+        + {money(platformFee(price))} de cargo por uso de la plataforma ({PLATFORM_FEE_PCT}%) = <strong>{money(priceWithFee(price))}</strong> + IVA
+      </p>
       <p className="mt-1 text-[13.5px] text-stone-600">{TIERS[tier].tagline}</p>
       <ul className="mt-2 space-y-1 text-[13.5px] text-stone-700">
         {BLOCKS_OF_TIER(tier === "passport" ? "passport" : "id").map((b) => (
@@ -79,7 +84,7 @@ export default async function PerfilMysterfoodiePage({
             Disponible para visitas con reporte completo. Desbloquea primero el reporte de esta visita.
           </p>
         ) : available ? (
-          buy(tier, `${tier === "passport" && owned.has("id") ? "Mejorar a Passport" : `Destapar ${TIERS[tier].label}`} · $${price} MXN + IVA`)
+          buy(tier, `${tier === "passport" && owned.has("id") ? "Mejorar a Passport" : `Destapar ${TIERS[tier].label}`} · ${money(priceWithFee(price))} MXN + IVA`)
         ) : (
           <p className="rounded-xl px-3.5 py-3 text-[13.5px]" style={{ background: "#F2F2F7" }}>
             Este MysterFoodie aún no comparte suficiente información para este nivel.
@@ -120,6 +125,9 @@ export default async function PerfilMysterfoodiePage({
             </div>
             <p className="mt-3 text-center text-[12px] text-stone-400">
               Pago único con MercadoPago. Cada MysterFoodie decide qué comparte: solo ves lo que él autorizó, siempre de forma anónima.
+            </p>
+            <p className="mt-2 rounded-xl px-3.5 py-3 text-[12.5px] leading-snug text-stone-600" style={{ background: "#F2F2F7" }}>
+              <strong>Cómo se reparte:</strong> pagas el precio del perfil más un {PLATFORM_FEE_PCT}% de cargo por uso de la plataforma (operación, cobro y resguardo de datos). El {MYSTERFOODIE_SHARE_PCT}% del precio se va al MysterFoodie que compartió su perfil. Más en el <a href="https://mysterfoodie.com/privacidad/#perfil-anonimo" className="underline" target="_blank" rel="noopener">Aviso de Privacidad</a>.
             </p>
           </div>
         )}

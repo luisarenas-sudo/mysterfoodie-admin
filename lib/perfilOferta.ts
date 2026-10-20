@@ -3,7 +3,7 @@ import { sendTemplatedEmail } from "./email";
 import { getAutomation, renderTemplate } from "./automations";
 import { getProfileOffer } from "./mysterfoodieProfile";
 import { getOwnedTiers } from "./profilePurchases";
-import { TIERS } from "./personaCatalog";
+import { PLATFORM_FEE_PCT, TIERS } from "./personaCatalog";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -29,8 +29,8 @@ export function perfilOfertaVars(p: { negocio: string; visitDate: string; link: 
   return {
     negocio: p.negocio,
     fecha_visita: dateLabel(p.visitDate),
-    precio_id: `$${TIERS.id.price} MXN + IVA`,
-    precio_passport: `$${TIERS.passport.price} MXN + IVA`,
+    precio_id: `$${TIERS.id.price} MXN + ${PLATFORM_FEE_PCT}% de cargo por uso de la plataforma + IVA`,
+    precio_passport: `$${TIERS.passport.price} MXN + ${PLATFORM_FEE_PCT}% de cargo por uso de la plataforma + IVA`,
     link_perfil: p.link,
   };
 }

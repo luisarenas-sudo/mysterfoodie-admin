@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
 import { FieldInput } from "@/components/persona/PersonaFields";
 import { BLOCK_EMOJI } from "@/lib/personaUi";
-import { BLOCKS, MAX_EARNINGS_PER_SALE, activeFields, MIN_VISITS_PASSPORT, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockDef, type BlockKey, type Persona } from "@/lib/personaCatalog";
+import { BLOCKS, MAX_EARNINGS_PER_SALE, MYSTERFOODIE_SHARE_PCT, PLATFORM_FEE_PCT, activeFields, MIN_VISITS_PASSPORT, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockDef, type BlockKey, type Persona } from "@/lib/personaCatalog";
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -105,7 +105,7 @@ export default function AnonProfileForm({
         <div className="text-[13px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>Con lo que compartes hoy ganarías</div>
         <div key={estimate} className="mf-pop mt-0.5 text-[26px] font-extrabold" style={{ color: "#F24444" }}>{money(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
         <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-          Si compartes todo: hasta {money(MAX_EARNINGS_PER_SALE)} por perfil Passport. Cada bloque paga un porcentaje fijo del escalón de precio al que pertenece (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport).
+          Si compartes todo: hasta {money(MAX_EARNINGS_PER_SALE)} por perfil Passport. Te llevas el {MYSTERFOODIE_SHARE_PCT}% del precio que paga el negocio (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport), repartido entre los bloques que compartes. El cargo por uso de la plataforma ({PLATFORM_FEE_PCT}%) lo paga el negocio aparte y no se te descuenta. Lo ves todo, mes a mes, en Finanzas.
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export default function AnonProfileForm({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: def.tier === "passport" ? "#5856D6" : "#F24444" }}>
-                  Nivel {def.tier === "passport" ? "Passport" : "ID"} · gana {def.pct}%
+                  Nivel {def.tier === "passport" ? "Passport" : "ID"} · ganas {money((def.pct / 100) * TIER_INCREMENT[def.tier])} por venta
                 </div>
                 <div className="heading text-[19px]"><span aria-hidden="true">{BLOCK_EMOJI[def.key]} </span>{def.label}</div>
                 <div className="text-[13px] text-stone-500">{def.desc}</div>

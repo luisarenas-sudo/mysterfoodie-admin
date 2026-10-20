@@ -3,11 +3,12 @@ import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { createPaymentPreference } from "@/lib/mercadopago";
 import { getProfileOffer } from "@/lib/mysterfoodieProfile";
-import { TIERS, type TierKey } from "@/lib/personaCatalog";
+import { PLATFORM_FEE_PCT, TIERS, platformFee, priceWithFee, type TierKey } from "@/lib/personaCatalog";
 import { blocksForPurchase, getOwnedTiers, priceFor } from "@/lib/profilePurchases";
 
 /**
- * "Comprar perfil" de un MysterFoodie (solo cuentas de negocio): nivel ID ($350) o Passport ($700; $350 si ya tienes el ID).
+ * "Comprar perfil" de un MysterFoodie (solo cuentas de negocio): nivel ID ($350) o Passport ($700; $350 si ya tienes el ID),
+ * más el cargo por uso de la plataforma (10 %); el MysterFoodie recibe el 50 % del precio, el cargo no se le descuenta.
  * GET /api/mi-negocio/perfil/checkout?formId=<visita>&tier=id|passport -> crea la compra pendiente y redirige a MercadoPago.
  * external_reference = "perfil:<purchaseId>"; el webhook la marca aprobada y le abona sus ganancias al MysterFoodie.
  */
@@ -42,6 +43,8 @@ export async function GET(req: NextRequest) {
   if (!available || owned.has(tier) || (tier === "id" && owned.has("passport"))) return NextResponse.redirect(back);
 
   const price = priceFor(tier, owned);
+  const fee = platformFee(price);
+  const total = priceWithFee(price);
   const blocks = blocksForPurchase(offer, tier, owned);
 
   try {
@@ -55,15 +58,17 @@ export async function GET(req: NextRequest) {
         tier,
         blocks,
         status: "pending",
-        amount: price,
+        amount: total,
+        price_amount: price,
+        platform_fee: fee,
       })
       .select("id")
       .single();
     if (error || !purchase) return NextResponse.redirect(`${back}?pago=error`);
 
     const preference = await createPaymentPreference({
-      title: `Perfil ${TIERS[tier].label} de ${offer.alias} - MysterFoodie`,
-      price,
+      title: `Perfil ${TIERS[tier].label} de ${offer.alias} - MysterFoodie (incluye ${PLATFORM_FEE_PCT}% de cargo por uso de la plataforma)`,
+      price: total,
       externalReference: `perfil:${purchase.id}`,
       successUrl: `${back}?pago=exitoso`,
       failureUrl: `${back}?pago=fallido`,

@@ -4,8 +4,10 @@
  * Dos niveles que compra un negocio (precios en MXN, sin IVA):
  *  - ID ($350): lo que sale de sus visitas y reseñas (gustos y palabras, consumo y salidas, sector por código postal).
  *  - Passport ($700): el ID + el "buyer persona" completo (demografía, estilo de vida, movilidad y medios).
- * Cada MysterFoodie decide qué BLOQUES comparte; por cada bloque compartido gana un porcentaje fijo del "escalón" de precio
- * al que pertenece el bloque (ID = $350, Passport = los otros $350). Los porcentajes se editan aquí, en un solo lugar.
+ * Cada MysterFoodie decide qué BLOQUES comparte. REPARTO: el MysterFoodie recibe el 50 % del PRECIO (MYSTERFOODIE_SHARE_PCT)
+ * repartido entre los bloques que comparte: cada bloque gana su % del "escalón" de precio al que pertenece (ID = $350,
+ * Passport = los otros $350); los % de cada escalón suman 50. El negocio, además, paga un CARGO POR USO DE LA PLATAFORMA
+ * (PLATFORM_FEE_PCT, 10 % sobre el precio) que NO sale de la parte del MysterFoodie. Todo se edita aquí, en un solo lugar.
  * Nunca se guardan documentos: pasaporte y visa son solo sí/no, la edad va en rangos y el auto por categoría.
  */
 export type TierKey = "id" | "passport";
@@ -15,6 +17,21 @@ export const TIERS: Record<TierKey, { label: string; price: number; tagline: str
   id: { label: "ID", price: Number(process.env.MYSTERFOODIE_PROFILE_PRICE_MXN) || 350, tagline: "Gustos, palabras, consumo y sector" },
   passport: { label: "Passport", price: 700, tagline: "El buyer persona completo: estilo de vida, demografía, movilidad y medios" },
 };
+
+/** Parte del precio que se lleva el MysterFoodie (50 %), repartida entre los bloques que comparte. */
+export const MYSTERFOODIE_SHARE_PCT = 50;
+
+/** Cargo por uso de la plataforma: % que se SUMA al precio y paga el negocio (no se descuenta al MysterFoodie). */
+export const PLATFORM_FEE_PCT = Number(process.env.MYSTERFOODIE_PLATFORM_FEE_PCT) || 10;
+
+export function platformFee(price: number): number {
+  return Math.round(price * PLATFORM_FEE_PCT) / 100;
+}
+
+/** Precio + cargo por uso de la plataforma (sin IVA). */
+export function priceWithFee(price: number): number {
+  return Math.round((price + platformFee(price)) * 100) / 100;
+}
 
 /** Cuánto vale cada escalón para repartir ganancias (ID = 350; Passport = 700 - 350). */
 export const TIER_INCREMENT: Record<TierKey, number> = { id: TIERS.id.price, passport: TIERS.passport.price - TIERS.id.price };
@@ -87,11 +104,11 @@ export function travelerType(moods: string[]): { type: string; desc: string; moo
 }
 
 export const BLOCKS: BlockDef[] = [
-  { key: "gustos", tier: "id", label: "Gustos y palabras", desc: "Tipos de cocina, platillos favoritos y las palabras que más usa en sus reseñas.", pct: 8, fields: [] },
-  { key: "consumo", tier: "id", label: "Consumo y salidas", desc: "Con cuántas personas sale, cuenta promedio, totales, dónde consume y cuándo suele salir.", pct: 8, fields: [] },
-  { key: "sector", tier: "id", label: "Sector", desc: "Zona económicamente activa o desacelerada, según su código postal (nunca se muestra el código).", pct: 6, fields: [] },
+  { key: "gustos", tier: "id", label: "Gustos y palabras", desc: "Tipos de cocina, platillos favoritos y las palabras que más usa en sus reseñas.", pct: 18, fields: [] },
+  { key: "consumo", tier: "id", label: "Consumo y salidas", desc: "Con cuántas personas sale, cuenta promedio, totales, dónde consume y cuándo suele salir.", pct: 18, fields: [] },
+  { key: "sector", tier: "id", label: "Sector", desc: "Zona económicamente activa o desacelerada, según su código postal (nunca se muestra el código).", pct: 14, fields: [] },
   {
-    key: "demografia", tier: "passport", label: "Demografía", desc: "Rango de edad, escolaridad, ocupación y con quién vive.", pct: 8,
+    key: "demografia", tier: "passport", label: "Demografía", desc: "Rango de edad, escolaridad, ocupación y con quién vive.", pct: 12.5,
     fields: [
       { key: "edad", label: "Rango de edad", kind: "one", options: ["18 a 24", "25 a 34", "35 a 44", "45 a 54", "55 o más"] },
       { key: "escolaridad", label: "Escolaridad", kind: "one", options: ["Preparatoria o menos", "Técnica", "Licenciatura", "Posgrado", NO] },
@@ -102,7 +119,7 @@ export const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    key: "estilo_vida", tier: "passport", label: "Estilo de vida", desc: "Qué tanto come fuera, cuánto gasta por persona, su dieta, intereses y con quién sale.", pct: 8,
+    key: "estilo_vida", tier: "passport", label: "Estilo de vida", desc: "Qué tanto come fuera, cuánto gasta por persona, su dieta, intereses y con quién sale.", pct: 12.5,
     fields: [
       { key: "frecuencia", label: "Veces al mes que come fuera", kind: "one", options: ["1 a 2", "3 a 5", "6 a 10", "Más de 10"] },
       { key: "gasto", label: "Gasto habitual por persona", kind: "one", options: ["Menos de $150", "$150 a $300", "$300 a $600", "Más de $600"] },
@@ -116,7 +133,7 @@ export const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    key: "movilidad", tier: "passport", label: "Movilidad y viajes", desc: "Auto que maneja, pasaporte o visa vigentes (solo sí/no) y su mood viajero (Pueblos Mágicos, EuroTrip, Beach Babe…).", pct: 8,
+    key: "movilidad", tier: "passport", label: "Movilidad y viajes", desc: "Auto que maneja, pasaporte o visa vigentes (solo sí/no) y su mood viajero (Pueblos Mágicos, EuroTrip, Beach Babe…).", pct: 12.5,
     fields: [
       { key: "auto", label: "Vehículo que maneja", kind: "one", options: ["No maneja o no tiene", "Moto", "Sedán o compacto", "Crossover", "SUV mediana", "SUV grande", "Pickup o utilitario", "Auto de confort", "Híbrido o eléctrico", "Auto de lujo", "Deportivo", "Exótico"] },
       { key: "estacionamiento", label: "¿Qué tan importante es el estacionamiento al elegir dónde comer?", kind: "one", options: ["Indispensable", "Me ayuda", "Me da igual"], when: { field: "auto", notAny: ["No maneja o no tiene", "Moto"] } },
@@ -131,7 +148,7 @@ export const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    key: "medios", tier: "passport", label: "Medios y relación con el medio", desc: "Redes que usa, cómo descubre restaurantes y qué tanto publica reseñas.", pct: 8,
+    key: "medios", tier: "passport", label: "Medios y relación con el medio", desc: "Redes que usa, cómo descubre restaurantes y qué tanto publica reseñas.", pct: 12.5,
     fields: [
       { key: "redes", label: "Redes que usa a diario", kind: "many", options: ["Instagram", "TikTok", "Facebook", "YouTube", "X", "LinkedIn", "WhatsApp (canales)", "Pinterest"] },
       { key: "descubre", label: "Cómo descubre dónde comer", kind: "many", options: ["Instagram o TikTok", "Google Maps", "Recomendación de amigos", "Apps de entrega", "Reseñas en línea", "Medios locales", "Pasa por ahí"] },

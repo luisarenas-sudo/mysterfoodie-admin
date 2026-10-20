@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { BuyableProfile } from "@/lib/profilePurchases";
-import { PERFIL_PITCH, PERFIL_PITCH_TITLE, TIERS } from "@/lib/personaCatalog";
+import { PERFIL_PITCH, PERFIL_PITCH_TITLE, PLATFORM_FEE_PCT, TIERS } from "@/lib/personaCatalog";
 
 const fmt = (iso: string) =>
   new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "long", timeZone: "America/Mexico_City" });
@@ -19,7 +19,7 @@ export default function MysterfoodieProfilesCard({ profiles, className = "" }: {
       <h2 className="heading text-[20px] leading-tight">{PERFIL_PITCH_TITLE}</h2>
       <p className="mt-1 text-[13px] leading-snug text-stone-500">{PERFIL_PITCH}</p>
       <p className="mt-2 text-[12.5px] font-semibold text-stone-600">
-        ID ${TIERS.id.price} MXN + IVA · Passport ${TIERS.passport.price} MXN + IVA · pago único
+        ID ${TIERS.id.price} · Passport ${TIERS.passport.price} MXN + {PLATFORM_FEE_PCT}% de cargo por uso de la plataforma + IVA · pago único
       </p>
       <div className="mt-3 divide-y" style={{ borderColor: "rgba(60,60,67,0.08)" }}>
         {profiles.map((p) => {
