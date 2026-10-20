@@ -11,7 +11,8 @@ import {
 import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import { isCalendarConnected } from "@/lib/googleCalendar";
 import AutoRefreshAfterPayment from "@/components/AutoRefreshAfterPayment";
-import VerdictBadge from "@/components/VerdictBadge";
+import ActivityRing from "@/components/mobile/ActivityRing";
+import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import FlancoCredit from "@/components/FlancoCredit";
 import MobileReportePublico from "@/components/mobile/MobileReportePublico";
 import CheckoutPayerForm from "@/components/CheckoutPayerForm";
@@ -139,7 +140,9 @@ function FullReportDetail({
   menuType,
   comments,
   ticketHref,
+  averages,
 }: {
+  averages: Record<string, number>;
   ratings: Ratings;
   flags: Record<string, boolean>;
   menuType: string | null;
@@ -151,8 +154,17 @@ function FullReportDetail({
       <h2 className="heading text-xl text-ink">Detalle completo por indicador</h2>
       {CATEGORIES.map((cat) => (
         <div key={cat.key}>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+          <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
+            <span className="text-base normal-case" aria-hidden="true">{CATEGORY_EMOJI[cat.key] ?? "⭐"}</span>
             {cat.label}
+            {averages[cat.key] !== undefined && (
+              <span
+                className="ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold normal-case"
+                style={{ color: getVerdict(averages[cat.key]).color, background: `${getVerdict(averages[cat.key]).color}1F` }}
+              >
+                {averages[cat.key]} de 5
+              </span>
+            )}
           </h3>
           <div className="mt-3 space-y-3">
             {groupCategoryItems(cat.items).map((block, blockIdx) =>
@@ -331,12 +343,23 @@ export default async function ReportPage({
 
     <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">
-        Resultado de la evaluación de {client?.name ?? "tu negocio"}
-      </h1>
-      <p className="mt-1 text-sm text-stone-500">
-        Visita realizada el {new Date(form.created_at).toLocaleDateString("es-MX")}
-      </p>
+      <div className="mt-3 flex items-center gap-4">
+        <div
+          className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-[22px] font-bold text-white"
+          style={{ background: avatarColorFor(client?.name ?? "tu negocio") }}
+          aria-hidden="true"
+        >
+          {initialsFor(client?.name ?? "tu negocio")}
+        </div>
+        <div className="min-w-0">
+          <h1 className="heading text-3xl leading-tight text-ink">
+            Resultado de la evaluación de {client?.name ?? "tu negocio"}
+          </h1>
+          <p className="mt-1 text-sm text-stone-500">
+            Visita realizada el {new Date(form.created_at).toLocaleDateString("es-MX")}
+          </p>
+        </div>
+      </div>
 
       {pago === "exitoso" && (
         <p className="mt-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
@@ -361,32 +384,44 @@ export default async function ReportPage({
         </p>
       )}
 
-      <div className="mt-6 card p-6 text-center">
-        <p className="text-sm text-stone-500">Promedio general</p>
-        <p className="text-5xl font-bold text-brand-600">{form.overall_score}</p>
-        <p className="text-sm text-stone-500">de 5</p>
-        <div className="mt-3 flex justify-center">
-          <VerdictBadge score={form.overall_score} />
+      <div className="mt-6 card flex flex-col items-center p-6 text-center">
+        <p className="mb-3 text-sm text-stone-500">Promedio general</p>
+        <ActivityRing value={form.overall_score} max={5} size={150} strokeWidth={13} color={verdict.color}>
+          <div className="text-[38px] font-bold leading-none text-ink">{form.overall_score}</div>
+          <div className="mt-1 text-xs text-stone-500">de 5.0</div>
+        </ActivityRing>
+        <div
+          className="mt-4 rounded-xl px-4 py-1.5 text-sm font-bold"
+          style={{ color: verdict.color, background: `${verdict.color}1F` }}
+        >
+          {verdict.label}
         </div>
         <p className="mx-auto mt-3 max-w-sm text-sm text-stone-500">{verdict.summary}</p>
       </div>
 
       {visibleCategories.length > 0 && (
         <div className="mt-6 grid grid-cols-2 gap-3">
-          {visibleCategories.map((c) => (
-            <div
-              key={c.key}
-              className="card p-4 text-center"
-            >
-              <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
-                {c.label}
-              </p>
-              <p className="mt-1 text-2xl font-bold" style={{ color: getVerdict(c.average).color }}>
-                {c.average}
-              </p>
-              <p className="text-xs text-stone-400">de 5</p>
-            </div>
-          ))}
+          {visibleCategories.map((c, i) => {
+            const isLastOdd = visibleCategories.length % 2 === 1 && i === visibleCategories.length - 1;
+            const color = getVerdict(c.average).color;
+            return (
+              <div
+                key={c.key}
+                className={`card flex items-center gap-4 p-4 ${isLastOdd ? "col-span-2 justify-center" : ""}`}
+              >
+                <ActivityRing value={c.average} max={5} size={60} strokeWidth={7} color={color} trackColor="rgba(60,60,67,0.1)">
+                  <div className="text-[22px] leading-none" aria-hidden="true">{CATEGORY_EMOJI[c.key] ?? "⭐"}</div>
+                </ActivityRing>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold uppercase tracking-wide text-stone-500">{c.label}</p>
+                  <p className="text-2xl font-bold leading-tight" style={{ color }}>
+                    {c.average}
+                    <span className="ml-1 text-xs font-medium text-stone-400">de 5</span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -397,6 +432,7 @@ export default async function ReportPage({
           menuType={form.menu_type}
           comments={form.comments}
           ticketHref={form.ticket_photo_path ? `/r/${shortCode}/ticket` : null}
+          averages={Object.fromEntries(visibleCategories.map((c) => [c.key, c.average]))}
         />
       ) : requested ? (
         <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { getVerdict } from "@/lib/verdict";
 import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
-import { CATEGORY_EMOJI } from "@/lib/ring";
+import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
@@ -186,6 +186,13 @@ export default function MobileReportePublico({
   return (
     <div className="md:hidden mf-fade-in" style={{ background: "#F2F2F7", minHeight: "100vh" }}>
       <div style={{ background: "linear-gradient(180deg,#EDEFF7 0%,#F2F2F7 100%)", padding: "24px 24px 20px 24px", textAlign: "center" }}>
+        <div
+          className="mx-auto mb-3 flex h-[64px] w-[64px] items-center justify-center rounded-full text-[22px] font-bold text-white"
+          style={{ background: avatarColorFor(clientName) }}
+          aria-hidden="true"
+        >
+          {initialsFor(clientName)}
+        </div>
         <div className="mb-1 text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
           Reporte de visita anónima
         </div>
