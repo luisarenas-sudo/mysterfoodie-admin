@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.28.1",
+    date: "2026-10-20",
+    title: "Planes solo en la web",
+    emoji: "🧭",
+    highlights: [
+      "La comparativa de planes vive solo en mysterfoodie.com/servicios; ya no hay pantalla «Planes» en la app ni en el menú.",
+      "Los planes de cada negocio se siguen contratando y administrando desde su ficha en Negocios; «Ver comparativa» abre la web.",
+    ],
+  },
+  {
     version: "0.28.0",
     date: "2026-10-20",
     title: "Visita asegurada con pago en línea",

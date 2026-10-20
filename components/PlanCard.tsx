@@ -8,6 +8,7 @@ import { PLAN_ZONE_LABEL, isInPlanZone, sucursalesRangeLabel, type PlanCatalogEn
 import { formatMxn } from "@/lib/earningsMatrix";
 import { monthLabel as monthName } from "@/lib/months";
 import { friendlyError } from "@/lib/friendlyError";
+import { PACKAGES_URL } from "@/lib/links";
 
 const MUTED = "rgba(60,60,67,0.6)";
 
@@ -178,9 +179,9 @@ export default function PlanCard({
               </div>
               <p className="mt-1.5 text-[12px]" style={{ color: MUTED }}>
                 {catalog.tagline}.{" "}
-                <Link href="/planes#comparativa" className="font-semibold text-brand-500">
+                <a href={PACKAGES_URL} target="_blank" rel="noreferrer" className="font-semibold text-brand-500">
                   Ver comparativa
-                </Link>
+                </a>
               </p>
             </div>
 

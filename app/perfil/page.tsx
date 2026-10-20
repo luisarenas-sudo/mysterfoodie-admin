@@ -298,8 +298,7 @@ export default async function PerfilPage({
             />
             <Row href="/admin/ganancias-perfil" icon="💸" iconBg="#34C759" title="Ganancias de perfiles" subtitle="Lo que ganan los MysterFoodies por sus perfiles anónimos" />
             <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
-            <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
-            <Row href="/planes" icon="📅" iconBg="#007AFF" title="Planes" subtitle="Visitas mensuales contratadas por sucursal" last />
+            <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" last />
           </>
         )}
       </Group>

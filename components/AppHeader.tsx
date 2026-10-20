@@ -19,7 +19,6 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string; cta?: boolean }[]
     { href: "/solicitudes", label: "Solicitudes" },
     { href: "/admin/usuarios", label: "Usuarios" },
     { href: "/automatizaciones", label: "Automatizaciones" },
-    { href: "/planes", label: "Planes" },
     { href: "/finanzas", label: "Finanzas" },
     { href: "/perfil", label: "Perfil" },
   ],
