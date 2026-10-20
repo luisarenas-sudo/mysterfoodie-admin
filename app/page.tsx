@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getHomeSummary, getReyNegocio, getPendingAssignmentsFor } from "@/lib/dashboard";
 import { getHomeAlerts, type HomeAlert } from "@/lib/alerts";
 import PendientesPanel from "@/components/PendientesPanel";
@@ -18,6 +19,12 @@ export default async function Page() {
   // negocio.
   if (profile?.role === "cliente") {
     redirect("/mi-negocio");
+  }
+
+  // Perfil nuevo sin nombre anónimo: lo elige ahora (una sola vez, con 3 intentos) antes de entrar.
+  if (profile?.userId) {
+    const { data: aliasRow } = await getSupabaseServiceClient().from("profiles").select("alias, alias_capped").eq("id", profile.userId).maybeSingle();
+    if (aliasRow?.alias_capped === true && !aliasRow.alias) redirect("/perfil/alias");
   }
 
   const scope =

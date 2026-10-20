@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.24.0",
+    date: "2026-10-20",
+    title: "Tu nombre anónimo: 3 intentos y queda fijo",
+    emoji: "🌶️",
+    highlights: [
+      "Los perfiles nuevos descubren su nombre anónimo al entrar, con un tope de 3 intentos y una barra que lo muestra.",
+      "Al quedarte con uno, queda fijo para siempre (y es el de tu liga y QR de invitación).",
+      "Los perfiles que ya existían pueden cambiar su nombre; las ligas con el nombre anterior siguen funcionando.",
+    ],
+  },
+  {
     version: "0.23.0",
     date: "2026-10-20",
     title: "Perfil ID y Passport: el buyer persona de tu MysterFoodie",

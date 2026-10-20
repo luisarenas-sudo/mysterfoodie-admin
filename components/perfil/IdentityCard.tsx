@@ -22,6 +22,7 @@ export default function IdentityCard({
   rankLabel,
   alias,
   canHaveAlias,
+  canChangeAlias = false,
 }: {
   displayName: string;
   avatarUrl: string | null;
@@ -30,6 +31,8 @@ export default function IdentityCard({
   rankLabel?: string;
   alias: string | null;
   canHaveAlias: boolean;
+  /** Solo perfiles que ya existían antes de la regla de «un solo nombre»: pueden cambiarlo. */
+  canChangeAlias?: boolean;
 }) {
   const router = useRouter();
   const [revealed, setRevealed] = useState(false);
@@ -105,6 +108,14 @@ export default function IdentityCard({
       {revealed && alias && (
         <div className="mt-1 text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
           Tu nombre anónimo
+          {canChangeAlias && (
+            <>
+              {" · "}
+              <Link href="/perfil/alias" onClick={(e) => e.stopPropagation()} className="font-semibold underline" style={{ color: "#D42F2F" }}>
+                Cambiar
+              </Link>
+            </>
+          )}
         </div>
       )}
       {rankLabel && (

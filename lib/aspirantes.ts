@@ -3,8 +3,8 @@ import { sendTemplatedEmail } from "./email";
 import { accessUrl, issueAccessToken } from "./accessTokens";
 import { sendInviteEmail } from "./accessEmails";
 import { ROLE_LABELS } from "./brand";
-import { aliasSlug, isAliasStyle, pickAlias, type AliasStyle } from "./alias";
-import { appBaseUrl } from "./aliasStore";
+import { isAliasStyle, type AliasStyle } from "./alias";
+import { appBaseUrl, findProfileBySlug } from "./aliasStore";
 import { isValidPostalCode } from "./zonas";
 import { PASSPORT_BLOCKS, isBlockComplete, isBlockKey, sanitizePersona, type BlockKey, type Persona } from "./personaCatalog";
 import { CUISINES, DISHES, EXPERIENCE_LEVELS, MIN_CUISINES, MIN_DISHES, TIME_SLOTS, WEEK_DAYS } from "./foodCatalog";
@@ -90,7 +90,7 @@ export async function countPendingApplications(db: Db): Promise<number> {
 
 /** Guarda la solicitud y avisa (a quien aplicó y a los Master Chef). Devuelve ok también si ya había una abierta con ese correo. */
 export async function createApplication(db: Db, input: ApplicationInput): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { data: inviter } = await db.from("profiles").select("id, role, alias").eq("alias_slug", input.inviterSlug).maybeSingle();
+  const inviter = (await findProfileBySlug(db, input.inviterSlug, "id, role, alias")) as { id: string; role: string; alias: string | null } | null;
   if (!inviter || !["admin", "sibarita"].includes(inviter.role as string)) return { ok: false, error: "Esta invitación ya no está disponible." };
 
   const [{ data: open }, { data: exists }] = await Promise.all([
@@ -170,10 +170,8 @@ export async function approveApplication(db: Db, id: string, reviewerId: string)
   if (createError || !created?.user) return { ok: false, error: createError?.message || "No se pudo crear la cuenta.", status: 500 };
   const userId = created.user.id;
 
-  const { data: taken } = await db.from("profiles").select("alias_slug").not("alias_slug", "is", null);
-  const slugs = new Set((taken || []).map((r) => r.alias_slug as string));
+  // El nombre anónimo lo elige cada persona al entrar (una sola vez, con 3 intentos); aquí solo guardamos el estilo que pidió.
   const style = app.alias_style as AliasStyle;
-  const alias = pickAlias(style, slugs);
 
   const { error: profileError } = await db.from("profiles").upsert({
     id: userId,
@@ -181,9 +179,8 @@ export async function approveApplication(db: Db, id: string, reviewerId: string)
     full_name: app.full_name,
     role: "agente",
     phone: app.whatsapp,
-    alias,
     alias_style: style,
-    alias_slug: aliasSlug(alias),
+    alias_capped: true,
     invited_by: app.inviter_id,
     postal_code: app.postal_code ?? null,
     food_cuisines: app.cuisines ?? null,

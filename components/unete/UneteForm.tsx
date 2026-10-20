@@ -266,7 +266,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
             <div className="mb-5"><FoodGrid options={DISHES} selected={f.dishes} toggle={(k) => toggle("dishes", k)} /></div>
             <div className="mb-1 text-[13.5px] font-semibold">Tu nombre anónimo</div>
             <p className="mb-2 text-[12.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Cada MysterFoodie tiene uno (una especia, o una fruta o verdura en «e» si eres no binarie, con el apellido de una figura famosa). Elige el estilo y, si te aprueban, te asignamos uno.
+              Cada MysterFoodie tiene uno (una especia, o una fruta o verdura en «e» si eres no binarie, con el apellido de una figura famosa). Elige el estilo; cuando te aprueben y entres, descubres tu nombre (tienes 3 intentos y, una vez elegido, ya no se cambia).
             </p>
             <div className="mb-5 flex flex-wrap gap-2">
               {ALIAS_STYLES.map((s) => (

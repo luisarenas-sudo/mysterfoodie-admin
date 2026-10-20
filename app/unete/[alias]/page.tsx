@@ -1,3 +1,4 @@
+import { findProfileBySlug } from "@/lib/aliasStore";
 import { notFound } from "next/navigation";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import FlancoCredit from "@/components/FlancoCredit";
@@ -10,7 +11,7 @@ export default async function UnetePage({ params }: { params: Promise<{ alias: s
   const { alias: slug } = await params;
   let inviter: { alias: string | null; role: string } | null = null;
   try {
-    const { data } = await getSupabaseServiceClient().from("profiles").select("alias, role").eq("alias_slug", slug.toLowerCase()).maybeSingle();
+    const data = await findProfileBySlug(getSupabaseServiceClient(), slug, "alias, role");
     inviter = data ? { alias: data.alias as string | null, role: data.role as string } : null;
   } catch {
     inviter = null;

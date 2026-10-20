@@ -75,7 +75,11 @@ export default async function PerfilPage({
   const isCliente = profile.role === "cliente";
   const solicitudesPendientes = profile.role === "admin" ? await countPendingRequests(getSupabaseServiceClient()).catch(() => 0) : 0;
   const aspirantesPendientes = profile.role === "admin" ? await countPendingApplications(getSupabaseServiceClient()).catch(() => 0) : 0;
-  const myAlias = isCliente ? null : await getSupabaseServiceClient().from("profiles").select("alias").eq("id", profile.userId).maybeSingle().then((r) => (r.data?.alias as string | null) ?? null, () => null);
+  const myAliasRow = isCliente
+    ? null
+    : await getSupabaseServiceClient().from("profiles").select("alias, alias_capped").eq("id", profile.userId).maybeSingle().then((r) => r.data, () => null);
+  const myAlias = (myAliasRow?.alias as string | null) ?? null;
+  const canChangeAlias = !!myAlias && myAliasRow?.alias_capped === false;
   const visits = isCliente
     ? []
     : profile.role === "admin"
@@ -126,6 +130,7 @@ export default async function PerfilPage({
         rankLabel={currentRank?.label}
         alias={myAlias}
         canHaveAlias={!isCliente}
+        canChangeAlias={canChangeAlias}
       />
 
       <Group title="Cuenta">
