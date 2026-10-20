@@ -19,6 +19,8 @@ export default function TicketCard({
   uploadedAt,
   emailSentAt,
   reportUnlocked,
+  consumptionTotal = null,
+  partySize = null,
   variant = "mobile",
 }: {
   formId: string;
@@ -26,6 +28,8 @@ export default function TicketCard({
   uploadedAt: string | null;
   emailSentAt: string | null;
   reportUnlocked: boolean;
+  consumptionTotal?: number | null;
+  partySize?: number | null;
   variant?: "mobile" | "desktop";
 }) {
   const router = useRouter();
@@ -34,6 +38,35 @@ export default function TicketCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cacheBust, setCacheBust] = useState(0);
+  const [total, setTotal] = useState(consumptionTotal != null ? String(consumptionTotal) : "");
+  const [people, setPeople] = useState(partySize != null ? String(partySize) : "");
+  const [saved, setSaved] = useState<"idle" | "saving" | "ok">("idle");
+
+  const dirty =
+    total.trim() !== (consumptionTotal != null ? String(consumptionTotal) : "") ||
+    people.trim() !== (partySize != null ? String(partySize) : "");
+
+  async function saveConsumo() {
+    setSaved("saving");
+    setError(null);
+    try {
+      const res = await fetch(`/api/visits/${formId}/consumo`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consumptionTotal: total.trim() === "" ? null : Number(total.replace(/,/g, "")),
+          partySize: people.trim() === "" ? null : Number(people),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo guardar.");
+      setSaved("ok");
+      router.refresh();
+    } catch (e) {
+      setSaved("idle");
+      setError(e instanceof Error ? e.message : "No se pudo guardar.");
+    }
+  }
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
@@ -109,6 +142,42 @@ export default function TicketCard({
             className="mx-auto max-h-72 w-auto object-contain"
           />
         </a>
+      )}
+
+      <div className="mt-3 grid grid-cols-2 gap-2.5">
+        <label className="block">
+          <span className="text-[12px] font-semibold" style={muted}>Total del consumo (MXN)</span>
+          <input
+            inputMode="decimal"
+            value={total}
+            onChange={(e) => { setTotal(e.target.value.replace(/[^0-9.,]/g, "")); setSaved("idle"); }}
+            placeholder="Ej. 850"
+            className="mt-1 w-full rounded-xl px-3 py-2.5 text-[16px]"
+            style={{ background: "#F2F2F7", border: "1px solid rgba(60,60,67,0.1)" }}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[12px] font-semibold" style={muted}>¿Cuántas personas fueron?</span>
+          <input
+            inputMode="numeric"
+            value={people}
+            onChange={(e) => { setPeople(e.target.value.replace(/[^0-9]/g, "").slice(0, 2)); setSaved("idle"); }}
+            placeholder="Ej. 2"
+            className="mt-1 w-full rounded-xl px-3 py-2.5 text-[16px]"
+            style={{ background: "#F2F2F7", border: "1px solid rgba(60,60,67,0.1)" }}
+          />
+        </label>
+      </div>
+      {(dirty || saved === "ok") && (
+        <button
+          type="button"
+          disabled={saved === "saving" || !dirty}
+          onClick={saveConsumo}
+          className="mt-2 w-full rounded-2xl py-3 text-[14px] font-bold disabled:opacity-60"
+          style={{ background: saved === "ok" && !dirty ? "#E8F7EE" : "#1C1C1E", color: saved === "ok" && !dirty ? "#1E8E4E" : "#fff" }}
+        >
+          {saved === "saving" ? "Guardando…" : saved === "ok" && !dirty ? "Guardado" : "Guardar total y personas"}
+        </button>
       )}
 
       <p className="mt-3 text-[13px] leading-snug" style={muted}>

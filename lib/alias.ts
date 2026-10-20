@@ -1,23 +1,24 @@
 /**
- * Nombre anónimo (alias) de cada MysterFoodie: primer nombre de una fruta, verdura o tubérculo + apellido de una figura
- * reconocida. Ej.: "Lima Hayek", "Zapote Infante". Según el estilo elegido:
- *  - femenino: fruta/verdura femenina + apellido de actriz mexicana muy conocida.
- *  - masculino: fruta/verdura masculina + apellido de actor mexicano muy conocido.
- *  - no binarie: nombre neutro + apellido de personas reconocidas del mundo LGBT+ de todo el mundo.
- * La liga pública es go.mysterfoodie.com/<slug>, p. ej. go.mysterfoodie.com/lima-hayek.
+ * Nombre anónimo (alias) de cada MysterFoodie: nombre de una especia singular (no mezclas como hierbas provenzales)
+ * + apellido de una figura reconocida. Ej.: "Canela Hayek", "Comino Infante". Según el estilo elegido:
+ *  - femenino: especia de nombre femenino + apellido de actriz mexicana muy conocida.
+ *  - masculino: especia de nombre masculino + apellido de actor mexicano muy conocido.
+ *  - no binarie: fruta o verdura que termina en "e" (Chile, Aguacate, Elote…) + apellido de personas reconocidas del
+ *    mundo LGBT+ de todo el mundo.
+ * La liga pública es go.mysterfoodie.com/<slug>, p. ej. go.mysterfoodie.com/canela-hayek.
  */
 export type AliasStyle = "femenino" | "masculino" | "no_binarie";
 
 export const ALIAS_STYLES: { value: AliasStyle; label: string; example: string }[] = [
-  { value: "femenino", label: "Femenino", example: "Lima Hayek" },
-  { value: "masculino", label: "Masculino", example: "Zapote Infante" },
+  { value: "femenino", label: "Femenino", example: "Canela Hayek" },
+  { value: "masculino", label: "Masculino", example: "Comino Infante" },
   { value: "no_binarie", label: "No binarie", example: "Chile Mercury" },
 ];
 
 const NOMBRES: Record<AliasStyle, string[]> = {
-  femenino: ["Lima", "Manzana", "Mandarina", "Papaya", "Guayaba", "Naranja", "Fresa", "Pera", "Ciruela", "Cereza", "Sandía", "Piña", "Uva", "Toronja", "Granada", "Zarzamora", "Calabaza", "Zanahoria", "Jícama", "Cebolla", "Berenjena", "Alcachofa", "Papa", "Yuca", "Remolacha"],
-  masculino: ["Zapote", "Mango", "Limón", "Aguacate", "Plátano", "Tomate", "Jitomate", "Chayote", "Camote", "Pepino", "Durazno", "Melón", "Betabel", "Nopal", "Elote", "Tejocote", "Mamey", "Chabacano", "Rábano", "Brócoli", "Ajo", "Apio", "Nabo", "Jengibre", "Tamarindo", "Membrillo", "Higo", "Coco"],
-  no_binarie: ["Chile", "Jengibre", "Ñame", "Perejil", "Epazote", "Chícharo", "Ejote", "Cacao", "Maíz", "Orégano", "Tomillo", "Cilantro"],
+  femenino: ["Canela", "Vainilla", "Pimienta", "Cúrcuma", "Mostaza", "Cayena", "Paprika", "Alcaravea", "Amapola", "Albahaca", "Salvia", "Mejorana", "Hierbabuena", "Menta", "Cebollina", "Jamaica", "Chía", "Nigella"],
+  masculino: ["Comino", "Clavo", "Azafrán", "Cardamomo", "Jengibre", "Anís", "Achiote", "Orégano", "Laurel", "Romero", "Tomillo", "Eneldo", "Estragón", "Sésamo", "Ajonjolí", "Pimentón", "Sumac", "Cilantro", "Perejil", "Epazote", "Fenogreco", "Tamarindo", "Wasabi"],
+  no_binarie: ["Chile", "Tomate", "Jitomate", "Aguacate", "Chayote", "Camote", "Elote", "Zapote", "Tejocote", "Xoconostle", "Nance", "Ejote", "Quelite", "Cacahuate", "Jocote", "Ñame", "Chilacayote", "Huauzontle", "Chicozapote", "Guaje"],
 };
 
 const APELLIDOS: Record<AliasStyle, string[]> = {
@@ -30,7 +31,7 @@ export function isAliasStyle(v: unknown): v is AliasStyle {
   return v === "femenino" || v === "masculino" || v === "no_binarie";
 }
 
-/** "Lima Hayek" -> "lima-hayek" (sin acentos, minúsculas, guiones). */
+/** "Canela Hayek" -> "lima-hayek" (sin acentos, minúsculas, guiones). */
 export function aliasSlug(alias: string): string {
   return alias
     .normalize("NFD")

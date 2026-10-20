@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.22.0",
+    date: "2026-10-20",
+    title: "Perfil anónimo del MysterFoodie",
+    emoji: "🕶️",
+    highlights: [
+      "Los nombres anónimos ahora son especias (Canela Hayek, Comino Infante) y, para no binarie, frutas o verduras que terminan en «e» (Chile Mercury, Aguacate Wilde).",
+      "En cada visita, antes de la foto del ticket, se captura el total del consumo y cuántas personas fueron.",
+      "Los negocios con reporte completo pueden comprar el perfil anónimo de quien los visitó ($350 + IVA, pago único): su nombre anónimo, las palabras que más usa, sus gustos, con cuántas personas sale, totales y cuenta promedio, el sector que representa y por dónde consume. Nunca incluye su nombre, foto, contacto ni código postal.",
+      "El sector sale del código postal: zona económicamente activa (Veracruz centro a Boca del Río) o zona desacelerada. Ahora el formulario de ingreso pide el código postal y en Perfil → «Mi perfil anónimo» cada quien lo completa y edita sus gustos.",
+    ],
+  },
+  {
     version: "0.21.0",
     date: "2026-10-20",
     title: "Invita Shoppers con tu QR",
@@ -28,7 +40,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Sibaritas y Master Chefs tienen en Perfil su QR fijo para invitar Shoppers (con el logo al centro): se descarga como imagen o se comparte directo. La liga es go.mysterfoodie.com/<tu nombre anónimo>.",
       "Quien escanea llena su solicitud (todo obligatorio): datos, colonia, mayoría de edad, Instagram, experiencia, disponibilidad, vehículo y, al final, qué le gusta comer según lo más típico de Uber Eats en Veracruz y Boca del Río.",
       "La solicitud queda por aprobar: el Master Chef la revisa en Aspirantes a Shopper y, al aprobar, se crea la cuenta y le llega su acceso. Quien invitó ve en «Mis invitados» cómo va cada uno.",
-      "Cada MysterFoodie tiene un nombre anónimo (fruta, verdura o tubérculo + apellido famoso, como Lima Hayek). Se descubre tocando 3 veces tu nombre en Perfil… y pasa algo con tu foto.",
+      "Cada MysterFoodie tiene un nombre anónimo (una especia + apellido famoso, como Canela Hayek; para no binarie, fruta o verdura en «e», como Chile Mercury). Se descubre tocando 3 veces tu nombre en Perfil… y pasa algo con tu foto.",
     ],
   },
   {

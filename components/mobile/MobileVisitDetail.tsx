@@ -128,6 +128,8 @@ export default function MobileVisitDetail({
             hasTicket={visit.hasTicket}
             uploadedAt={visit.ticketUploadedAt}
             emailSentAt={visit.ticketEmailSentAt}
+            consumptionTotal={visit.consumptionTotal}
+            partySize={visit.partySize}
             reportUnlocked={visit.reportUnlocked}
           />
         </div>

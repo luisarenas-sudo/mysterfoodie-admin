@@ -74,7 +74,7 @@ const STOP = new Set(
 );
 const norm = (w: string) => w.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9ñ]/g, "");
 
-function wordPool(comments: string[], limit = 30) {
+export function wordPool(comments: string[], limit = 30, minCount = 2) {
   const counts = new Map<string, { n: number; shown: string }>();
   const good = new Map<string, number>();
   const improve = new Map<string, number>();
@@ -96,7 +96,7 @@ function wordPool(comments: string[], limit = 30) {
   }
   const top = (m: Map<string, number>) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag, count]) => ({ tag, count }));
   return {
-    words: [...counts.values()].filter((v) => v.n >= 2).sort((a, b) => b.n - a.n).slice(0, limit).map((v) => ({ word: v.shown, count: v.n })),
+    words: [...counts.values()].filter((v) => v.n >= minCount).sort((a, b) => b.n - a.n).slice(0, limit).map((v) => ({ word: v.shown, count: v.n })),
     good: top(good),
     improve: top(improve),
   };

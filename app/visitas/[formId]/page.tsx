@@ -118,6 +118,14 @@ export default async function VisitaDetailPage({
           ))}
         </div>
 
+        {profile.role === "admin" && (
+          <div className="mt-6">
+            <Link href={`/visitas/${visit.id}/perfil`} className="text-sm font-semibold text-brand-600">
+              Ver perfil anónimo del MysterFoodie (vista de negocio) →
+            </Link>
+          </div>
+        )}
+
         <div className="mt-6">
           <TicketCard
             variant="desktop"
@@ -125,6 +133,8 @@ export default async function VisitaDetailPage({
             hasTicket={visit.hasTicket}
             uploadedAt={visit.ticketUploadedAt}
             emailSentAt={visit.ticketEmailSentAt}
+            consumptionTotal={visit.consumptionTotal}
+            partySize={visit.partySize}
             reportUnlocked={visit.reportUnlocked}
           />
         </div>

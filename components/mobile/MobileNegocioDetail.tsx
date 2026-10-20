@@ -191,6 +191,7 @@ export default function MobileNegocioDetail({
   pendingAssignment = null,
   planSlot = null,
   ownerPlan = null,
+  extra = null,
 }: {
   client: ClientDetail;
   canAssign?: boolean;
@@ -214,6 +215,8 @@ export default function MobileNegocioDetail({
   planSlot?: ReactNode;
   /** Resumen del plan para el dueño del negocio (/mi-negocio). */
   ownerPlan?: { planName: string; done: number; quota: number; monthLabel: string } | null;
+  /** Contenido extra al final (p. ej. perfiles de MysterFoodie comprables en la vista del dueño). */
+  extra?: React.ReactNode;
 }) {
   const visits = client.visits;
   const hasVisits = visits.length > 0;
@@ -511,6 +514,7 @@ export default function MobileNegocioDetail({
             </div>
           </>
         )}
+        {extra}
       </div>
     </div>
   );

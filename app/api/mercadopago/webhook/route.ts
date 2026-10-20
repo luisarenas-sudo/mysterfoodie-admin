@@ -52,6 +52,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  // Compra del perfil anónimo de un MysterFoodie ("perfil:<purchaseId>"): no toca report_payments ni el reporte.
+  if (formId.startsWith("perfil:")) {
+    const purchaseId = formId.slice("perfil:".length);
+    const patch: Record<string, string | number | null> = {
+      mercadopago_payment_id: String(payment.id),
+      status: payment.status ?? "pending",
+      amount: payment.transaction_amount ?? null,
+    };
+    if (payment.status === "approved") patch.paid_at = new Date().toISOString();
+    const { error } = await db.from("profile_purchases").update(patch).eq("id", purchaseId);
+    if (error) console.error("No se pudo actualizar la compra del perfil:", error.message);
+    return NextResponse.json({ ok: true });
+  }
+
   await db.from("report_payments").insert({
     form_id: formId,
     mercadopago_payment_id: String(payment.id),

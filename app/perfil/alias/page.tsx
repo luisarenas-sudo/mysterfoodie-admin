@@ -20,7 +20,7 @@ export default async function AliasPage({ searchParams }: { searchParams: Promis
         <div className="px-5 pb-2 pt-5">
           <div className="heading text-[30px] font-bold">Tu nombre anónimo</div>
           <p className="mt-2 text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
-            Cada MysterFoodie tiene uno: el nombre de una fruta, verdura o tubérculo con el apellido de una figura famosa. Es un secreto del equipo. Elige el estilo y te proponemos uno.
+            Cada MysterFoodie tiene uno: el nombre de una especia (o, si eres no binarie, de una fruta o verdura que termina en «e») con el apellido de una figura famosa. Es un secreto del equipo. Elige el estilo y te proponemos uno.
           </p>
         </div>
         <div className="px-5 pt-3">

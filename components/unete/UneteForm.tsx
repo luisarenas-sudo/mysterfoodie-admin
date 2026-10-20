@@ -10,6 +10,7 @@ type Form = {
   email: string;
   city: string;
   colonia: string;
+  postalCode: string;
   isAdult: boolean;
   instagram: string;
   experienceLevel: string;
@@ -25,7 +26,7 @@ type Form = {
 };
 
 const EMPTY: Form = {
-  fullName: "", whatsapp: "", email: "", city: "Veracruz", colonia: "", isAdult: false, instagram: "", experienceLevel: "", experienceText: "",
+  fullName: "", whatsapp: "", email: "", city: "Veracruz", colonia: "", postalCode: "", isAdult: false, instagram: "", experienceLevel: "", experienceText: "",
   days: [], slots: [], hasVehicle: null, aliasStyle: null, cuisines: [], dishes: [], consent: false, website: "",
 };
 
@@ -91,6 +92,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
     if (s === 1) {
       if (f.city.trim().length < 2) return "Escribe tu ciudad.";
       if (f.colonia.trim().length < 2) return "Escribe tu colonia.";
+      if (!/^\d{5}$/.test(f.postalCode.trim())) return "Escribe tu código postal (5 dígitos).";
       if (!f.isAdult) return "Confirma que eres mayor de 18 años.";
     }
     if (s === 2) {
@@ -186,6 +188,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
           <>
             <Field label="Ciudad"><input className={input} style={inputStyle} value={f.city} onChange={(e) => set("city", e.target.value)} /></Field>
             <Field label="Colonia"><input className={input} style={inputStyle} value={f.colonia} onChange={(e) => set("colonia", e.target.value)} /></Field>
+            <Field label="Código postal" hint="Solo lo usamos para saber de qué zona eres; nunca se comparte."><input className={input} style={inputStyle} inputMode="numeric" autoComplete="postal-code" maxLength={5} placeholder="91900" value={f.postalCode} onChange={(e) => set("postalCode", e.target.value.replace(/\D/g, "").slice(0, 5))} /></Field>
             <label className="mb-4 flex items-start gap-3">
               <input type="checkbox" className="mt-1 h-5 w-5" checked={f.isAdult} onChange={(e) => set("isAdult", e.target.checked)} />
               <span className="text-[14.5px] font-medium">Soy mayor de 18 años</span>
@@ -241,7 +244,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
             <div className="mb-5"><FoodGrid options={DISHES} selected={f.dishes} toggle={(k) => toggle("dishes", k)} /></div>
             <div className="mb-1 text-[13.5px] font-semibold">Tu nombre anónimo</div>
             <p className="mb-2 text-[12.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Cada MysterFoodie tiene uno (una fruta o verdura con el apellido de una figura famosa). Elige el estilo y, si te aprueban, te asignamos uno.
+              Cada MysterFoodie tiene uno (una especia, o una fruta o verdura en «e» si eres no binarie, con el apellido de una figura famosa). Elige el estilo y, si te aprueban, te asignamos uno.
             </p>
             <div className="mb-5 flex flex-wrap gap-2">
               {ALIAS_STYLES.map((s) => (
@@ -251,7 +254,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
             <label className="mb-4 flex items-start gap-3">
               <input type="checkbox" className="mt-1 h-5 w-5" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
               <span className="text-[13px] leading-snug">
-                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com).
+                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com), y que, si me aprueban, mis gustos, hábitos de consumo y sector (sin mi nombre, foto ni contacto) puedan mostrarse a los negocios como un perfil anónimo con mi nombre anónimo.
               </span>
             </label>
           </>

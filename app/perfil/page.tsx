@@ -245,6 +245,15 @@ export default async function PerfilPage({
       )}
 
       <Group title="Herramientas">
+        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+          <Row
+            href="/perfil/anonimo"
+            icon="🕶️"
+            iconBg="#1C1C1E"
+            title="Mi perfil anónimo"
+            subtitle="Código postal y gustos que ven los negocios (sin tu nombre)"
+          />
+        )}
         {(profile.role === "admin" || profile.role === "sibarita") && (
           <Row
             href="/perfil/invitar"

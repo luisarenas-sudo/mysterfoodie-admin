@@ -5,6 +5,8 @@ import { getClientDetail } from "@/lib/dashboard";
 import { getClientPlanView } from "@/lib/plans";
 import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
+import MysterfoodieProfilesCard from "@/components/negocio/MysterfoodieProfilesCard";
+import { listBuyableProfiles } from "@/lib/profilePurchases";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,8 @@ export default async function MiNegocioPage() {
       ? { planName: planView.plan.planName, done: planView.done, quota: planView.quota, monthLabel: planView.monthLabel }
       : null;
 
+  const buyable = await listBuyableProfiles(profile.clientId);
+
   if (client.visits.length === 0) {
     return (
       <>
@@ -76,6 +80,7 @@ export default async function MiNegocioPage() {
           ownerPlan={ownerPlan}
         backHref={null}
         backLabel="Mi negocio"
+        extra={<MysterfoodieProfilesCard profiles={buyable} className="mt-4" />}
       />
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
         <p className="text-sm uppercase tracking-wide text-brand-600">Mi negocio</p>
@@ -90,6 +95,7 @@ export default async function MiNegocioPage() {
         </div>
 
         <ClientScoreboard client={client} />
+        <MysterfoodieProfilesCard profiles={buyable} className="mt-8" />
         <GlosarioCard className="mt-8 max-w-xl" keys={GLOSARIO_NEGOCIO} subtitle="Qué es un MysterFoodie y cómo funcionan nuestros planes" />
       </main>
     </>

@@ -27,7 +27,7 @@ export default async function AspirantesPage() {
         <div className="min-w-0">
           <div className="truncate text-[17px] font-bold">{a.full_name as string}</div>
           <div className="text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-            {a.city as string}, {a.colonia as string} · {dateFmt(a.created_at as string)}
+            {a.city as string}, {a.colonia as string}{a.postal_code ? ` (CP ${a.postal_code as string})` : ""} · {dateFmt(a.created_at as string)}
           </div>
         </div>
         {!actions && (

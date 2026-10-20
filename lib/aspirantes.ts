@@ -5,6 +5,7 @@ import { sendInviteEmail } from "./accessEmails";
 import { ROLE_LABELS } from "./brand";
 import { aliasSlug, isAliasStyle, pickAlias, type AliasStyle } from "./alias";
 import { appBaseUrl } from "./aliasStore";
+import { isValidPostalCode } from "./zonas";
 import { CUISINES, DISHES, EXPERIENCE_LEVELS, MIN_CUISINES, MIN_DISHES, TIME_SLOTS, WEEK_DAYS } from "./foodCatalog";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
@@ -16,6 +17,7 @@ export type ApplicationInput = {
   email: string;
   city: string;
   colonia: string;
+  postalCode: string;
   isAdult: boolean;
   instagram: string;
   experienceLevel: string;
@@ -40,6 +42,7 @@ export function parseApplication(p: Record<string, unknown>): { ok: true; value:
   const whatsapp = str(p.whatsapp, 30);
   const city = str(p.city, 80);
   const colonia = str(p.colonia, 80);
+  const postalCode = str(p.postalCode, 5);
   const instagram = str(p.instagram, 60).replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/\/.*$/, "");
   const experienceText = str(p.experienceText, 400);
   const experienceLevel = EXPERIENCE_LEVELS.find((l) => l === p.experienceLevel) ?? "";
@@ -55,6 +58,7 @@ export function parseApplication(p: Record<string, unknown>): { ok: true; value:
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return { ok: false, error: "Escribe un correo válido." };
   if (city.length < 2) return { ok: false, error: "Escribe tu ciudad." };
   if (colonia.length < 2) return { ok: false, error: "Escribe tu colonia." };
+  if (!isValidPostalCode(postalCode)) return { ok: false, error: "Escribe tu código postal (5 dígitos)." };
   if (p.isAdult !== true) return { ok: false, error: "Debes confirmar que eres mayor de 18 años." };
   if (instagram.length < 2) return { ok: false, error: "Escribe tu Instagram." };
   if (!experienceLevel) return { ok: false, error: "Elige tu experiencia en restaurantes." };
@@ -69,7 +73,7 @@ export function parseApplication(p: Record<string, unknown>): { ok: true; value:
 
   return {
     ok: true,
-    value: { inviterSlug, fullName, whatsapp, email, city, colonia, isAdult: true, instagram, experienceLevel, experienceText, days, slots, hasVehicle: p.hasVehicle, aliasStyle: p.aliasStyle, cuisines, dishes },
+    value: { inviterSlug, fullName, whatsapp, email, city, colonia, postalCode, isAdult: true, instagram, experienceLevel, experienceText, days, slots, hasVehicle: p.hasVehicle, aliasStyle: p.aliasStyle, cuisines, dishes },
   };
 }
 
@@ -97,6 +101,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
     email: input.email,
     city: input.city,
     colonia: input.colonia,
+    postal_code: input.postalCode,
     is_adult: input.isAdult,
     instagram: input.instagram,
     experience_level: input.experienceLevel,
@@ -172,6 +177,9 @@ export async function approveApplication(db: Db, id: string, reviewerId: string)
     alias_style: style,
     alias_slug: aliasSlug(alias),
     invited_by: app.inviter_id,
+    postal_code: app.postal_code ?? null,
+    food_cuisines: app.cuisines ?? null,
+    food_dishes: app.dishes ?? null,
   });
   if (profileError) return { ok: false, error: profileError.message, status: 500 };
 
