@@ -378,11 +378,11 @@ export default async function PerfilPage({
         canChangeAlias={canChangeAlias}
       />
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Link href="/perfil/editar" className="btn-secondary text-sm">
+      <div className="mt-4 flex flex-nowrap items-center gap-2">
+        <Link href="/perfil/editar" className="btn-secondary whitespace-nowrap !px-4 text-sm">
           Editar foto y datos
         </Link>
-        <Link href="/perfil/seguridad" className="btn-secondary text-sm">
+        <Link href="/perfil/seguridad" className="btn-secondary whitespace-nowrap !px-4 text-sm">
           Contraseña y acceso
         </Link>
         <DeleteAccountButton />

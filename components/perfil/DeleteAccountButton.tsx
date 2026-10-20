@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const LABELS = ["Eliminar cuenta", "¿Seguro? Toca otra vez", "Sí, quiero eliminarla"] as const;
+// En escritorio van en el mismo renglón que los otros botones del perfil: etiquetas más cortas.
+const SHORT_LABELS = ["Eliminar cuenta", "¿Seguro? Otra vez", "Sí, eliminarla"] as const;
 
 /**
  * Botón de baja en tres toques: rojo oscuro -> (otro toque) rojo real -> hoja de salida.
@@ -45,8 +47,8 @@ export default function DeleteAccountButton({ variant = "desktop" }: { variant?:
   }
 
   return (
-    <button type="button" onClick={press} className="rounded-full px-5 py-2 text-sm font-semibold" style={common}>
-      {LABELS[stage]}
+    <button type="button" onClick={press} className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold" style={common}>
+      {SHORT_LABELS[stage]}
     </button>
   );
 }
