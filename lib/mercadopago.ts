@@ -16,6 +16,8 @@
 const MP_API_URL = "https://api.mercadopago.com";
 
 export const FULL_REPORT_PRICE_MXN = Number(process.env.FULL_REPORT_PRICE_MXN) || 850;
+/** Total con IVA (16 %): solo se informa, por si el negocio quiere factura. El pago en línea de la visita se cobra sin IVA. */
+export const FULL_REPORT_PRICE_WITH_IVA_MXN = Math.round(FULL_REPORT_PRICE_MXN * 1.16);
 
 export type CreatePreferenceResult =
   | { ok: true; preferenceId: string; initPoint: string }

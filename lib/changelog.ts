@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.28.3",
+    date: "2026-10-20",
+    title: "Pago de visita sin IVA agregado",
+    emoji: "🧾",
+    highlights: [
+      "El pago en línea de la visita programada se cobra tal cual ($850), sin sumar IVA.",
+      "Si el negocio necesita factura, los correos y la web le avisan el total con IVA.",
+    ],
+  },
+  {
     version: "0.28.2",
     date: "2026-10-20",
     title: "Iconos 8-bit en toda la app",

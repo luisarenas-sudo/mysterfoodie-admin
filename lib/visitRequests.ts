@@ -2,7 +2,7 @@ import { GLOSARIO_NEGOCIO } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
 import { BUSINESS_TYPES, businessTypePhrase } from "./categories";
 import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
-import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
+import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercadopago";
 import { PACKAGES_URL } from "./links";
 import { sibaritaEarningsCallout, shopperEarningsCallout } from "./earningsCopy";
 import { getAutomation, renderTemplate } from "./automations";
@@ -316,7 +316,7 @@ async function sendRequestReceivedEmail(p: {
     ? `Hola ${p.contacto},\n\n` +
       `¡Gracias por querer programar tu visita! Tu negocio ${p.negocio} ya está en MysterFoodie y recibimos tu solicitud.\n\n` +
       `Estos son los datos que registramos:\n${p.datos}\n\n` +
-      `Qué sigue: tu visita queda asegurada en cuanto se confirme el pago de $${FULL_REPORT_PRICE_MXN} MXN (sin IVA, más el consumo de la visita). ` +
+      `Qué sigue: tu visita queda asegurada en cuanto se confirme el pago de $${FULL_REPORT_PRICE_MXN} MXN (más el consumo de la visita). Si necesitas factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN: respóndenos con tus datos fiscales. ` +
       `Si aún no pagas o se interrumpió, puedes hacerlo cuando quieras con Mercado Pago: ${p.payUrl ?? ""}\n\n` +
       `Con tu pago confirmado, la visita queda programada y la realiza un MysterFoodie en exclusiva para tu negocio; el Master Chef te escribirá por WhatsApp o correo para confirmar el día y acordar el consumo. ` +
       `La visita es anónima: el MysterFoodie llegará como un cliente más.\n\n` +

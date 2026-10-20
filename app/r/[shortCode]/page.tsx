@@ -8,7 +8,7 @@ import {
   groupCategoryItems,
   type CategoryItem,
 } from "@/lib/categories";
-import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
+import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "@/lib/mercadopago";
 import { isCalendarConnected } from "@/lib/googleCalendar";
 import AutoRefreshAfterPayment from "@/components/AutoRefreshAfterPayment";
 import ActivityRing from "@/components/mobile/ActivityRing";
@@ -439,7 +439,7 @@ export default async function ReportPage({
           <p className="font-medium text-ink">Este es el resumen de tu visita gratis.</p>
           <p className="mt-2 text-sm text-stone-600">
             Si quieres el detalle de los {TOTAL_ITEM_COUNT} indicadores, los comentarios de nuestro MysterFoodie y el ticket de consumo, programa una visita con
-            reporte completo: ${FULL_REPORT_PRICE_MXN} MXN sin IVA, más el consumo de la visita.
+            reporte completo: ${FULL_REPORT_PRICE_MXN} MXN, más el consumo de la visita (si necesitas factura, el total con IVA es ${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN).
           </p>
           <a
             href={PROGRAM_VISIT_URL}

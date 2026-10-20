@@ -6,7 +6,7 @@ import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopag
  * Pago en línea de una visita programada (mysterfoodie.com > «Solicita una visita» > «Desbloquear visita asegurada»).
  * GET plano para poder ser una liga (también va en el correo de confirmación): crea la preferencia en Mercado Pago con
  * external_reference "visita:<id>" y redirige a la pasarela. El webhook (settleVisitPayment) marca la solicitud como pagada.
- * El cobro es el precio de la visita ($850 sin IVA); el consumo se acuerda aparte con el Master Chef.
+ * El cobro es el precio de la visita ($850, sin IVA agregado; solo se informa el total con IVA por si quieren factura); el consumo se acuerda aparte con el Master Chef.
  */
 const SITE = "https://mysterfoodie.com/solicita-visita/";
 

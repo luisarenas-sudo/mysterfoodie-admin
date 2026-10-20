@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { getVerdict } from "./verdict";
 import type { CategoryScore } from "./scoring";
 import { TOTAL_ITEM_COUNT } from "./categories";
-import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
+import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercadopago";
 import { PALABRA_FOODIE_QUOTE } from "./brand";
 import { annotateFirst, type GlosarioKey } from "./glosario";
 import type { EmailCallout } from "./earningsCopy";
@@ -195,7 +195,7 @@ function renderEmailHtml(params: SendResultEmailParams): string {
     ${renderButton(reportUrl, "Ver mi resultado")}
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">${
       params.requested
-        ? `Si quieres el estudio completo de ${TOTAL_ITEM_COUNT} indicadores, ahí mismo puedes programar tu visita ($${FULL_REPORT_PRICE_MXN} MXN sin IVA + el consumo de la visita) o conocer nuestros paquetes.`
+        ? `Si quieres el estudio completo de ${TOTAL_ITEM_COUNT} indicadores, ahí mismo puedes programar tu visita ($${FULL_REPORT_PRICE_MXN} MXN + el consumo de la visita; si necesitas factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN) o conocer nuestros paquetes.`
         : `Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.`
     }</p>
   `);
