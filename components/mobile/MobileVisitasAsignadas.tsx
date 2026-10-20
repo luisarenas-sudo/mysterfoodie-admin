@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PendingAssignment } from "@/lib/dashboard";
 import type { OpenPoolItem } from "@/lib/visitRequests";
 import TomarSolicitudButton from "./TomarSolicitudButton";
+import { shopperEarningsShort } from "@/lib/earningsCopy";
 
 const TYPE_LABEL: Record<string, string> = {
   restaurante: "Restaurante",
@@ -106,6 +107,9 @@ export default function MobileVisitasAsignadas({ assignments, pool = [] }: { ass
             <h2 className="text-[15px] font-bold">Disponibles para ti</h2>
             <p className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
               Visitas gratis que nadie ha hecho a tiempo. Toma una antes de que venza y haz la visita.
+            </p>
+            <p className="mt-1 text-[12.5px] font-semibold" style={{ color: "#248A3D" }}>
+              💰 {shopperEarningsShort()}
             </p>
             <div className="mt-3 space-y-2.5">
               {pool.map((p) => (

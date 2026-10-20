@@ -4,7 +4,7 @@ import { BUSINESS_TYPES, businessTypePhrase } from "./categories";
 import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 import { PACKAGES_URL } from "./links";
-import { sibaritaEarningsCallout } from "./earningsCopy";
+import { sibaritaEarningsCallout, shopperEarningsCallout } from "./earningsCopy";
 import { getAutomation, renderTemplate } from "./automations";
 import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "./accessTokens";
 import { sendAssignmentEmail } from "./assignments";
@@ -464,8 +464,13 @@ export async function assignVisitRequest(
     note,
     baseUrl: p.baseUrl,
     linkVisitas: `${p.baseUrl}/nueva-visita/${assignmentId}`,
-    // A un sibarita se le explica cuánto podría ganar (lo asigne el Master Chef o la tome él de la bolsa).
-    callout: assignee.role === "sibarita" ? sibaritaEarningsCallout(programada ? "programada" : "gratis") : undefined,
+    // A un sibarita o Shopper se le explica cuánto podría ganar (lo asigne el Master Chef o la tome de la bolsa).
+    callout:
+      assignee.role === "sibarita"
+        ? sibaritaEarningsCallout(programada ? "programada" : "gratis")
+        : assignee.role === "agente"
+          ? shopperEarningsCallout(programada ? "programada" : "gratis")
+          : undefined,
   });
   return { ok: true, email };
 }
@@ -513,6 +518,7 @@ export async function takeVisitRequest(
     client: { name: client?.name ?? "Negocio", type: client?.type ?? null, city: client?.city ?? null },
     foodie: { email: foodie.email, full_name: foodie.full_name },
     note: "Tomaste esta visita gratis de la bolsa de Shoppers.",
+    callout: shopperEarningsCallout("gratis"),
     baseUrl: p.baseUrl,
     linkVisitas: `${p.baseUrl}/nueva-visita/${request.assignment_id}`,
   });
@@ -773,7 +779,7 @@ async function escalateUnassigned(db: Db, esc: Escalation, result: SyncResult): 
         subject: items.length === 1 ? `Visita gratis disponible: ${items[0].name}` : `${items.length} visitas gratis disponibles`,
         bodyText: `${intro}\n\n${lista}\n\nQuien la tome primero se la queda. Tómala desde la app:\n${baseUrl}/nueva-visita`,
         ctaLabel: "Ver las visitas disponibles",
-        callout: role === "sibarita" ? sibaritaEarningsCallout("gratis") : undefined,
+        callout: role === "sibarita" ? sibaritaEarningsCallout("gratis") : shopperEarningsCallout("gratis"),
       });
       if (out.status === "sent") sent += 1;
     }

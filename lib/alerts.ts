@@ -3,7 +3,7 @@ import { currentMonthCdmx, isVisitOverdue, monthLabel, shiftMonth, visitWindowLa
 import { getPendingAssignmentsFor } from "./dashboard";
 import { formatMxn } from "./earningsMatrix";
 import { getOpenPoolFor, businessHoursSince } from "./visitRequests";
-import { sibaritaEarningsShort } from "./earningsCopy";
+import { sibaritaEarningsShort, shopperEarningsShort } from "./earningsCopy";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -94,7 +94,7 @@ async function poolAlerts(db: Db, userId: string, role: "agente" | "sibarita"): 
       tone: "warn",
       emoji: "🙋",
       title: pool.length === 1 ? `Visita gratis disponible: ${pool[0].clientName}` : `${pool.length} visitas gratis disponibles`,
-      detail: role === "sibarita" ? `Quien la tome primero se la queda · ${sibaritaEarningsShort()}` : "Nadie las ha tomado: quien la tome primero se la queda",
+      detail: `Quien la tome primero se la queda · ${role === "sibarita" ? sibaritaEarningsShort() : shopperEarningsShort()}`,
       href: "/nueva-visita",
     },
   ];

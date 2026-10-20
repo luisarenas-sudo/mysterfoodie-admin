@@ -30,3 +30,21 @@ export function sibaritaEarningsCallout(kind: "gratis" | "programada"): EmailCal
 export function sibaritaEarningsShort(): string {
   return `Si el negocio contrata su reporte: ganas hasta ${formatMxn(own())} si la haces tú, o ${formatMxn(delegated())} si la asignas a un Shopper.`;
 }
+
+/** Shopper: gana lo mismo ($400) sin importar quién vendió o lo asignó (Acciones 2, 3 y 5 de la matriz). */
+export function shopperEarningsCallout(kind: "gratis" | "programada"): EmailCallout {
+  return {
+    title: "💰 Lo que podrías ganar con esta visita",
+    lines: [
+      kind === "programada"
+        ? "Esta visita la contrató el negocio ($850 MXN + consumo)."
+        : "Esta visita es gratis para el negocio; tu ganancia llega cuando él contrata su reporte completo ($850 MXN).",
+      `Si haces la visita: ${formatMxn(shopper())} para ti.`,
+      "Si el negocio contrata un plan mensual, esa ganancia se repite en cada visita que hagas, mes con mes.",
+    ],
+  };
+}
+
+export function shopperEarningsShort(): string {
+  return `Si el negocio contrata su reporte, ganas ${formatMxn(shopper())} por hacer la visita.`;
+}
