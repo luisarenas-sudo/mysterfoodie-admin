@@ -4,7 +4,9 @@ import { getHomeSummary, getReyNegocio, getPendingAssignmentsFor } from "@/lib/d
 import { getHomeAlerts, type HomeAlert } from "@/lib/alerts";
 import PendientesPanel from "@/components/PendientesPanel";
 import MobileHome from "@/components/mobile/MobileHome";
-import DesktopWizard from "@/components/wizard/DesktopWizard";
+import HomeInsights from "@/components/insights/HomeInsights";
+import { getHomeInsights, type HomeInsights as InsightsData } from "@/lib/homeInsights";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,8 @@ export default async function Page() {
 
   // Un Shopper solo puede levantar visitas que le asignaron: el Inicio le avisa
   // cuántas tiene esperando (antes tenía que entrar a "Nueva visita" para saberlo).
-  const [stats, rey, pending, alerts] = await Promise.all([
+  const insightRole = profile?.role === "admin" || profile?.role === "sibarita" || profile?.role === "agente" ? profile.role : null;
+  const [stats, rey, pending, alerts, insights] = await Promise.all([
     getHomeSummary(scope),
     getReyNegocio(),
     profile?.role === "agente" && profile.userId ? getPendingAssignmentsFor(profile.userId) : Promise.resolve(null),
@@ -36,6 +39,13 @@ export default async function Page() {
     profile?.userId
       ? getHomeAlerts({ userId: profile.userId, role: profile.role }).catch((): HomeAlert[] => [])
       : Promise.resolve([] as HomeAlert[]),
+    // Las estadísticas son un extra: si fallan, el Inicio sigue funcionando sin ellas.
+    profile?.userId && insightRole
+      ? getHomeInsights({ userId: profile.userId, role: insightRole }).catch((e): InsightsData | null => {
+          console.error("home-insights", e instanceof Error ? e.message : e);
+          return null;
+        })
+      : Promise.resolve(null as InsightsData | null),
   ]);
   const displayName = profile?.fullName || profile?.email || "MysterFoodie";
 
@@ -48,6 +58,7 @@ export default async function Page() {
         rey={rey}
         pendingAssignments={pending ? pending.length : null}
         alerts={alerts}
+        insights={insights && insightRole ? <HomeInsights data={insights} role={insightRole} variant="mobile" /> : null}
       />
       <div className="hidden md:block">
         {profile?.role === "agente" ? (
@@ -57,12 +68,21 @@ export default async function Page() {
             <p className="mt-2 text-sm text-stone-500">Esta pantalla está diseñada para móvil.</p>
           </main>
         ) : (
-          <>
-            <div className="mx-auto max-w-3xl px-6 pt-6">
+          <main className="mx-auto max-w-5xl px-6 pb-16 pt-8">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
+                <h1 className="heading mt-1 text-3xl text-ink">Inicio</h1>
+              </div>
+              <Link href="/nueva-visita/libre" className="btn-primary whitespace-nowrap text-sm">
+                Nueva visita
+              </Link>
+            </div>
+            <div className="mt-5">
               <PendientesPanel alerts={alerts} />
             </div>
-            <DesktopWizard defaultShopperName={profile?.fullName ?? undefined} canSendFree={profile?.role === "admin" || profile?.role === "sibarita"} />
-          </>
+            {insights && insightRole && <HomeInsights data={insights} role={insightRole} />}
+          </main>
         )}
       </div>
     </>

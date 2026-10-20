@@ -12,7 +12,8 @@ async function signOut() {
 
 const NAV_BY_ROLE: Record<Role, { href: string; label: string; cta?: boolean }[]> = {
   admin: [
-    { href: "/", label: "Nueva visita", cta: true },
+    { href: "/", label: "Inicio" },
+    { href: "/nueva-visita/libre", label: "Nueva visita", cta: true },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Visitas" },
     { href: "/solicitudes", label: "Solicitudes" },
@@ -29,7 +30,8 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string; cta?: boolean }[]
     { href: "/perfil", label: "Perfil" },
   ],
   sibarita: [
-    { href: "/", label: "Nueva visita", cta: true },
+    { href: "/", label: "Inicio" },
+    { href: "/nueva-visita/libre", label: "Nueva visita", cta: true },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Mis visitas" },
     { href: "/finanzas", label: "Finanzas" },

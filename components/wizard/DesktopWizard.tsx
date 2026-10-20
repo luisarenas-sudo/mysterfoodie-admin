@@ -249,6 +249,8 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
       router.push("/nueva-visita");
     } else if (boundAssignment) {
       router.push(`/negocios/${boundAssignment.client.id}`);
+    } else {
+      router.push("/");
     }
   }
 

@@ -11,6 +11,7 @@ export default function MobileHome({
   rey,
   pendingAssignments = null,
   alerts = [],
+  insights = null,
 }: {
   displayName: string;
   avatarUrl?: string | null;
@@ -20,6 +21,8 @@ export default function MobileHome({
   pendingAssignments?: number | null;
   /** Pendientes del usuario (ya filtrados: sin los que cerró). */
   alerts?: HomeAlert[];
+  /** Estadísticas del Inicio (gráficas, rachas, palabras...), ya armadas por el servidor. */
+  insights?: React.ReactNode;
 }) {
   const promedioLabel = stats.promedioGeneral !== null ? String(stats.promedioGeneral) : "—";
   const promedioColor =
@@ -192,6 +195,8 @@ export default function MobileHome({
           </div>
         </>
       )}
+
+      {insights}
     </div>
   );
 }

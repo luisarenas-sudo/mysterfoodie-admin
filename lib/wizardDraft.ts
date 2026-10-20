@@ -72,10 +72,13 @@ export function listWizardDrafts(): DraftSummary[] {
       const d = JSON.parse(window.localStorage.getItem(key) || "null") as
         | { business?: { name?: string }; step?: number; savedAt?: number; href?: string; totalSteps?: number }
         | null;
-      if (!d || typeof d.href !== "string" || !d.href.startsWith("/")) continue;
+      const id = key.slice(PREFIX.length);
+      // El borrador en blanco ("new") vivía en el Inicio; ahora está en /nueva-visita/libre.
+      const href = typeof d?.href === "string" && d.href.startsWith("/") ? (d.href === "/" ? "/nueva-visita/libre" : d.href) : id === "new" ? "/nueva-visita/libre" : null;
+      if (!d || !href) continue;
       out.push({
-        id: key.slice(PREFIX.length),
-        href: d.href,
+        id,
+        href,
         name: d.business?.name?.trim() || "",
         step: (d.step ?? 0) + 1,
         totalSteps: d.totalSteps ?? 0,
