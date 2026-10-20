@@ -30,18 +30,34 @@ const RANKS = [
     emoji: "👨‍🍳",
     label: ROLE_LABELS.admin,
     desc: "Administra toda la red de MysterFoodies y da seguimiento a cada negocio.",
+    can: [
+      "Añade negocios y administra a todo el equipo",
+      "Asigna visitas a Sibaritas y Shoppers",
+      "Revisa solicitudes, resultados y finanzas",
+      "Configura planes y mensajes automáticos",
+    ],
   },
   {
     key: "sibarita",
     emoji: "🍷",
     label: ROLE_LABELS.sibarita,
     desc: "Da de alta negocios y levanta visitas libremente.",
+    can: [
+      "Añade nuevos negocios",
+      "Realiza visitas",
+      "Asigna nuevas visitas a Shoppers",
+    ],
   },
   {
     key: "foodie",
     emoji: "🌱",
     label: ROLE_LABELS.agente,
     desc: "Hace las visitas que le asignan y registra la evaluación en la app.",
+    can: [
+      "Realiza las visitas que le asignan",
+      "Registra la evaluación desde su celular",
+      "Consulta sus visitas y sus pagos",
+    ],
   },
 ] as const;
 
@@ -147,19 +163,31 @@ export default async function PerfilPage({
         Tu rango
       </div>
       <div className="card mx-5 mb-2.5 px-4 py-3.5">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
-            style={{ background: "rgba(242,68,68,0.12)" }}
-          >
-            {currentRank.emoji}
-          </div>
-          <div>
-            <div className="text-[17px] font-bold">{currentRank.label}</div>
-            <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              Eres MysterFoodie
+        <div className="flex flex-col gap-3.5 min-[480px]:flex-row min-[480px]:items-start min-[480px]:justify-between min-[480px]:gap-5">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
+              style={{ background: "rgba(242,68,68,0.12)" }}
+            >
+              {currentRank.emoji}
+            </div>
+            <div>
+              <div className="text-[17px] font-bold">{currentRank.label}</div>
+              <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                Eres MysterFoodie
+              </div>
             </div>
           </div>
+          <ul className="space-y-1.5 min-[480px]:max-w-[55%]" aria-label={`Lo que puede hacer un ${currentRank.label}`}>
+            {currentRank.can.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-[12.5px] leading-snug" style={{ color: "rgba(60,60,67,0.75)" }}>
+                <svg viewBox="0 0 20 20" className="mt-[1px] h-4 w-4 flex-shrink-0" fill="none" stroke="#8E8E93" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4.5 10.5l3.5 3.5 7.5-8" />
+                </svg>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         <div className="mt-3.5 flex pt-3.5" style={{ borderTop: "1px solid rgba(60,60,67,0.08)" }}>
           <div className="flex-1 text-center">

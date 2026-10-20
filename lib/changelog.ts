@@ -28,6 +28,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "La baja llega al Master Chef como tarea: ve la hoja de salida y reasigna los negocios y visitas pendientes.",
       "El Perfil se lee mejor: «Perfil del MysterFoodie», con nombre, cargo y correo en ese orden.",
       "El título de la pestaña y la descripción para buscadores ya hablan de MysterFoodie.",
+      "En «Tu rango» ahora ves, con palomitas, lo que puede hacer tu perfil: Master Chef, Sibarita o Shopper.",
     ],
   },
   {
