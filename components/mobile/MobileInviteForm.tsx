@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { ROLE_LABELS } from "@/lib/brand";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -81,7 +82,7 @@ export default function MobileInviteForm({
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg"
           style={{ background: "rgba(0,122,255,0.12)" }}
         >
-          ✉️
+          <Pix e="✉️" size={24} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[15px] font-bold">{onlyFoodie ? "Invitar Shopper" : "Invitar Sibarita o Shopper"}</div>

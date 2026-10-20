@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
 import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, travelerType, type BlockKey } from "@/lib/personaCatalog";
 import { BLOCK_PIX, optionIcon } from "@/lib/personaUi";
@@ -24,7 +25,7 @@ function Chips({ items, empty, icon }: { items: string[]; empty: string; icon?: 
     <div className="flex flex-wrap gap-1.5">
       {items.map((t) => (
         <span key={t} className="rounded-full px-3 py-1 text-[13px] font-medium" style={{ background: "#F2F2F7" }}>
-          {icon && <span aria-hidden="true">{icon(t)} </span>}{t}
+          {icon && <span aria-hidden="true"><Pix e={icon(t)} size={16} /> </span>}{t}
         </span>
       ))}
     </div>

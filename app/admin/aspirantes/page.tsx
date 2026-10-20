@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
@@ -7,7 +8,9 @@ import { CUISINES, DISHES } from "@/lib/foodCatalog";
 export const dynamic = "force-dynamic";
 
 const label = (opts: { key: string; label: string; emoji: string }[], keys: string[]) =>
-  keys.map((k) => opts.find((o) => o.key === k)).filter(Boolean).map((o) => `${o!.emoji} ${o!.label}`).join(" · ");
+  keys.map((k) => opts.find((o) => o.key === k)).filter(Boolean).map((o, i) => (
+    <span key={o!.key}>{i > 0 && " · "}<Pix e={o!.emoji} size={16} /> {o!.label}</span>
+  ));
 
 const dateFmt = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "short", timeZone: "America/Mexico_City" });
 

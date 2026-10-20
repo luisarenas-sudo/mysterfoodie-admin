@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useState } from "react";
 import { ALIAS_STYLES, type AliasStyle } from "@/lib/alias";
 import { BLOCK_EMOJI } from "@/lib/personaUi";
@@ -69,7 +70,7 @@ function FoodGrid({ options, selected, toggle }: { options: FoodOption[]; select
     <div className="flex flex-wrap gap-2">
       {options.map((o) => (
         <Chip key={o.key} on={selected.includes(o.key)} onClick={() => toggle(o.key)}>
-          <span aria-hidden="true">{o.emoji}</span> {o.label}
+          <span aria-hidden="true"><Pix e={o.emoji} size={16} /></span> {o.label}
         </Chip>
       ))}
     </div>
@@ -162,7 +163,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
   if (done) {
     return (
       <div className="card px-6 py-8 text-center">
-        <div className="text-[44px]" aria-hidden="true">🎉</div>
+        <div aria-hidden="true"><Pix e="🎉" size={48} /></div>
         <div className="heading mt-2 text-[24px] font-bold">¡Gracias, {f.fullName.split(" ")[0]}!</div>
         <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "rgba(60,60,67,0.8)" }}>
           Recibimos tu solicitud para ser MysterFoodie Shopper. Un Master Chef la va a revisar con calma y, si todo va bien, te llegará un correo a {f.email.trim()} para crear tu acceso.
@@ -280,7 +281,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
             {phase === "q" ? (
               <>
                 <p className="mb-4 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
-                  🕶️ Los negocios que visites conocerán a su MysterFoodie de forma anónima: con tu nombre anónimo, rangos y categorías, nunca tu nombre, foto, contacto ni documentos.
+                  <Pix e="🕶️" size={16} /> Los negocios que visites conocerán a su MysterFoodie de forma anónima: con tu nombre anónimo, rangos y categorías, nunca tu nombre, foto, contacto ni documentos.
                   Juega con estas preguntas: toca, elige y avanza. Algunas respuestas abren una pregunta extra.
                 </p>
                 <PersonaDeck
@@ -295,7 +296,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
               <>
                 <div className="mb-3 text-center">
                   <Celebration />
-                  <div className="text-[40px]" aria-hidden="true">🎉</div>
+                  <div aria-hidden="true"><Pix e="🎉" size={48} /></div>
                   <div className="heading text-[22px]">¡Listo, ya casi eres un MysterFoodie!</div>
                   <button type="button" onClick={() => setPhase("q")} className="mf-tap mt-1 text-[13px] font-semibold" style={{ color: "#F24444" }}>Revisar mis respuestas</button>
                 </div>
@@ -317,7 +318,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
                     style={{ border: `1.5px solid ${on ? "#F24444" : "rgba(60,60,67,0.14)"}` }}
                   >
                     <span>
-                      <span className="block text-[14.5px] font-semibold"><span aria-hidden="true">{BLOCK_EMOJI[b.key]} </span>{b.label}</span>
+                      <span className="block text-[14.5px] font-semibold"><span aria-hidden="true"><Pix e={BLOCK_EMOJI[b.key]} size={16} /> </span>{b.label}</span>
                       <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Nivel {b.tier === "passport" ? "Passport" : "ID"} · ganas ${Math.round((b.pct / 100) * TIER_INCREMENT[b.tier] * 100) / 100} por venta</span>
                     </span>
                     <span className="text-[13px] font-bold" style={{ color: on ? "#34C759" : "rgba(60,60,67,0.45)" }}>{on ? "Comparto" : "No comparto"}</span>
@@ -326,7 +327,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
               })}
             </div>
             <p className="mb-4 rounded-2xl px-4 py-3 text-center text-[13px] font-semibold" style={{ background: "#FFF0EE" }}>
-              💰 Compartiendo lo que tienes activado ganarías
+              <Pix e="💰" size={16} /> Compartiendo lo que tienes activado ganarías
               <span key={f.shareBlocks.join()} className="mf-pop mt-0.5 block text-[26px] font-extrabold" style={{ color: "#F24444" }}>${earningsForBlocks(f.shareBlocks.filter((k) => isBlockComplete(k, f.persona))).toFixed(2)}</span>
               por cada perfil vendido
             </p>

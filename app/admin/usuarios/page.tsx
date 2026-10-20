@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAdminStats } from "@/lib/dashboard";
@@ -80,7 +81,7 @@ export default async function UsuariosPage() {
         {pendingRemovals > 0 && (
           <Link href="/admin/bajas" className="mt-3 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <span>
-              🗂️ Tienes <strong>{pendingRemovals}</strong> {pendingRemovals === 1 ? "baja" : "bajas"} con registros por revisar
+              <Pix e="🗂️" size={16} /> Tienes <strong>{pendingRemovals}</strong> {pendingRemovals === 1 ? "baja" : "bajas"} con registros por revisar
             </span>
             <span className="font-semibold">Revisar →</span>
           </Link>

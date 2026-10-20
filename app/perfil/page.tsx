@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import DeleteAccountButton from "@/components/perfil/DeleteAccountButton";
 import { redirect } from "next/navigation";
 import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
@@ -163,7 +164,7 @@ export default async function PerfilPage({
               className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
               style={{ background: "rgba(242,68,68,0.12)" }}
             >
-              {currentRank.emoji}
+              <Pix e={currentRank.emoji} size={24} />
             </div>
             <div>
               <div className="text-[17px] font-bold">{currentRank.label}</div>
@@ -217,7 +218,7 @@ export default async function PerfilPage({
                 className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full text-lg"
                 style={{ background: "rgba(60,60,67,0.06)" }}
               >
-                {r.emoji}
+                <Pix e={r.emoji} size={24} />
               </div>
               <div className="flex-1">
                 <div className="text-[14.5px] font-bold">{r.label}</div>
@@ -440,7 +441,7 @@ export default async function PerfilPage({
                 className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
                 style={{ background: "rgba(242,68,68,0.12)" }}
               >
-                {currentRank.emoji}
+                <Pix e={currentRank.emoji} size={24} />
               </div>
               <div>
                 <div className="text-base font-bold text-ink">{currentRank.label}</div>
@@ -472,7 +473,7 @@ export default async function PerfilPage({
                   }}
                 >
                   <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-stone-100 text-lg">
-                    {r.emoji}
+                    <Pix e={r.emoji} size={24} />
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-bold text-ink">{r.label}</div>

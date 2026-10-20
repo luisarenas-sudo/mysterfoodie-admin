@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.28.2",
+    date: "2026-10-20",
+    title: "Iconos 8-bit en toda la app",
+    emoji: "🎮",
+    highlights: [
+      "Cocinas, platillos, opciones del buyer persona, alertas y avisos ahora usan iconos 8-bit propios, uno distinto por opción.",
+      "Los emojis de siempre se quedan solo en los resultados de visita: anillos por categoría, reportes y el texto para compartir.",
+    ],
+  },
+  {
     version: "0.28.1",
     date: "2026-10-20",
     title: "Planes: cuánto ganas y por qué",

@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { PendingAssignment } from "@/lib/dashboard";
 import type { OpenPoolItem } from "@/lib/visitRequests";
@@ -48,7 +49,7 @@ export default function MobileVisitasAsignadas({ assignments, pool = [] }: { ass
       <div className="mf-scroll flex-1 overflow-y-auto px-5 pb-8 pt-5">
         {assignments.length === 0 ? (
           <div className="card mt-6 p-6 text-center">
-            <div className="text-[34px]">📭</div>
+            <div><Pix e="📭" size={32} /></div>
             <div className="mt-2 text-[15px] font-bold">Sin visitas asignadas</div>
             <div className="mt-1 text-[13px]" style={{ color: "rgba(60,60,67,0.55)" }}>
               Cuando el admin te asigne un negocio, aparecerá aquí.
@@ -109,7 +110,7 @@ export default function MobileVisitasAsignadas({ assignments, pool = [] }: { ass
               Visitas gratis que nadie ha hecho a tiempo. Toma una antes de que venza y haz la visita.
             </p>
             <p className="mt-1 text-[12.5px] font-semibold" style={{ color: "#248A3D" }}>
-              💰 {shopperEarningsShort()}
+              <Pix e="💰" size={16} /> {shopperEarningsShort()}
             </p>
             <div className="mt-3 space-y-2.5">
               {pool.map((p) => (

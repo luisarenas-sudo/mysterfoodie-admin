@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,7 +88,7 @@ export default function IdentityCard({
           style={{ background: "#F24444", border: "3px solid #fff", opacity: revealed ? 0 : 1, transition: "opacity 300ms ease" }}
           aria-hidden="true"
         >
-          📷
+          <Pix e="📷" size={16} />
         </span>
       </div>
       <div
@@ -120,7 +121,7 @@ export default function IdentityCard({
       )}
       {rankLabel && (
         <div className="mt-2 rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ color: "#D42F2F", background: "rgba(242,68,68,0.1)" }}>
-          {rankEmoji} {rankLabel}
+          {rankEmoji && <Pix e={rankEmoji} size={16} />} {rankLabel}
         </div>
       )}
       <div className="mt-2 max-w-full truncate text-[14px]" style={{ color: "rgba(60,60,67,0.75)" }}>

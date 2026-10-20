@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import FreeSendButton from "./FreeSendButton";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -711,7 +712,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
         {current.kind === "category" && (
           <>
             <div className="mb-1 flex items-center gap-2.5">
-              <div className="text-[30px] leading-none">{CATEGORY_EMOJI[current.category.key] ?? "⭐"}</div>
+              <div><Pix e={CATEGORY_EMOJI[current.category.key] ?? "⭐"} size={32} /></div>
               <div className="heading text-[22px] font-bold">{current.category.label}</div>
             </div>
             <div className="mb-2.5 flex items-center justify-between gap-3 text-[13px]" style={{ color: "rgba(60,60,67,0.6)" }}>

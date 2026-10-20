@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { HomeSummary, ReyNegocio } from "@/lib/dashboard";
 import Avatar from "@/components/Avatar";
@@ -73,7 +74,7 @@ export default function MobileHome({
           className="mx-5 mt-2.5 flex items-center gap-2.5 rounded-[14px] px-3.5 py-2.5"
           style={{ background: "rgba(255,204,0,0.12)" }}
         >
-          <div className="text-xl">👑</div>
+          <div><Pix e="👑" size={24} /></div>
           <div className="text-[13px] font-semibold" style={{ color: "#1C1C1E" }}>
             El Rey: {rey.nombre} — {rey.scoreLabel}/5
           </div>

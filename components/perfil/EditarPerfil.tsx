@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Avatar from "@/components/Avatar";
@@ -112,7 +113,7 @@ export default function EditarPerfil({
 
       <div className="mx-5 mb-4 flex flex-col gap-2.5">
         <button type="button" disabled={photoBusy} onClick={() => cameraRef.current?.click()} className={bigBtn} style={{ background: "#F24444", color: "#fff" }}>
-          {photoBusy ? "Guardando…" : "📷  Tomar foto"}
+          {photoBusy ? "Guardando…" : <><Pix e="📷" size={16} /> Tomar foto</>}
         </button>
         <button
           type="button"
@@ -121,7 +122,7 @@ export default function EditarPerfil({
           className={bigBtn}
           style={{ background: "#fff", color: "#F24444", border: "1.5px solid #F24444" }}
         >
-          🖼️  Elegir de la galería
+          <Pix e="🖼️" size={16} /> Elegir de la galería
         </button>
         {avatarUrl && (
           <button type="button" disabled={photoBusy} onClick={removePhoto} className={bigBtn} style={{ color: "#FF3B30" }}>

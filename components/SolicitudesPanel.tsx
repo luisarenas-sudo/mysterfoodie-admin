@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -136,11 +137,11 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
             )}
 
             <div className="mt-2 space-y-0.5 text-[13px]" style={{ color: "rgba(60,60,67,0.8)" }}>
-              {r.address && <div>📍 {r.address}</div>}
-              {r.contactName && <div>👤 {r.contactName}</div>}
-              {r.email && <div>✉️ {r.email}</div>}
-              {r.phone && <div>📞 {r.phone}</div>}
-              {r.instagram && <div>📷 @{r.instagram}</div>}
+              {r.address && <div><Pix e="📍" size={16} /> {r.address}</div>}
+              {r.contactName && <div><Pix e="👤" size={16} /> {r.contactName}</div>}
+              {r.email && <div><Pix e="✉️" size={16} /> {r.email}</div>}
+              {r.phone && <div><Pix e="📞" size={16} /> {r.phone}</div>}
+              {r.instagram && <div><Pix e="📷" size={16} /> @{r.instagram}</div>}
               {r.message && (
                 <div className="mt-1 rounded-lg px-2.5 py-1.5" style={{ background: "#F2F2F7" }}>
                   {r.message}

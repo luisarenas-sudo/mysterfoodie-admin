@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useState } from "react";
 import Link from "next/link";
 import type { VisitPickerClient } from "@/lib/dashboard";
@@ -69,7 +70,7 @@ export default function MobileNuevaVisitaPicker({ clients, pool = [] }: { client
               Nadie las asignó todavía. Quien tome una primero se la queda y tiene 3 días para hacerla.
             </p>
             <p className="mt-1 text-[12.5px] font-semibold" style={{ color: "#248A3D" }}>
-              💰 {sibaritaEarningsShort()}
+              <Pix e="💰" size={16} /> {sibaritaEarningsShort()}
             </p>
             <div className="mt-3 space-y-2.5">
               {pool.map((p) => (

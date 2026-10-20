@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_VERSION, CHANGELOG } from "@/lib/changelog";
 
@@ -154,7 +155,7 @@ export default function EasterEggBee() {
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="text-[18px]" aria-hidden="true">
-                          {entry.emoji}
+                          <Pix e={entry.emoji} size={24} />
                         </span>
                         <span
                           className="rounded-lg px-2 py-[3px] text-[12px] font-bold"

@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useEffect, useRef, useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
 import { FieldInput } from "@/components/persona/PersonaFields";
@@ -86,9 +87,9 @@ function BlockSteps({
           return (
             <div key={f.key} className={`mf-slide-in mt-3 ${wrap}`} style={wrapStyle}>
               <div className="mb-1 flex items-center gap-2 text-[14.5px] font-bold">
-                <span aria-hidden="true">{meta?.emoji}</span>
+                <span aria-hidden="true">{meta?.emoji && <Pix e={meta.emoji} size={24} />}</span>
                 <span>{f.label}</span>
-                {followUp && <span className="rounded-full px-2 py-0.5 text-[10.5px]" style={{ background: "#FFF0EE", color: RED }}>🎁 extra</span>}
+                {followUp && <span className="rounded-full px-2 py-0.5 text-[10.5px]" style={{ background: "#FFF0EE", color: RED }}><Pix e="🎁" size={16} /> extra</span>}
               </div>
               {(meta?.hint || f.kind === "many") && <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>{meta?.hint ?? "Puedes elegir varias"}</div>}
               <FieldInput block={block} field={f} value={persona[block]?.[f.key]} onPick={(o) => pick(f, o)} />
@@ -118,7 +119,7 @@ function BlockSteps({
             >
               <span className="min-w-0">
                 <span className="block text-[11.5px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{f.label}</span>
-                <span className="block truncate text-[14px] font-bold">{vals.map((v) => `${optionIcon(block, f.key, v)} ${v}`).join(" · ")}</span>
+                <span className="block truncate text-[14px] font-bold">{vals.map((v, i) => (<span key={v}>{i > 0 && " · "}<Pix e={optionIcon(block, f.key, v)} size={16} /> {v}</span>))}</span>
               </span>
               <span className="shrink-0 text-[12px] font-semibold" style={{ color: RED }}>Cambiar</span>
             </button>
@@ -215,7 +216,7 @@ export default function AnonProfileForm({
       <div className="flex flex-wrap gap-2">
         {options.map((o) => (
           <Chip key={o.key} on={sel.includes(o.key)} onClick={() => onToggle(o.key)}>
-            {o.emoji} {o.label}
+            <Pix e={o.emoji} size={16} /> {o.label}
           </Chip>
         ))}
       </div>

@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { ClientDetail, PendingAssignmentForClient } from "@/lib/dashboard";
 import MobileSectionHeader from "./MobileSectionHeader";
@@ -159,7 +160,7 @@ function AssignedFoodieCard({ assignment }: { assignment: PendingAssignmentForCl
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[15px]"
         style={{ background: "rgba(242,68,68,0.12)" }}
       >
-        🌱
+        <Pix e="🌱" size={16} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-[11.5px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>
@@ -463,7 +464,7 @@ export default function MobileNegocioDetail({
               <div className="mx-5 space-y-2.5">
                 {pending.map((o) => (
                   <div key={o.key} className="card flex items-start gap-3 p-4">
-                    <div className="flex-shrink-0 text-[20px]">{o.emoji}</div>
+                    <div className="flex-shrink-0"><Pix e={o.emoji} size={24} /></div>
                     <div className="min-w-0 flex-1">
                       <div className="text-[14.5px] font-semibold">{o.title}</div>
                       <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>

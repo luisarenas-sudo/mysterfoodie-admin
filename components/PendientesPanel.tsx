@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { HomeAlert, AlertTone } from "@/lib/alerts";
@@ -129,7 +130,7 @@ export default function PendientesPanel({ alerts }: { alerts: HomeAlert[] }) {
 
       {items.length === 0 ? (
         <div className="card flex items-center gap-2.5 px-4 py-3 text-[14px]" style={{ color: "rgba(60,60,67,0.7)" }}>
-          <span aria-hidden>✅</span> Todo al día, nada pendiente por ahora.
+          <Pix e="✅" size={16} /> Todo al día, nada pendiente por ahora.
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -146,7 +147,7 @@ export default function PendientesPanel({ alerts }: { alerts: HomeAlert[] }) {
                     className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[17px]"
                     style={{ background: TONE[a.tone].bg }}
                   >
-                    {a.emoji}
+                    <Pix e={a.emoji} size={24} />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[14.5px] font-semibold leading-snug">{a.title}</span>

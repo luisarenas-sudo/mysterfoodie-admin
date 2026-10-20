@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BLOCK_BY_KEY, activeFields, type BlockKey, type FieldDef, type Persona } from "@/lib/personaCatalog";
 import { FIELD_UI, optionIcon, type FieldUi } from "@/lib/personaUi";
@@ -38,7 +39,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
                 border: `2px solid ${on ? RED : LINE}`, boxShadow: on ? "0 6px 16px rgba(242,68,68,0.35)" : "none",
               }}
             >
-              <span className="flex flex-col items-center gap-0.5"><span className="text-[22px] leading-none" aria-hidden="true">{emoji(o)}</span>{o}</span>
+              <span className="flex flex-col items-center gap-0.5"><span className="text-[22px] leading-none" aria-hidden="true"><Pix e={emoji(o)} size={24} /></span>{o}</span>
             </button>
           );
         })}
@@ -69,7 +70,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
                 className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
                 style={{ left: `${n === 1 ? 0 : (i / (n - 1)) * 100}%`, width: on ? 34 : 24, height: on ? 34 : 24, background: passed ? RED : "#fff", border: `3px solid ${passed ? RED : "rgba(60,60,67,0.25)"}`, boxShadow: on ? "0 4px 12px rgba(242,68,68,0.45)" : "none", transition: "all .25s" }}
               >
-                {on && <span className="mf-pop absolute inset-0 flex items-center justify-center text-[15px]">{emoji(o) || "✓"}</span>}
+                {on && <span className="mf-pop absolute inset-0 flex items-center justify-center text-[15px]">{emoji(o) ? <Pix e={emoji(o)} size={16} /> : "✓"}</span>}
               </button>
             );
           })}
@@ -77,7 +78,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
         <div className="mt-3 flex justify-between gap-1">
           {field.options.map((o) => (
             <button key={o} type="button" onClick={() => onPick(o)} className="flex-1 text-center text-[12px] font-semibold leading-tight" style={{ color: isOn(o) ? RED : "rgba(60,60,67,0.6)" }}>
-              <span className="block text-[18px] leading-none" aria-hidden="true">{emoji(o)}</span>
+              <span className="block text-[18px] leading-none" aria-hidden="true"><Pix e={emoji(o)} size={24} /></span>
               {o}
             </button>
           ))}
@@ -100,7 +101,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
               className={`mf-tap flex flex-col items-center justify-center gap-1 rounded-3xl py-7 text-[17px] font-extrabold ${on ? "mf-pop" : ""}`}
               style={{ background: on ? (o === "No" || o === "Flexible" ? "#EEF0F4" : "#E8F7EE") : "#fff", color: INK, border: `2.5px solid ${on ? RED : LINE}` }}
             >
-              <span className="text-[34px]" aria-hidden="true">{emoji(o)}</span>
+              <span className="text-[34px]" aria-hidden="true"><Pix e={emoji(o)} size={32} /></span>
               {o}
             </button>
           );
@@ -123,7 +124,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
               className={`mf-tap mf-rise flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-3.5 text-center text-[12px] font-bold leading-tight ${on ? "mf-pop" : ""}`}
               style={{ animationDelay: `${i * 0.03}s`, background: on ? "#FFF0EE" : "#fff", border: `2px solid ${on ? RED : LINE}`, color: INK }}
             >
-              <span className="text-[28px]" aria-hidden="true">{emoji(o)}</span>
+              <span className="text-[28px]" aria-hidden="true"><Pix e={emoji(o)} size={32} /></span>
               {o}
             </button>
           );
@@ -146,7 +147,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
               className={`mf-tap inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[14.5px] font-bold ${on ? "mf-pop" : "mf-float"}`}
               style={{ animationDelay: on ? "0s" : `${(i % 6) * 0.3}s`, background: on ? `linear-gradient(135deg, ${RED}, #ff7a6b)` : "#fff", color: on ? "#fff" : INK, border: `2px solid ${on ? RED : LINE}`, boxShadow: on ? "0 5px 14px rgba(242,68,68,0.32)" : "none" }}
             >
-              <span aria-hidden="true">{emoji(o)}</span>
+              <span aria-hidden="true"><Pix e={emoji(o)} size={24} /></span>
               {o}
             </button>
           );
@@ -169,7 +170,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
             className={`mf-tap mf-rise flex flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-4 text-center text-[13.5px] font-bold leading-tight ${on ? "mf-pop" : ""}`}
             style={{ animationDelay: `${i * 0.04}s`, background: on ? "#FFF0EE" : "#fff", border: `2px solid ${on ? RED : LINE}`, color: INK }}
           >
-            <span className="text-[26px]" aria-hidden="true">{emoji(o)}</span>
+            <span className="text-[26px]" aria-hidden="true"><Pix e={emoji(o)} size={32} /></span>
             {o}
           </button>
         );
@@ -188,7 +189,7 @@ export function Celebration() {
     <div className="relative mx-auto h-0 w-0" aria-hidden="true">
       {bits.map((b, i) => (
         <span key={i} className="mf-confetti text-[22px]" style={{ ["--dx" as string]: b.dx, ["--dy" as string]: b.dy, ["--rot" as string]: b.rot, animationDelay: b.d }}>
-          {b.e}
+          <Pix e={b.e} size={24} />
         </span>
       ))}
     </div>
@@ -268,10 +269,10 @@ export function PersonaDeck({
       <div key={`${q.block}.${q.field.key}`} className="mf-slide-in rounded-3xl bg-white p-4" style={{ border: `1.5px solid rgba(60,60,67,0.1)` }}>
         <div className="mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: RED }}>
           <span>{BLOCK_BY_KEY[q.block].label}</span>
-          {isFollowUp && <span className="rounded-full px-2 py-0.5 text-[10.5px]" style={{ background: "#FFF0EE" }}>🎁 Pregunta extra</span>}
+          {isFollowUp && <span className="rounded-full px-2 py-0.5 text-[10.5px]" style={{ background: "#FFF0EE" }}><Pix e="🎁" size={16} /> Pregunta extra</span>}
         </div>
         <div className="flex items-start gap-2.5">
-          <span className="text-[30px] leading-none" aria-hidden="true">{meta?.emoji ?? "💬"}</span>
+          <span className="text-[30px] leading-none" aria-hidden="true"><Pix e={meta?.emoji ?? "💬"} size={32} /></span>
           <h3 className="heading text-[20px] leading-snug">{q.field.label}</h3>
         </div>
         {(meta?.hint || q.field.kind === "many") && (
@@ -306,7 +307,7 @@ export function PersonaDeck({
             className="mf-tap min-h-[52px] flex-1 rounded-[14px] text-[16px] font-bold text-white disabled:opacity-40"
             style={{ background: RED }}
           >
-            {safeIdx >= total - 1 && questions.every(answered) ? "¡Listo! 🎉" : "Siguiente"}
+            {safeIdx >= total - 1 && questions.every(answered) ? <>¡Listo! <Pix e="🎉" size={16} /></> : "Siguiente"}
           </button>
         ) : (
           <div className="flex min-h-[52px] flex-1 items-center justify-center text-[13px]" style={{ color: "rgba(60,60,67,0.55)" }}>

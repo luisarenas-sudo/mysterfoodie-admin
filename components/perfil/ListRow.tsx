@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -68,7 +69,7 @@ export function Row({
           style={{ background: iconBg }}
           aria-hidden="true"
         >
-          {icon}
+          {typeof icon === "string" ? <Pix e={icon} size={24} /> : icon}
         </span>
       )}
       <span className="min-w-0 flex-1">

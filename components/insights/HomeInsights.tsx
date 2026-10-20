@@ -1,3 +1,4 @@
+import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { HomeInsights as Data, Kpi, Mover } from "@/lib/homeInsights";
@@ -289,7 +290,7 @@ function Streak({ s, isAdmin }: { s: Data["streak"]; isAdmin: boolean }) {
           {s.current === 1 ? "semana seguida" : "semanas seguidas"}
           <br />
           <span className="font-normal" style={{ color: INK_SOFT }}>
-            con al menos una visita {s.current >= 2 ? "🔥" : ""}
+            con al menos una visita {s.current >= 2 ? <Pix e="🔥" size={16} /> : ""}
           </span>
         </div>
       </div>

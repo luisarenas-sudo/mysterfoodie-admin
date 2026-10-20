@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useState } from "react";
 import Link from "next/link";
 import { friendlyError } from "@/lib/friendlyError";
@@ -51,7 +52,7 @@ export default function ExitSurvey({ name }: { name: string }) {
   if (done) {
     return (
       <div className="card mx-auto max-w-md p-6 text-center">
-        <div className="text-4xl" aria-hidden>👋</div>
+        <div aria-hidden><Pix e="👋" size={48} /></div>
         <h1 className="heading mt-3 text-2xl font-bold">Tu cuenta fue eliminada</h1>
         <p className="mt-2 text-sm text-stone-500">Gracias por tu tiempo y por tus comentarios. Te enviamos un correo de confirmación.</p>
         <a href="https://mysterfoodie.com" className="btn-primary mt-5 inline-flex text-sm">

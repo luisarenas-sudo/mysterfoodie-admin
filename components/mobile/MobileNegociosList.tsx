@@ -1,5 +1,6 @@
 "use client";
 
+import { Pix } from "@/components/ui/Pix";
 import { useState } from "react";
 import Link from "next/link";
 import type { ClientSummary } from "@/lib/dashboard";
@@ -80,7 +81,7 @@ export default function MobileNegociosList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
                       <div className="truncate text-[16px] font-semibold">{c.name}</div>
-                      {c.id === reyId && <div className="text-[13px]">👑</div>}
+                      {c.id === reyId && <div><Pix e="👑" size={16} /></div>}
                       {c.planName && (
                         <span className="shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold" style={{ background: "#FFF1D6", color: "#8A5A00" }}>
                           Plan {c.planName}
