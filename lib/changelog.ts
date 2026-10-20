@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.28.4",
+    date: "2026-10-20",
+    title: "Iconos 8-bit en blanco o negro",
+    emoji: "🎮",
+    highlights: [
+      "Los iconos de la app ahora son 8-bit en blanco o negro, el que contraste mejor, sobre un círculo de color.",
+      "Los emojis quedan solo en los resultados y reportes de las visitas.",
+    ],
+  },
+  {
     version: "0.28.3",
     date: "2026-10-20",
     title: "Pago de visita sin IVA agregado",
