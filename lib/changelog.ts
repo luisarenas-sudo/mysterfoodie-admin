@@ -24,9 +24,9 @@ export const CHANGELOG: ChangelogEntry[] = [
     title: "Perfil ID y Passport: el buyer persona de tu MysterFoodie",
     emoji: "🛂",
     highlights: [
-      "Los negocios con reporte completo pueden «destapar el perfil de su MysterFoodie» en dos niveles: ID ($350 + IVA: gustos, palabras, consumo y sector) y Passport ($700 + IVA: además demografía, estilo de vida, movilidad y medios). Quien ya tiene el ID mejora a Passport pagando solo la diferencia.",
+      "Los negocios con reporte completo pueden «destapar el perfil de su MysterFoodie» en dos niveles: ID ($350 + IVA: gustos, palabras, consumo y sector) y Passport ($700 + IVA: además demografía, estilo de vida, movilidad y viajes, y medios). Quien ya tiene el ID mejora a Passport pagando solo la diferencia.",
       "Cada MysterFoodie decide qué bloques comparte y gana un porcentaje fijo por cada bloque vendido. En Perfil → Mi perfil anónimo contesta sus preguntas, enciende o apaga cada bloque y ve cuánto ganaría; el Master Chef marca lo pagado en Ganancias de perfiles.",
-      "El formulario de ingreso de Shoppers ahora pide también las preguntas del buyer persona (rango de edad, ocupación, estilo de vida, categoría de auto, pasaporte y visa en sí/no, redes y cómo descubre restaurantes) y qué bloques comparte. Todo en rangos y categorías, nunca documentos.",
+      "El formulario de ingreso de Shoppers ahora pide también las preguntas del buyer persona (rango de edad, ocupación, estilo de vida, categoría de auto, pasaporte y visa en sí/no, tipos de viaje («mood»: Pueblos Mágicos, EuroTrip, Beach Babe, Foodie Goodie… que arman su tipo de viajero), redes y cómo descubre restaurantes) y qué bloques comparte. Todo en rangos y categorías, nunca documentos.",
       "Los bloques Passport se entregan a partir de 3 visitas, para que nadie sea identificable. Los negocios reciben un correo «Destapa el perfil de tu MysterFoodie» 2 días después de tener su reporte, y en Servicios de mysterfoodie.com hay una sección con los dos niveles.",
     ],
   },

@@ -43,6 +43,44 @@ export type BlockDef = {
 
 const NO = "Prefiero no decir";
 
+/**
+ * Moods de viaje: lo que ha vivido la persona. Cada mood pertenece a un grupo y, juntos, definen su "tipo de viajero"
+ * (el grupo que más se repite en su selección).
+ */
+export type MoodGroupKey = "cultural" | "sabor" | "ocio" | "activo";
+export const MOOD_GROUPS: Record<MoodGroupKey, { label: string; desc: string }> = {
+  cultural: { label: "Explorador cultural", desc: "Le mueven los lugares con historia y destinos nuevos" },
+  sabor: { label: "Viajero de sabor", desc: "Viaja con el paladar: lo local, lo callejero y lo gourmet" },
+  ocio: { label: "Viajero de ocio y lujo", desc: "Playa, compras y buena vida" },
+  activo: { label: "Viajero activo", desc: "Deporte, carretera y aventura" },
+};
+export const TRAVEL_MOODS: { label: string; group: MoodGroupKey }[] = [
+  { label: "Pueblos Mágicos", group: "cultural" },
+  { label: "EuroTrip", group: "cultural" },
+  { label: "AsiaFan", group: "cultural" },
+  { label: "Mochilero Mood", group: "cultural" },
+  { label: "TEX MEX", group: "sabor" },
+  { label: "Foodie Goodie", group: "sabor" },
+  { label: "Tacos & Garnachas", group: "sabor" },
+  { label: "Beach Babe", group: "ocio" },
+  { label: "Casino Player", group: "ocio" },
+  { label: "Shopping Susan", group: "ocio" },
+  { label: "Cruise Lover", group: "ocio" },
+  { label: "Marathon Bunny", group: "activo" },
+  { label: "Road Trip", group: "activo" },
+];
+
+/** Tipo de viajero que arman sus moods: el grupo dominante (empata por orden del catálogo) y los moods elegidos. */
+export function travelerType(moods: string[]): { type: string; desc: string; moods: string[] } | null {
+  const picked = TRAVEL_MOODS.filter((m) => moods.includes(m.label));
+  if (picked.length === 0) return null;
+  const count = new Map<MoodGroupKey, number>();
+  for (const m of picked) count.set(m.group, (count.get(m.group) || 0) + 1);
+  const order = Object.keys(MOOD_GROUPS) as MoodGroupKey[];
+  const best = [...count.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0]))[0][0];
+  return { type: MOOD_GROUPS[best].label, desc: MOOD_GROUPS[best].desc, moods: picked.map((m) => m.label) };
+}
+
 export const BLOCKS: BlockDef[] = [
   { key: "gustos", tier: "id", label: "Gustos y palabras", desc: "Tipos de cocina, platillos favoritos y las palabras que más usa en sus reseñas.", pct: 8, fields: [] },
   { key: "consumo", tier: "id", label: "Consumo y salidas", desc: "Con cuántas personas sale, cuenta promedio, totales, dónde consume y cuándo suele salir.", pct: 8, fields: [] },
@@ -67,11 +105,12 @@ export const BLOCKS: BlockDef[] = [
     ],
   },
   {
-    key: "movilidad", tier: "passport", label: "Movilidad", desc: "Categoría de auto que maneja y si tiene pasaporte o visa vigentes (solo sí/no).", pct: 8,
+    key: "movilidad", tier: "passport", label: "Movilidad y viajes", desc: "Auto que maneja, pasaporte o visa vigentes (solo sí/no) y su mood viajero (Pueblos Mágicos, EuroTrip, Beach Babe…).", pct: 8,
     fields: [
       { key: "auto", label: "Vehículo que maneja", kind: "one", options: ["No maneja o no tiene", "Moto", "Sedán o compacto", "Crossover", "SUV mediana", "SUV grande", "Pickup o utilitario", "Auto de confort", "Híbrido o eléctrico", "Auto de lujo", "Deportivo", "Exótico"] },
       { key: "pasaporte", label: "¿Tiene pasaporte vigente?", kind: "one", options: ["Sí", "No"] },
       { key: "visa", label: "¿Tiene alguna visa vigente?", kind: "one", options: ["Sí", "No"] },
+      { key: "moods", label: "¿Qué tipos de viaje has hecho? (tu mood viajero)", kind: "many", options: TRAVEL_MOODS.map((m) => m.label) },
       { key: "viajes", label: "Viajes por placer al año", kind: "one", options: ["Ninguno", "1", "2 a 3", "4 o más"] },
     ],
   },

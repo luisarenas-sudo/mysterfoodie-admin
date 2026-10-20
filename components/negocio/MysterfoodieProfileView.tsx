@@ -1,5 +1,5 @@
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
-import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, type BlockKey } from "@/lib/personaCatalog";
+import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, travelerType, type BlockKey } from "@/lib/personaCatalog";
 
 const money = (n: number | null) =>
   n == null ? "—" : n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
@@ -54,6 +54,8 @@ function personaSummary(p: MysterfoodieProfile): string | null {
   if (freq) parts.push(`come fuera ${freq} veces al mes${gasto ? ` y gasta ${gasto.toLowerCase()} por persona` : ""}`);
   const auto = asArr(m?.auto)[0];
   if (auto && !auto.startsWith("No maneja")) parts.push(`maneja ${auto.toLowerCase()}`);
+  const tv = travelerType(asArr(m?.moods));
+  if (tv) parts.push(`${tv.type.toLowerCase()}`);
   return parts.length ? `${parts.join("; ")}.` : null;
 }
 
@@ -61,12 +63,21 @@ function PersonaBlock({ p, k }: { p: MysterfoodieProfile; k: BlockKey }) {
   const def = BLOCK_BY_KEY[k];
   const data = p.persona[k];
   if (!data) return null;
+  const traveler = k === "movilidad" ? travelerType(asArr(data.moods)) : null;
   return (
     <Section title={def.label}>
+      {traveler && (
+        <div className="mb-4 rounded-xl px-3.5 py-3" style={{ background: "#F2F2F7" }}>
+          <div className="text-[12px] font-semibold text-stone-500">Tipo de viajero</div>
+          <div className="heading text-[20px]">{traveler.type}</div>
+          <div className="text-[13px] text-stone-600">{traveler.desc}</div>
+          <div className="mt-2"><Chips items={traveler.moods} empty="—" /></div>
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         {def.fields.map((f) => {
           const vals = asArr(data[f.key]);
-          if (vals.length === 0) return null;
+          if (vals.length === 0 || f.key === "moods") return null; // los moods ya salen en "Tipo de viajero"
           return (
             <div key={f.key}>
               <div className="text-[12px] font-semibold text-stone-500">{f.label}</div>
