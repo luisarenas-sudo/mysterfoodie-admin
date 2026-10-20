@@ -14,6 +14,22 @@ const nextConfig = {
   serverExternalPackages: ["pdfkit"],
   // Lo público vive en mysterfoodie.com; la app (app.mysterfoodie.com) solo
   // redirige los textos legales para que los enlaces viejos sigan sirviendo.
+  // Cabeceras de seguridad (OWASP Secure Headers): HTTPS forzado, sin sniffing de tipos, sin incrustarse en otros
+  // sitios, referrer mínimo y permisos de dispositivo acotados (la cámara solo para la propia app: fotos de perfil/ticket).
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), payment=(), usb=()" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/privacidad", destination: "https://mysterfoodie.com/privacidad/", permanent: true },
