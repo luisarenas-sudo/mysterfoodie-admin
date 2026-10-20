@@ -1,6 +1,7 @@
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
 import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, travelerType, type BlockKey } from "@/lib/personaCatalog";
-import { BLOCK_EMOJI, optionIcon } from "@/lib/personaUi";
+import { BLOCK_PIX, optionIcon } from "@/lib/personaUi";
+import { PixelBadge, PixelIcon } from "@/components/ui/PixelBadge";
 import { businessIcon, cuisineIcon, dishIcon, slotIcon, tagIcon } from "@/lib/iconos";
 
 const money = (n: number | null) =>
@@ -10,7 +11,7 @@ function Section({ title, icon, children }: { title: string; icon?: string; chil
   return (
     <section className="card p-4">
       <h2 className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
-        {icon && <span aria-hidden="true">{icon} </span>}{title}
+        {icon && <PixelBadge name={icon} size={26} className="mr-2 align-middle" />}<span className="align-middle">{title}</span>
       </h2>
       <div className="mt-3">{children}</div>
     </section>
@@ -33,7 +34,7 @@ function Chips({ items, empty, icon }: { items: string[]; empty: string; icon?: 
 function Stat({ label, value, hint, icon }: { label: string; value: string; hint?: string; icon?: string }) {
   return (
     <div className="rounded-xl p-3" style={{ background: "#F2F2F7" }}>
-      <div className="text-[12px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{icon && <span aria-hidden="true">{icon} </span>}{label}</div>
+      <div className="text-[12px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{icon && <PixelIcon name={icon} size={14} className="mr-1 inline align-[-2px]" />}{label}</div>
       <div className="mt-0.5 text-[20px] font-extrabold">{value}</div>
       {hint && <div className="text-[11.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>{hint}</div>}
     </div>
@@ -68,7 +69,7 @@ function PersonaBlock({ p, k }: { p: MysterfoodieProfile; k: BlockKey }) {
   if (!data) return null;
   const traveler = k === "movilidad" ? travelerType(asArr(data.moods)) : null;
   return (
-    <Section title={def.label} icon={BLOCK_EMOJI[k]}>
+    <Section title={def.label} icon={BLOCK_PIX[k]}>
       {traveler && (
         <div className="mb-4 rounded-xl px-3.5 py-3" style={{ background: "#F2F2F7" }}>
           <div className="text-[12px] font-semibold text-stone-500">Tipo de viajero</div>
@@ -108,7 +109,10 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
         <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>
           {p.rankLabel} · perfil {TIERS[p.tier].label}
         </p>
-        <h1 className="heading mt-1 text-3xl text-ink">{p.alias}</h1>
+        <div className="mt-1 flex items-center gap-3">
+          <PixelBadge name="sunglasses" size={44} tone="dark" />
+          <h1 className="heading text-3xl text-ink">{p.alias}</h1>
+        </div>
         <p className="mt-1 text-[14px] text-stone-500">
           {p.visits} {p.visits === 1 ? "visita" : "visitas"} con MysterFoodie
           {p.monthsActive >= 1 ? ` · ${p.monthsActive} ${p.monthsActive === 1 ? "mes" : "meses"} en el equipo` : ""}
@@ -119,7 +123,7 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
 
       {g && (
         <>
-          <Section title="Palabras que más usa en sus reseñas" icon="💬">
+          <Section title="Palabras que más usa en sus reseñas" icon="chat">
             {g.words.length === 0 ? (
               <p className="text-[14px] text-stone-500">Aún no tiene suficientes reseñas para detectar palabras frecuentes.</p>
             ) : (
@@ -145,7 +149,7 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
             )}
           </Section>
 
-          <Section title="Sus gustos" icon="🍜">
+          <Section title="Sus gustos" icon="mug">
             <div className="space-y-3">
               <div>
                 <div className="text-[12px] font-semibold text-stone-500">Tipos de cocina</div>
@@ -161,12 +165,12 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
       )}
 
       {c && (
-        <Section title="Con quién sale y cuánto consume" icon="🧾">
+        <Section title="Con quién sale y cuánto consume" icon="invoice">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <Stat icon="👥" label="Personas por salida" value={c.party.avg != null ? c.party.avg.toFixed(1) : "—"} hint={c.party.usual ? `Lo más común: ${c.party.usual}` : undefined} />
-            <Stat icon="🧍" label="Sale solo/a" value={c.party.soloPct != null ? `${c.party.soloPct}%` : "—"} hint={c.party.groupPct != null ? `Grupos de 4+: ${c.party.groupPct}%` : undefined} />
-            <Stat icon="🧾" label="Cuenta promedio" value={money(c.consumption.avgTicket)} hint={c.consumption.maxTicket ? `La más alta: ${money(c.consumption.maxTicket)}` : undefined} />
-            <Stat icon="🍴" label="Por persona" value={money(c.consumption.avgPerPerson)} />
+            <Stat icon="users" label="Personas por salida" value={c.party.avg != null ? c.party.avg.toFixed(1) : "—"} hint={c.party.usual ? `Lo más común: ${c.party.usual}` : undefined} />
+            <Stat icon="user" label="Sale solo/a" value={c.party.soloPct != null ? `${c.party.soloPct}%` : "—"} hint={c.party.groupPct != null ? `Grupos de 4+: ${c.party.groupPct}%` : undefined} />
+            <Stat icon="invoice" label="Cuenta promedio" value={money(c.consumption.avgTicket)} hint={c.consumption.maxTicket ? `La más alta: ${money(c.consumption.maxTicket)}` : undefined} />
+            <Stat icon="coffee" label="Por persona" value={money(c.consumption.avgPerPerson)} />
           </div>
           <p className="mt-3 text-[13px] text-stone-500">
             Total consumido en sus visitas registradas: <strong>{money(c.consumption.total)}</strong>
@@ -190,7 +194,7 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
       )}
 
       {p.sector && (
-        <Section title="Sector que representa" icon="📍">
+        <Section title="Sector que representa" icon="map-pin">
           <p className="text-[15px] font-bold">{p.sector.label ?? "Sin definir"}</p>
         </Section>
       )}

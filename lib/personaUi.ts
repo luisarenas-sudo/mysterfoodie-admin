@@ -102,3 +102,8 @@ export const RANGE_EMOJI: Record<string, Record<string, string>> = {
 export function optionIcon(block: string, field: string, option: string): string {
   return RANGE_EMOJI[`${block}.${field}`]?.[option] ?? OPTION_EMOJI[option] ?? "🔸";
 }
+
+/** Icono 8-bit de cada sección del perfil (nombres de lib/pixelIcons). */
+export const BLOCK_PIX: Record<string, string> = {
+  gustos: "mug", consumo: "invoice", sector: "map-pin", demografia: "user", estilo_vida: "heart", movilidad: "luggage", medios: "smartphone",
+};

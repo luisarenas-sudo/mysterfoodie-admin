@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
 import { FieldInput } from "@/components/persona/PersonaFields";
-import { BLOCK_EMOJI, FIELD_UI, optionIcon } from "@/lib/personaUi";
+import { BLOCK_PIX, FIELD_UI, optionIcon } from "@/lib/personaUi";
+import { PixelBadge } from "@/components/ui/PixelBadge";
 import { isValidPostalCode } from "@/lib/zonas";
 import {
   BLOCKS, BLOCKS_OF_TIER, BLOCK_BY_KEY, MAX_EARNINGS_PER_SALE, MIN_VISITS_PASSPORT, MYSTERFOODIE_SHARE_PCT, PLATFORM_FEE_PCT, TIER_INCREMENT,
@@ -14,9 +15,9 @@ const RED = "#F24444";
 const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
 const asArr = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 
-const TIER_UI: Record<TierKey, { emoji: string; title: string; desc: string; color: string }> = {
-  id: { emoji: "🆔", title: "Perfil ID", desc: "Tus gustos y palabras, cómo consumes y de qué zona eres.", color: RED },
-  passport: { emoji: "🛂", title: "Perfil Passport", desc: "Tu buyer persona: demografía, estilo de vida, movilidad y viajes, y medios.", color: "#5856D6" },
+const TIER_UI: Record<TierKey, { pix: string; tone: "red" | "purple"; title: string; desc: string; color: string }> = {
+  id: { pix: "card-id", tone: "red", title: "Perfil ID", desc: "Tus gustos y palabras, cómo consumes y de qué zona eres.", color: RED },
+  passport: { pix: "luggage", tone: "purple", title: "Perfil Passport", desc: "Tu buyer persona: demografía, estilo de vida, movilidad y viajes, y medios.", color: "#5856D6" },
 };
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -302,7 +303,7 @@ export default function AnonProfileForm({
                 <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: ui.color }}>
                   Nivel {t === "passport" ? "Passport" : "ID"} · ganas hasta {money(tierMax)} {t === "passport" ? "más " : ""}por venta
                 </div>
-                <div className="heading text-[20px]"><span aria-hidden="true">{ui.emoji} </span>{ui.title}</div>
+                <div className="heading flex items-center gap-2 text-[20px]"><PixelBadge name={ui.pix} size={30} tone={ui.tone} />{ui.title}</div>
                 <div className="text-[13px] text-stone-500">{ui.desc}</div>
                 <div className="mt-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold" style={{ color: on ? (listos === blocks.length ? "#1E8E4E" : "#9A6A00") : "rgba(60,60,67,0.5)" }}>
                   {status}
@@ -345,7 +346,7 @@ export default function AnonProfileForm({
                         onClick={() => setSection((s) => ({ ...s, [t]: isSec ? null : b.key }))}
                         className="flex w-full items-center gap-3 py-3 text-left"
                       >
-                        <span className="text-[22px]" aria-hidden="true">{BLOCK_EMOJI[b.key]}</span>
+                        <PixelBadge name={BLOCK_PIX[b.key]} size={34} tone={t === "passport" ? "purpleSoft" : "redSoft"} />
                         <span className="min-w-0 flex-1">
                           <span className="block text-[15px] font-bold">{b.label}</span>
                           <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>+{money((b.pct / 100) * TIER_INCREMENT[b.tier])} por venta</span>

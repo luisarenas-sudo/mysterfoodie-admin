@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { BuyableProfile } from "@/lib/profilePurchases";
+import { PixelBadge } from "@/components/ui/PixelBadge";
 import { PERFIL_PITCH, PERFIL_PITCH_TITLE, PLATFORM_FEE_PCT, TIERS } from "@/lib/personaCatalog";
 
 const fmt = (iso: string) =>
@@ -26,10 +27,13 @@ export default function MysterfoodieProfilesCard({ profiles, className = "" }: {
           const a = action(p);
           return (
             <Link key={p.mysterfoodieId} href={`/mi-negocio/mysterfoodie/${p.formId}`} className="flex items-center justify-between gap-3 py-3">
-              <div>
-                <div className="text-[15px] font-bold">{p.alias}</div>
-                <div className="text-[12px] text-stone-500">
-                  {p.rankLabel} · visita del {fmt(p.visitDate)}
+              <div className="flex items-center gap-3">
+                <PixelBadge name="sunglasses" size={38} tone="dark" />
+                <div>
+                  <div className="text-[15px] font-bold">{p.alias}</div>
+                  <div className="text-[12px] text-stone-500">
+                    {p.rankLabel} · visita del {fmt(p.visitDate)}
+                  </div>
                 </div>
               </div>
               <span className="text-[12.5px] font-bold" style={{ color: a.color }}>{a.text}</span>
