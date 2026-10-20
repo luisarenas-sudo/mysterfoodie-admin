@@ -412,7 +412,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName }: {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Evaluación Mystery Shopper</h1>
+      <h1 className="heading mt-2 text-3xl text-ink">Nueva visita</h1>
       {boundAssignment && (
         <p className="mt-1 text-sm text-stone-500">Visitando: {boundAssignment.client.name}</p>
       )}

@@ -10,9 +10,9 @@ async function signOut() {
   redirect("/login");
 }
 
-const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
+const NAV_BY_ROLE: Record<Role, { href: string; label: string; cta?: boolean }[]> = {
   admin: [
-    { href: "/", label: "Nueva evaluación" },
+    { href: "/", label: "Nueva visita", cta: true },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Visitas" },
     { href: "/solicitudes", label: "Solicitudes" },
@@ -23,13 +23,13 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string }[]> = {
     { href: "/perfil", label: "Perfil" },
   ],
   agente: [
-    { href: "/", label: "Nueva evaluación" },
+    { href: "/", label: "Nueva visita", cta: true },
     { href: "/mis-visitas", label: "Mis visitas" },
     { href: "/finanzas", label: "Finanzas" },
     { href: "/perfil", label: "Perfil" },
   ],
   sibarita: [
-    { href: "/", label: "Nueva evaluación" },
+    { href: "/", label: "Nueva visita", cta: true },
     { href: "/negocios", label: "Negocios" },
     { href: "/mis-visitas", label: "Mis visitas" },
     { href: "/finanzas", label: "Finanzas" },
@@ -61,16 +61,30 @@ export default async function AppHeader() {
 
         {profile ? (
           <nav className="flex items-center gap-5 text-sm font-medium text-white/80">
-            {NAV_BY_ROLE[profile.role].map((item) => (
-              <Link key={item.href} href={item.href} className="hover:text-white">
-                {item.label}
-              </Link>
-            ))}
+            {NAV_BY_ROLE[profile.role].map((item) =>
+              item.cta ? (
+                // Mismo botón rojo en píldora que en mysterfoodie.com.
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="btn-primary whitespace-nowrap !px-4 !py-1.5 text-sm text-white hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <Link key={item.href} href={item.href} className="whitespace-nowrap hover:text-white">
+                  {item.label}
+                </Link>
+              )
+            )}
             {/* El nombre/correo ya no se repite aquí -- vive dentro de
                Perfil (con avatar, rango, etc.), que ya está en la nav
                de arriba para los 4 roles. */}
             <form action={signOut}>
-              <button type="submit" className="text-white/60 hover:text-white">
+              <button
+                type="submit"
+                className="whitespace-nowrap rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/25 hover:text-white"
+              >
                 Cerrar sesión
               </button>
             </form>
