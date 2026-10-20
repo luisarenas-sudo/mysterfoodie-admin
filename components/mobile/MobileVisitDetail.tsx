@@ -102,12 +102,12 @@ export default function MobileVisitDetail({
             <div className="flex-1">
               <div className="flex justify-between text-[13px]">
                 <span className="font-medium">
-                  {extraCategory.label} <span style={{ color: "rgba(60,60,67,0.45)", fontWeight: 400 }}>&middot; Extra</span>
+                  {extraCategory.label} <span style={{ color: "rgba(60,60,67,0.45)", fontWeight: 400 }}>&middot; Sí/No</span>
                 </span>
                 <span style={{ color: "rgba(60,60,67,0.55)" }}>{extraCategory.average}</span>
               </div>
               <div className="mt-0.5 text-[11px]" style={{ color: "rgba(60,60,67,0.45)" }}>
-                No cuenta para el promedio general
+                Sí/No convertido a 1–5: sí cuenta para el promedio general
               </div>
             </div>
           </div>
