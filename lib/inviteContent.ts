@@ -22,18 +22,18 @@ const mxn = (n: number) => formatMxn(n).replace(" MXN", "");
 const hasta = (n: number) => `hasta ${mxn(Math.round(n / 10) * 10)}`;
 
 export function inviteContentForRole(role: string, businessName?: string | null): InviteRoleContent {
-  const sc2 = scenarioByKey("2"); // Master Chef vende y el Foodie visita
+  const sc2 = scenarioByKey("2"); // Master Chef vende y el Shopper visita
   const foodieReport = sc2.foodie; // por reporte entregado
   const foodiePlan = (price: number) => splitForPrice(sc2, price).foodie;
   const sibaritaSelf = scenarioByKey("4").sibarita; // vende y visita él mismo
-  const sibaritaAssign = scenarioByKey("5").sibarita; // vende y asigna a un Foodie
+  const sibaritaAssign = scenarioByKey("5").sibarita; // vende y asigna a un Shopper
 
   if (role === "agente") {
     const goalVisits = 4;
     return {
       emoji: "🌱",
       tagline: "Visitas de incógnito, pagadas por cada reporte",
-      intro: "Como Foodie conviertes una salida a comer en una evaluación profesional.",
+      intro: "Como MysterFoodie Shopper conviertes una salida a comer en una evaluación profesional.",
       can: [
         { emoji: "🕵️", title: "Visitas de incógnito", text: "Restaurantes, bares y cafeterías que se te asignan; vas como cualquier cliente." },
         { emoji: "📱", title: "Evaluación desde tu celular", text: "Un formulario corto de servicio, sabor, limpieza y experiencia que llenas en minutos." },
@@ -64,16 +64,16 @@ export function inviteContentForRole(role: string, businessName?: string | null)
     return {
       emoji: "🍷",
       tagline: "Abres negocios y ganas por cada reporte vendido",
-      intro: "Como Sibarita conviertes los lugares que ya conoces en clientes de MysterFoodie.",
+      intro: "Como MysterFoodie Sibarita conviertes los lugares que ya conoces en clientes de MysterFoodie.",
       can: [
         { emoji: "🏪", title: "Das de alta negocios", text: "Los que ya frecuentas o conoces; quedan registrados a tu nombre." },
         { emoji: "📝", title: "Visitas tú mismo", text: "Levantas visitas Mystery Shopper con libertad y compartes el resultado con el negocio." },
         {
           emoji: "💸",
           title: "Ganas por cada reporte vendido",
-          text: `${hasta(sibaritaSelf)} si lo vendes y lo visitas tú; ${hasta(sibaritaAssign)} si asignas la visita a un Foodie.`,
+          text: `${hasta(sibaritaSelf)} si lo vendes y lo visitas tú; ${hasta(sibaritaAssign)} si asignas la visita a un Shopper.`,
         },
-        { emoji: "👥", title: "Invitas Foodies", text: "Sumas gente a tu red para repartir las visitas." },
+        { emoji: "👥", title: "Invitas Shoppers", text: "Sumas gente a tu red para repartir las visitas." },
       ],
       goal: {
         title: `Tu meta del primer mes: ${goalSales} negocios con reporte = ${hasta(sibaritaSelf * goalSales)} extra`,
@@ -94,9 +94,9 @@ export function inviteContentForRole(role: string, businessName?: string | null)
     return {
       emoji: "👨‍🍳",
       tagline: "Administras toda la red",
-      intro: "Como Master Chef das seguimiento a cada negocio y a cada persona de la red.",
+      intro: "Como MysterFoodie Master Chef das seguimiento a cada negocio y a cada persona de la red.",
       can: [
-        { emoji: "👥", title: "Usuarios y rangos", text: "Invitas Sibaritas y Foodies, cambias sus rangos y revisas sus bajas." },
+        { emoji: "👥", title: "Usuarios y rangos", text: "Invitas Sibaritas y Shoppers, cambias sus rangos y revisas sus bajas." },
         { emoji: "📍", title: "Asignación de visitas", text: "Asignas cada visita y decides quién es dueño de cada negocio." },
         { emoji: "📅", title: "Planes mensuales", text: "Contratas planes, das seguimiento a sus visitas y marcas los cobros." },
         { emoji: "🔔", title: "Pendientes", text: "Tu inicio junta lo que necesita atención: cobros, correos fallidos y compras." },

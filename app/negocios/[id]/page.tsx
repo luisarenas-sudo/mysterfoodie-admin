@@ -74,7 +74,7 @@ export default async function NegocioDetailPage({
         clientEmail={client.email ?? null}
         branchOptions={branchOptions}
         view={planView}
-        foodies={foodies.map((f) => ({ id: f.id, name: f.fullName || f.email || "Foodie", pendingCount: f.pendingCount }))}
+        foodies={foodies.map((f) => ({ id: f.id, name: f.fullName || f.email || "Shopper", pendingCount: f.pendingCount }))}
         suggestedStart={start.suggested}
         otherStart={start.other}
         catalogs={PLAN_KEYS.map((k) => PLAN_CATALOG[k])}
@@ -110,7 +110,7 @@ export default async function NegocioDetailPage({
           <p className="mt-2 text-sm text-stone-500">Este negocio aún no tiene visitas registradas.</p>
           {canAssign && (
             <Link href={`/negocios/${client.id}/asignar`} className="btn-secondary mt-4 inline-flex text-sm">
-              {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar visita a un Foodie"}
+              {pendingAssignment ? "Reasignar a otro Shopper" : "Asignar visita a un Shopper"}
             </Link>
           )}
           {planSlot && <div className="mt-6 max-w-xl">{planSlot}</div>}

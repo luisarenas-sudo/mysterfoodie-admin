@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.16.0",
+    date: "2026-10-20",
+    title: "Todos somos MysterFoodies",
+    emoji: "🍽️",
+    highlights: [
+      "Todas las personas del equipo son MysterFoodies y su rango es su nivel: Shopper (antes Foodie), Sibarita y Master Chef. Así «Foodie» ya no se repite entre la marca y el rango.",
+      "Tu Perfil, los correos de invitación y el bienvenido lo dicen claro: «Eres MysterFoodie», «Te invitaron a ser MysterFoodie Shopper».",
+      "Los programas llevan la marca: MysterFoodie Academy y Palabra MysterFoodie.",
+      "Para los negocios, quien los visita es simplemente «un MysterFoodie» (correo de sin disponibilidad, plan, formulario de la web).",
+    ],
+  },
+  {
     version: "0.15.1",
     date: "2026-10-19",
     title: "Un solo mensaje para el dueño",

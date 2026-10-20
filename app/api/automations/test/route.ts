@@ -20,7 +20,7 @@ const SAMPLE = {
   tipoNegocio: "cafetería",
   mesero: "Juan",
   promedio: 4.2,
-  foodie: "Ana Foodie",
+  foodie: "Ana Shopper",
   ubicacion: "cafetería · Veracruz",
   nota: "Pedir el menú de temporada y revisar tiempos de espera.",
 };
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
         bodyText = tpl(
           automation?.bodyTemplate,
           vars,
-          `Hola Ana,\n\nPor el momento y dado el alto volumen de solicitudes, no contamos con un foodie para tu visita a ${SAMPLE.negocio}.\n\nPuedes agendar paquetes de visitas con nosotros aquí, donde también encuentras la tabla comparativa de paquetes:\n${link}\n\nGracias por tu interés,\nMysterFoodie`
+          `Hola Ana,\n\nPor el momento y dado el alto volumen de solicitudes, no contamos con un MysterFoodie para tu visita a ${SAMPLE.negocio}.\n\nPuedes agendar paquetes de visitas con nosotros aquí, donde también encuentras la tabla comparativa de paquetes:\n${link}\n\nGracias por tu interés,\nMysterFoodie`
         );
       } else if (key === "ticket_oferta" || key === "ticket_aviso") {
         const kind = key === "ticket_oferta" ? "oferta" : "aviso";

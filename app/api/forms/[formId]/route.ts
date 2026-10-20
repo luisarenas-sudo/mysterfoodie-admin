@@ -6,7 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
  * Elimina una visita (evaluación) y todo lo que depende de ella:
  * calificaciones por indicador, indicadores booleanos, confirmaciones
  * de correo y pagos del reporte completo. Si la visita venía de una
- * asignación a un Foodie (visit_assignments.completed_form_id), se
+ * asignación a un Shopper (visit_assignments.completed_form_id), se
  * desvincula en vez de borrar la asignación, para no perder el
  * historial de quién tenía encargada esa visita.
  */

@@ -10,8 +10,8 @@ type Body = {
 };
 
 /**
- * Asignar una visita (negocio + Foodie) - solo admin (Master Chef) por
- * ahora, según lo confirmado. El Foodie recibe un correo y ve el
+ * Asignar una visita (negocio + Shopper) - solo admin (Master Chef) por
+ * ahora, según lo confirmado. El Shopper recibe un correo y ve el
  * negocio en su lista de "visitas asignadas" en /nueva-visita.
  */
 export async function POST(req: NextRequest) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Falta el negocio" }, { status: 400 });
   }
   if (!assignedTo) {
-    return NextResponse.json({ error: "Falta el Foodie a asignar" }, { status: 400 });
+    return NextResponse.json({ error: "Falta el Shopper a asignar" }, { status: 400 });
   }
 
   let db;
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     .eq("id", assignedTo)
     .maybeSingle();
   if (!foodie || foodie.role !== "agente") {
-    return NextResponse.json({ error: "El usuario seleccionado no es un Foodie" }, { status: 400 });
+    return NextResponse.json({ error: "El usuario seleccionado no es un Shopper" }, { status: 400 });
   }
 
   const { data: assignment, error: insertError } = await db

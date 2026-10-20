@@ -12,12 +12,12 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  *
  * Una persona llena el formulario público -> el negocio se da de alta (clients, source="web"),
  * se le crea su cuenta y recibe un correo con sus datos y el acceso; el Master Chef recibe aviso
- * y asigna la solicitud a un sibarita, un Foodie o a sí mismo desde /solicitudes.
+ * y asigna la solicitud a un sibarita, un Shopper o a sí mismo desde /solicitudes.
  *
  * Reglas de tiempo (ver supabase/solicitudes_visita.sql):
  *  - Una vez asignada, la persona asignada tiene OPEN_AFTER_DAYS (3) días en exclusiva.
- *  - Del día 4 al 5 la solicitud también aparece a todos los Foodies, que pueden tomarla.
- *  - Al día EXPIRE_AFTER_DAYS (5) sin visita, se le avisa al negocio que por ahora no hay Foodie
+ *  - Del día 4 al 5 la solicitud también aparece a todos los Shoppers, que pueden tomarla.
+ *  - Al día EXPIRE_AFTER_DAYS (5) sin visita, se le avisa al negocio que por ahora no hay Shopper
  *    y se le invita a ver los paquetes. Una solicitud que nunca se asignó vence igual, 5 días
  *    después de llegar.
  */
@@ -259,7 +259,7 @@ async function notifyAdmins(p: {
         `Llegó una solicitud de visita gratis desde la web.\n\n` +
         `Negocio: ${p.negocio}\nUbicación: ${p.ubicacion}\nContacto: ${p.contacto}\n` +
         `${p.isNewClient ? "El negocio se dio de alta solo." : "El negocio ya existía."}\n\n` +
-        `Asígnala a un sibarita, un Foodie o a ti desde aquí:\n${p.baseUrl}/solicitudes`,
+        `Asígnala a un sibarita, un Shopper o a ti desde aquí:\n${p.baseUrl}/solicitudes`,
       ctaLabel: "Asignar la visita",
     });
     if (out.status === "sent") sent = true;
@@ -273,7 +273,7 @@ async function notifyAdmins(p: {
 
 export type AssignResult = { ok: true; email: SendEmailOutcome } | { ok: false; error: string; status: number };
 
-/** Asigna (o reasigna) una solicitud a un admin, Foodie o sibarita y arranca el reloj de 3 + 2 días. */
+/** Asigna (o reasigna) una solicitud a un admin, Shopper o sibarita y arranca el reloj de 3 + 2 días. */
 export async function assignVisitRequest(
   db: Db,
   p: { requestId: string; assigneeId: string; assignedBy: string; baseUrl: string }
@@ -292,7 +292,7 @@ export async function assignVisitRequest(
     .eq("id", p.assigneeId)
     .maybeSingle();
   if (!assignee || !["admin", "agente", "sibarita"].includes(assignee.role as string)) {
-    return { ok: false, error: "Solo puedes asignar a un sibarita, un Foodie o a ti mismo", status: 400 };
+    return { ok: false, error: "Solo puedes asignar a un sibarita, un Shopper o a ti mismo", status: 400 };
   }
 
   const { data: client } = await db
@@ -302,7 +302,7 @@ export async function assignVisitRequest(
     .maybeSingle();
   if (!client) return { ok: false, error: "Negocio no encontrado", status: 404 };
 
-  const note = `Solicitud de visita gratis desde la web. Tienes ${OPEN_AFTER_DAYS} días para hacerla; después se abre a los demás Foodies.`;
+  const note = `Solicitud de visita gratis desde la web. Tienes ${OPEN_AFTER_DAYS} días para hacerla; después se abre a los demás Shoppers.`;
 
   // Si ya había una asignación pendiente se reutiliza (cambia de persona); si no, se crea una.
   let assignmentId: string | null = null;
@@ -356,7 +356,7 @@ export async function assignVisitRequest(
   return { ok: true, email };
 }
 
-/** Un Foodie toma una solicitud que ya está en la bolsa abierta (días 4 y 5). */
+/** Un Shopper toma una solicitud que ya está en la bolsa abierta (días 4 y 5). */
 export async function takeVisitRequest(
   db: Db,
   p: { requestId: string; foodieId: string; baseUrl: string }
@@ -378,7 +378,7 @@ export async function takeVisitRequest(
   }
 
   const { data: foodie } = await db.from("profiles").select("id, email, full_name, role").eq("id", p.foodieId).maybeSingle();
-  if (!foodie || foodie.role !== "agente") return { ok: false, error: "Solo los Foodies pueden tomar visitas", status: 403 };
+  if (!foodie || foodie.role !== "agente") return { ok: false, error: "Solo los Shoppers pueden tomar visitas", status: 403 };
 
   // Condicional: solo se toma si la asignación sigue pendiente y con la misma persona (quien llegue primero).
   const { data: taken } = await db
@@ -397,7 +397,7 @@ export async function takeVisitRequest(
     assignmentId: request.assignment_id as string,
     client: { name: client?.name ?? "Negocio", type: client?.type ?? null, city: client?.city ?? null },
     foodie: { email: foodie.email, full_name: foodie.full_name },
-    note: "Tomaste esta visita gratis de la bolsa de Foodies.",
+    note: "Tomaste esta visita gratis de la bolsa de Shoppers.",
     baseUrl: p.baseUrl,
     linkVisitas: `${p.baseUrl}/nueva-visita/${request.assignment_id}`,
   });
@@ -412,9 +412,9 @@ export type SyncResult = { completed: number; expired: number; emailed: number }
 
 /**
  * 1) Marca como completadas las solicitudes cuyo negocio ya tiene una visita posterior a la solicitud
- *    (la haya hecho quien la tenía asignada, otro Foodie o el Master Chef).
+ *    (la haya hecho quien la tenía asignada, otro Shopper o el Master Chef).
  * 2) Las que llegaron a expires_at sin visita pasan a "sin_foodie" y el negocio recibe el correo
- *    "Por el momento no contamos con un foodie" (una sola vez).
+ *    "Por el momento no contamos con un MysterFoodie" (una sola vez).
  * La corre el cron diario/frecuente y también se ejecuta al abrir /solicitudes.
  */
 export async function syncVisitRequests(db: Db): Promise<SyncResult> {
@@ -482,7 +482,7 @@ async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
   const defaultSubject = `Sobre tu solicitud de visita en MysterFoodie`;
   const defaultBody =
     `Hola ${contacto},\n\n` +
-    `Por el momento y dado el alto volumen de solicitudes, no contamos con un foodie para tu visita a ${client.name}.\n\n` +
+    `Por el momento y dado el alto volumen de solicitudes, no contamos con un MysterFoodie para tu visita a ${client.name}.\n\n` +
     `Puedes agendar paquetes de visitas con nosotros aquí, donde también encuentras la tabla comparativa de paquetes:\n${PACKAGES_URL}\n\n` +
     `Gracias por tu interés,\nMysterFoodie`;
 
@@ -522,7 +522,7 @@ export type SolicitudRow = {
   assignedAt: string | null;
   openAt: string | null;
   expiresAt: string | null;
-  /** La bolsa de Foodies ya está abierta (días 4 y 5) para esta solicitud. */
+  /** La bolsa de Shoppers ya está abierta (días 4 y 5) para esta solicitud. */
   inOpenPool: boolean;
 };
 
@@ -584,7 +584,7 @@ export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
     .sort((a, b) => rank[a.status] - rank[b.status] || b.createdAt.localeCompare(a.createdAt));
 }
 
-/** Personas a quienes el Master Chef puede asignar: él, sibaritas y Foodies. */
+/** Personas a quienes el Master Chef puede asignar: él, sibaritas y Shoppers. */
 export async function getAssignees(db: Db): Promise<Assignee[]> {
   const { data: people } = await db
     .from("profiles")
@@ -613,7 +613,7 @@ export type OpenPoolItem = {
   expiresAt: string;
 };
 
-/** Solicitudes en los días 4 y 5 que cualquier Foodie puede tomar (excluye las suyas). */
+/** Solicitudes en los días 4 y 5 que cualquier Shopper puede tomar (excluye las suyas). */
 export async function getOpenPoolFor(db: Db, userId: string): Promise<OpenPoolItem[]> {
   const nowIso = new Date().toISOString();
   const { data: rows } = await db

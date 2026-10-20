@@ -16,7 +16,7 @@ export default function MobileAsignarVisita({
   foodies: Foodie[];
 }) {
   const router = useRouter();
-  // Sin Foodie preseleccionado a propósito: con el primero ya marcado, un
+  // Sin Shopper preseleccionado a propósito: con el primero ya marcado, un
   // toque rápido en "Asignar" mandaba la visita a la persona equivocada.
   const [assignedTo, setAssignedTo] = useState("");
   const [note, setNote] = useState("");
@@ -69,7 +69,7 @@ export default function MobileAsignarVisita({
       <div className="px-5 pb-8 pt-5">
         <div className="heading text-[24px] font-bold">Asignar visita</div>
         <div className="mt-0.5 text-[13.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-          Elige un Foodie para {clientName}. Recibirá un correo de notificación.
+          Elige un Shopper para {clientName}. Recibirá un correo de notificación.
         </div>
 
         {done ? (
@@ -89,15 +89,15 @@ export default function MobileAsignarVisita({
           </div>
         ) : foodies.length === 0 ? (
           <div className="card mt-5 p-5 text-center text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-            Aún no hay Foodies invitados.
+            Aún no hay Shoppers invitados.
             <Link href="/perfil" className="mt-3 block font-semibold" style={{ color: "#F24444" }}>
-              Invitar a un Foodie desde tu Perfil
+              Invitar a un Shopper desde tu Perfil
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="card mt-5 p-[18px]">
             <div className="text-[13px] font-medium" style={{ color: "rgba(60,60,67,0.6)" }}>
-              Foodie
+              Shopper
             </div>
             <div className="mt-1.5 space-y-2">
               {foodies.map((f) => (
@@ -166,7 +166,7 @@ export default function MobileAsignarVisita({
               className="mf-tap mt-4 w-full rounded-[14px] py-3.5 text-center text-[15px] font-bold text-white disabled:opacity-50"
               style={{ background: "#F24444" }}
             >
-              {submitting ? "Asignando..." : assignedTo ? "Asignar visita" : "Elige un Foodie"}
+              {submitting ? "Asignando..." : assignedTo ? "Asignar visita" : "Elige un Shopper"}
             </button>
           </form>
         )}

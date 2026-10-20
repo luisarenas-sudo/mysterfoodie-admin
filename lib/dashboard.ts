@@ -409,7 +409,7 @@ export type AgentVisit = {
   createdAt: string;
   clientId: string;
   clientName: string;
-  /** "Sibarita Davichin", "Foodie Ana", etc. -- quién levantó la visita
+  /** "Sibarita Davichin", "Shopper Ana", etc. -- quién levantó la visita
    * (rango + nombre, ver ROLE_LABELS), o null si no se pudo resolver. */
   creatorLabel: string | null;
 };
@@ -582,7 +582,7 @@ function formatShortDate(iso: string) {
 
 /** Estadísticas + actividad reciente para "Inicio" (móvil). Sin agentId = alcance global (admin).
  * includeNegociosRecientes: solo admin/sibarita ven el apartado de negocios
- * recién dados de alta (un Foodie ni siquiera tiene acceso a /negocios). */
+ * recién dados de alta (un Shopper ni siquiera tiene acceso a /negocios). */
 export async function getHomeSummary(
   scope: { agentId?: string; includeNegociosRecientes?: boolean } = {}
 ): Promise<HomeSummary> {
@@ -767,8 +767,8 @@ export function getMonthlyTrend(
   });
 }
 // ============================================================
-// Asignación de visitas (Sibarita/Foodie): admin asigna un negocio a
-// un Foodie (rol "agente"), que solo puede levantar visitas que le
+// Asignación de visitas (Sibarita/Shopper): admin asigna un negocio a
+// un Shopper (rol "agente"), que solo puede levantar visitas que le
 // hayan sido asignadas -- ver /api/asignaciones y /nueva-visita.
 // ============================================================
 
@@ -780,7 +780,7 @@ export type Foodie = {
   pendingCount: number;
 };
 
-/** Usuarios con rol "agente" (Foodie), para el selector de "Asignar visita". */
+/** Usuarios con rol "agente" (Shopper), para el selector de "Asignar visita". */
 export async function getFoodies(): Promise<Foodie[]> {
   const db = getSupabaseServiceClient();
   const { data } = await db
@@ -821,7 +821,7 @@ export type PendingAssignment = {
   plan: { planId: string; month: string; name: string; seq: number; quota: number; windowLabel: string; overdue: boolean; notes: string | null } | null;
 };
 
-/** Visitas asignadas y pendientes (status="pendiente") para un Foodie, en "/nueva-visita". */
+/** Visitas asignadas y pendientes (status="pendiente") para un Shopper, en "/nueva-visita". */
 export async function getPendingAssignmentsFor(userId: string): Promise<PendingAssignment[]> {
   const db = getSupabaseServiceClient();
 

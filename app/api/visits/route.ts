@@ -26,7 +26,7 @@ type Body = {
   business?: Business;
   /** Visita directa a un negocio ya existente (admin/sibarita): ver /nueva-visita/negocio/[id]. */
   clientId?: string;
-  /** Visita a partir de una asignación (Foodie): ver /nueva-visita/[assignmentId]. */
+  /** Visita a partir de una asignación (Shopper): ver /nueva-visita/[assignmentId]. */
   assignmentId?: string;
   shopperName?: string;
   ratings: Ratings;
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     profile = await requireRole("admin", "agente", "sibarita");
   } catch {
     return NextResponse.json(
-      { error: "Necesitas iniciar sesión como Foodie, Sibarita o admin para registrar una visita" },
+      { error: "Necesitas iniciar sesión como Shopper, Sibarita o admin para registrar una visita" },
       { status: 401 }
     );
   }
@@ -54,12 +54,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  // Un Foodie (agente) ya no puede levantar visitas libres: solo puede
+  // Un Shopper (agente) ya no puede levantar visitas libres: solo puede
   // completar una visita que le hayan asignado explícitamente (ver
   // "añade ... foodies, solo pueden hacer visitas asignadas").
   if (profile.role === "agente" && !body.assignmentId) {
     return NextResponse.json(
-      { error: "Como Foodie solo puedes registrar visitas que te hayan sido asignadas" },
+      { error: "Como Shopper solo puedes registrar visitas que te hayan sido asignadas" },
       { status: 403 }
     );
   }
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   ]);
 
   // ------------------------------------------------------------
-  // Resolver el negocio: de una asignación (Foodie), de un negocio ya
+  // Resolver el negocio: de una asignación (Shopper), de un negocio ya
   // existente elegido directamente (admin/sibarita), o se da de alta /
   // reutiliza a partir del formulario libre (compatibilidad).
   // ------------------------------------------------------------
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
   } else if (body.clientId) {
     if (profile.role === "agente") {
       return NextResponse.json(
-        { error: "Como Foodie solo puedes registrar visitas que te hayan sido asignadas" },
+        { error: "Como Shopper solo puedes registrar visitas que te hayan sido asignadas" },
         { status: 403 }
       );
     }
@@ -257,7 +257,7 @@ export async function POST(req: NextRequest) {
   // Ninguna de estas 3 escrituras depende de las otras (todas solo
   // necesitan form.id, que ya tenemos) -- se lanzan juntas en vez de
   // esperarlas una por una.
-  // Solo se guarda lo que el Foodie SÍ contestó: una estrella sin calificar
+  // Solo se guarda lo que el Shopper SÍ contestó: una estrella sin calificar
   // o un Sí/No marcado "No aplica" no genera fila (score es NOT NULL 1-5, así
   // que una fila vacía haría fallar todo el guardado de calificaciones).
   const ratingRows = STAR_ITEMS.filter((item) => {

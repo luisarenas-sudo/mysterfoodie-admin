@@ -327,7 +327,7 @@ export default function MobileNegocioDetail({
                 className="mf-tap block rounded-[14px] py-3.5 text-center text-[15px] font-bold"
                 style={{ background: "#fff", color: "#F24444", border: "1.5px solid rgba(242,68,68,0.3)" }}
               >
-                {pendingAssignment ? "Reasignar a otro Foodie" : "Asignar a un Foodie"}
+                {pendingAssignment ? "Reasignar a otro Shopper" : "Asignar a un Shopper"}
               </Link>
             )}
           </div>

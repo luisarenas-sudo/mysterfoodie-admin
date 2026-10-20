@@ -11,7 +11,7 @@ import { CDMX_OFFSET, currentMonthCdmx, isValidMonth, monthLabel, shiftMonth } f
  *  - Visitó: quien guardó la visita (forms.created_by).
  *  - Vendió: quien dio de alta el negocio (clients.created_by); sin dato
  *    se asume Master Chef (negocios históricos).
- *  - Gestionó: quien asignó la visita a un Foodie (visit_assignments).
+ *  - Gestionó: quien asignó la visita a un Shopper (visit_assignments).
  * Lo que no encaja en ninguna de las 6 acciones queda "sin clasificar".
  *
  * Segunda etapa (planes mensuales): cada visita de un plan entregada cuenta

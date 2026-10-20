@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { PALABRA_FOODIE_QUOTE, ROLE_LABELS } from "@/lib/brand";
+import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import Link from "next/link";
@@ -22,26 +22,25 @@ async function signOut() {
   redirect("/login");
 }
 
-const ROLE_LABEL = ROLE_LABELS;
 
 const RANKS = [
   {
     key: "master",
     emoji: "👨‍🍳",
     label: ROLE_LABELS.admin,
-    desc: "Administra toda la red de Mystery Shoppers y da seguimiento a cada negocio.",
+    desc: "Administra toda la red de MysterFoodies y da seguimiento a cada negocio.",
   },
   {
     key: "sibarita",
     emoji: "🍷",
     label: ROLE_LABELS.sibarita,
-    desc: "Da de alta negocios y levanta visitas Mystery Shopper libremente.",
+    desc: "Da de alta negocios y levanta visitas libremente.",
   },
   {
     key: "foodie",
     emoji: "🌱",
     label: ROLE_LABELS.agente,
-    desc: "Levanta visitas Mystery Shopper y registra la evaluación en la app.",
+    desc: "Hace las visitas que le asignan y registra la evaluación en la app.",
   },
 ] as const;
 
@@ -160,7 +159,7 @@ export default async function PerfilPage({
           <div>
             <div className="text-[17px] font-bold">{currentRank.label}</div>
             <div className="text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
-              {ROLE_LABEL[profile.role] ?? profile.role}
+              Eres MysterFoodie
             </div>
           </div>
         </div>
@@ -252,7 +251,7 @@ export default async function PerfilPage({
                   : "Visitas gratis pedidas en la web"
               }
             />
-            <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Foodies y sus roles" />
+            <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
             <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
             <Row href="/planes" icon="📅" iconBg="#007AFF" title="Planes" subtitle="Visitas mensuales contratadas por sucursal" last />
           </>
@@ -273,7 +272,7 @@ export default async function PerfilPage({
               <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</div>
         </div>
         <div
           className="mx-auto text-[14.5px] italic leading-relaxed"
@@ -310,7 +309,7 @@ export default async function PerfilPage({
       {!isCliente && <EasterEggBee />}
     </div>
 
-    {/* Esta pantalla es sobre todo móvil (rango, Palabra Foodie, etc.), pero
+    {/* Esta pantalla es sobre todo móvil (rango, Palabra MysterFoodie, etc.), pero
        "Conectar cuenta de Google" solo vive aquí y antes no tenía ninguna
        versión de escritorio -- quien entrara a /perfil desde una
        computadora veía el header y nada más debajo. Esta versión reducida
@@ -324,7 +323,7 @@ export default async function PerfilPage({
         <div className="min-w-0">
           <div className="truncate text-base font-bold text-ink">{displayName}</div>
           <div className="truncate text-sm text-stone-500">
-            {ROLE_LABEL[profile.role] ?? profile.role}
+            {mysterfoodieTitle(profile.role)}
             {displayName !== profile.email ? ` · ${profile.email}` : ""}
           </div>
         </div>
@@ -387,7 +386,7 @@ export default async function PerfilPage({
               </div>
               <div>
                 <div className="text-base font-bold text-ink">{currentRank.label}</div>
-                <div className="text-sm text-stone-500">{ROLE_LABEL[profile.role] ?? profile.role}</div>
+                <div className="text-sm text-stone-500">Eres MysterFoodie</div>
               </div>
             </div>
             <div className="mt-3.5 flex border-t border-stone-100 pt-3.5">

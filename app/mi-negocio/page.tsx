@@ -35,7 +35,7 @@ export default async function MiNegocioPage() {
     );
   }
 
-  // Resumen del plan mensual (si tiene uno): solo el avance, nunca los días ni los Foodies.
+  // Resumen del plan mensual (si tiene uno): solo el avance, nunca los días ni los Shoppers.
   const planView = await getClientPlanView(profile.clientId);
   const ownerPlan =
     planView && planView.plan.status === "activo"

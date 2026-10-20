@@ -8,7 +8,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  * Planes de visitas (segunda etapa): el negocio paga un paquete mensual de
  * visitas Mystery Shopper. Cada sucursal es su propio negocio (clients), así
  * que el plan se cobra por sucursal. Las visitas del mes se generan solas
- * como visit_assignments con plan_id; el Foodie las ve igual que cualquier
+ * como visit_assignments con plan_id; el Shopper las ve igual que cualquier
  * visita asignada. Ver supabase/planes.sql.
  */
 
@@ -62,7 +62,7 @@ export function planFolio(planId: string): string {
 /**
  * Deja listo un mes del plan: el periodo de cobro y las N visitas. Es
  * idempotente (índices únicos): se puede llamar cuantas veces haga falta y
- * solo crea lo que falta. Si el plan tiene Foodie por default, las visitas
+ * solo crea lo que falta. Si el plan tiene Shopper por default, las visitas
  * nacen asignadas y se le avisa con un solo correo.
  */
 export async function ensurePlanMonth(db: Db, plan: PlanRow, month: string, baseUrl?: string): Promise<void> {
@@ -220,7 +220,7 @@ export async function getClientPlanView(
       ? db.from("forms").select("id, short_code").in("id", formIds)
       : Promise.resolve({ data: [] as { id: string; short_code: string }[] }),
   ]);
-  const nameById = new Map((foodies || []).map((f) => [f.id, f.full_name || f.email || "Foodie"]));
+  const nameById = new Map((foodies || []).map((f) => [f.id, f.full_name || f.email || "Shopper"]));
   const codeByForm = new Map((forms || []).map((f) => [f.id, f.short_code]));
 
   const visits: PlanVisitView[] = relevant.map((a) => ({

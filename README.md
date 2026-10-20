@@ -151,7 +151,7 @@ de pagos, reglas de comision, etc.):
   proveedor, consistente con el sitio en produccion - falta conectar llaves reales.
 - Automatizacion mensual de correos personalizados segun las banderas capturadas (ej. si
   `menu_actualizado` sale en falso, ofrecer el servicio de rediseno de menu)
-- Universidad Foodie: contenido de capacitacion, solicitud de acceso y cobro de la
+- MysterFoodie Academy: contenido de capacitacion, solicitud de acceso y cobro de la
   certificacion para operar como agente MysterFoodie
 - Calculo de comisiones por agente (ya queda guardado que agente registro cada visita via
   `forms.created_by` y `/mis-visitas`, falta la logica de calculo y pago)

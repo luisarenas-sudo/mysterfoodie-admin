@@ -5,7 +5,7 @@ import MobileAsignarVisita from "@/components/mobile/MobileAsignarVisita";
 
 export const dynamic = "force-dynamic";
 
-/** Asignar un negocio a un Foodie -- solo admin (Master Chef), ver /api/asignaciones. */
+/** Asignar un negocio a un Shopper -- solo admin (Master Chef), ver /api/asignaciones. */
 export default async function AsignarVisitaPage({
   params,
 }: {

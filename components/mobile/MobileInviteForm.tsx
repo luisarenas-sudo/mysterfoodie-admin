@@ -13,9 +13,9 @@ const ALL_ROLE_OPTIONS: { value: RoleOption; label: string; desc: string }[] = [
 ];
 
 /**
- * Invitar Sibaritas y Foodies directamente desde el Perfil (móvil y
+ * Invitar Sibaritas y Shoppers directamente desde el Perfil (móvil y
  * escritorio). Admin puede invitar cualquiera de los dos (allowedRoles
- * por defecto); un Sibarita solo puede invitar Foodies (le llega
+ * por defecto); un Sibarita solo puede invitar Shoppers (le llega
  * allowedRoles={["agente"]} desde /perfil) -- el endpoint
  * /api/admin/usuarios también lo valida del lado del servidor, esto
  * solo es la UI.
@@ -84,7 +84,7 @@ export default function MobileInviteForm({
           ✉️
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[15px] font-bold">{onlyFoodie ? "Invitar Foodie" : "Invitar Sibarita o Foodie"}</div>
+          <div className="text-[15px] font-bold">{onlyFoodie ? "Invitar Shopper" : "Invitar Sibarita o Shopper"}</div>
           <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.55)" }}>
             Envía una invitación por correo
           </div>

@@ -41,7 +41,7 @@ function agoLabel(iso: string): string {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-// ---------------------------------------------------------------- Foodie
+// ---------------------------------------------------------------- Shopper
 async function foodieAlerts(userId: string): Promise<HomeAlert[]> {
   const pending = await getPendingAssignmentsFor(userId);
   const alerts: HomeAlert[] = [];
@@ -127,7 +127,7 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
   const nameOf = new Map((clientRows || []).map((c) => [c.id as string, c.name as string]));
   const planById = new Map(plans.map((p) => [p.id as string, p]));
 
-  // 1) Visitas del plan: atrasadas (urgente) o sin Foodie (aviso). Un aviso por plan y mes.
+  // 1) Visitas del plan: atrasadas (urgente) o sin Shopper (aviso). Un aviso por plan y mes.
   const byPlanMonth = new Map<string, { planId: string; month: string; late: number; unassigned: number; total: number }>();
   for (const v of openVisits || []) {
     const plan = planById.get(v.plan_id as string);
@@ -150,7 +150,7 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
         tone: "urgent",
         emoji: "⏰",
         title: `${name}: ${plural(r.late, "visita atrasada", "visitas atrasadas")}`,
-        detail: `Plan ${plan.plan_name} · ${monthLabel(r.month)}${r.unassigned > 0 ? ` · ${r.unassigned} sin Foodie` : ""}`,
+        detail: `Plan ${plan.plan_name} · ${monthLabel(r.month)}${r.unassigned > 0 ? ` · ${r.unassigned} sin Shopper` : ""}`,
         href,
       });
     } else if (r.unassigned > 0) {
@@ -159,7 +159,7 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
         kind: "pendiente",
         tone: "warn",
         emoji: "🧑‍🍳",
-        title: `${name}: ${plural(r.unassigned, "visita sin Foodie", "visitas sin Foodie")}`,
+        title: `${name}: ${plural(r.unassigned, "visita sin Shopper", "visitas sin Shopper")}`,
         detail: `Plan ${plan.plan_name} · ${monthLabel(r.month)} · asígnala para que arranque`,
         href,
       });

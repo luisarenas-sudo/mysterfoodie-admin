@@ -128,7 +128,7 @@ export default async function Image({ params }: { params: Promise<{ shortCode: s
               para restaurantes y bares
             </div>
           </div>
-          <div style={{ display: "flex", fontSize: 26, fontWeight: 500, color: "#f24444" }}>Palabra Foodie · mysterfoodie.com</div>
+          <div style={{ display: "flex", fontSize: 26, fontWeight: 500, color: "#f24444" }}>Palabra MysterFoodie · mysterfoodie.com</div>
         </div>
       ),
       { ...size, fonts }
@@ -225,7 +225,7 @@ export default async function Image({ params }: { params: Promise<{ shortCode: s
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 22, fontWeight: 500, color: "#f24444" }}>
-            <div style={{ display: "flex" }}>Palabra Foodie · evaluación anónima de 52 indicadores</div>
+            <div style={{ display: "flex" }}>Palabra MysterFoodie · evaluación anónima de 52 indicadores</div>
             <div style={{ display: "flex" }}>mysterfoodie.com</div>
           </div>
         </div>

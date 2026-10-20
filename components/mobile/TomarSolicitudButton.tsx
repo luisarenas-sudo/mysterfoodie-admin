@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-/** Botón de un Foodie para tomar una visita gratis de la bolsa abierta (días 4 y 5). */
+/** Botón de un Shopper para tomar una visita gratis de la bolsa abierta (días 4 y 5). */
 export default function TomarSolicitudButton({ requestId }: { requestId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);

@@ -14,7 +14,7 @@ type Body = {
   ticketEmail?: string;
 };
 
-/** Administrar un plan (Master Chef): estatus, Foodie por default, cobro del mes y reenviar el ticket. */
+/** Administrar un plan (Master Chef): estatus, Shopper por default, cobro del mes y reenviar el ticket. */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let session;
   try {
@@ -71,7 +71,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.defaultFoodieId) {
       const { data: foodie } = await db.from("profiles").select("id, role").eq("id", body.defaultFoodieId).maybeSingle();
       if (!foodie || foodie.role !== "agente") {
-        return NextResponse.json({ error: "El usuario seleccionado no es un Foodie" }, { status: 400 });
+        return NextResponse.json({ error: "El usuario seleccionado no es un Shopper" }, { status: 400 });
       }
     }
     update.default_foodie_id = body.defaultFoodieId || null;
@@ -82,7 +82,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error || !updated) return NextResponse.json({ error: error?.message || "No se pudo actualizar" }, { status: 500 });
   plan = mapPlan(updated);
 
-  // Un Foodie por default también se lleva las visitas que ya estaban sin Foodie (si no,
+  // Un Shopper por default también se lleva las visitas que ya estaban sin Shopper (si no,
   // el cambio solo se notaría hasta el mes siguiente y parecería que no hizo nada).
   if (body.defaultFoodieId) {
     const { data: moved } = await db

@@ -12,7 +12,7 @@ const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
   pendiente: { label: "Por asignar", bg: "#FFE5E3", fg: "#C0271D" },
   asignada: { label: "Asignada", bg: "#E5F0FF", fg: "#0A58C2" },
   completada: { label: "Visitada", bg: "#E8F8EC", fg: "#248A3D" },
-  sin_foodie: { label: "Sin Foodie", bg: "#FFF3D6", fg: "#946200" },
+  sin_foodie: { label: "Sin Shopper", bg: "#FFF3D6", fg: "#946200" },
 };
 
 const fmt = (iso: string | null) =>
@@ -78,7 +78,7 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
                 </div>
               </div>
               <span className="flex-shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: st.bg, color: st.fg }}>
-                {r.status === "asignada" && r.inOpenPool ? "En bolsa de Foodies" : st.label}
+                {r.status === "asignada" && r.inOpenPool ? "En bolsa de Shoppers" : st.label}
               </span>
             </div>
 
@@ -99,8 +99,8 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
               <div className="mt-3 rounded-lg px-3 py-2 text-[12.5px]" style={{ background: "#F2F8FF", color: "rgba(60,60,67,0.85)" }}>
                 Asignada a <strong>{r.assignedToName ?? "—"}</strong> el {fmt(r.assignedAt)}.{" "}
                 {r.inOpenPool
-                  ? `Ya está abierta a los Foodies; vence el ${fmt(r.expiresAt)}.`
-                  : `En exclusiva hasta el ${fmt(r.openAt)}; luego se abre a los Foodies hasta el ${fmt(r.expiresAt)}.`}
+                  ? `Ya está abierta a los Shoppers; vence el ${fmt(r.expiresAt)}.`
+                  : `En exclusiva hasta el ${fmt(r.openAt)}; luego se abre a los Shoppers hasta el ${fmt(r.expiresAt)}.`}
                 {r.assignedTo === meId && r.assignmentId && (
                   <>
                     {" "}
@@ -145,7 +145,7 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
                     </optgroup>
                   )}
                   {options("agente").length > 0 && (
-                    <optgroup label="Foodies">
+                    <optgroup label="Shoppers">
                       {options("agente").map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.name} · {a.pendingCount} pendientes

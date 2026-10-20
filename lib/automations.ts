@@ -5,7 +5,7 @@ import { getSupabaseServiceClient } from "./supabase";
  * Cada fila en la tabla `automations` es un mensaje que el sistema manda
  * solo, con texto editable por el admin (Master Chef): el correo de
  * seguimiento post-visita, el párrafo de intro del correo de resultado,
- * el correo de asignación a un Foodie, las confirmaciones de asesoría
+ * el correo de asignación a un Shopper, las confirmaciones de asesoría
  * agendada, y el mensaje de Instagram DM.
  */
 export type Automation = {
@@ -51,10 +51,10 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
   asignacion_visita: {
-    title: "Visita asignada (a un Foodie)",
-    desc: "Correo que recibe un Foodie cuando el admin le asigna una visita a un negocio.",
+    title: "Visita asignada (a un Shopper)",
+    desc: "Correo que recibe un Shopper cuando el admin le asigna una visita a un negocio.",
     tags: [
-      { tag: "foodie", desc: "Nombre del Foodie" },
+      { tag: "foodie", desc: "Nombre del Shopper" },
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "ubicacion", desc: "Tipo de negocio y ciudad (puede venir vacío)" },
       { tag: "nota", desc: "Nota que dejó el admin al asignar (puede venir vacío)" },
@@ -91,7 +91,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
   },
   ticket_oferta: {
     title: "Ticket de consumo subido (oferta del reporte)",
-    desc: "Se manda 3 días después de que el Foodie sube la foto del ticket de consumo a una visita, a los negocios que aún no tienen el reporte completo: les ofrece el reporte con indicadores y ticket. Sale una sola vez por visita.",
+    desc: "Se manda 3 días después de que el Shopper sube la foto del ticket de consumo a una visita, a los negocios que aún no tienen el reporte completo: les ofrece el reporte con indicadores y ticket. Sale una sola vez por visita.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "fecha_visita", desc: "Fecha de la visita, ej. \"5 de octubre\"" },
@@ -122,8 +122,8 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
   solicitud_sin_foodie: {
-    title: "Solicitud sin Foodie disponible (al negocio)",
-    desc: "Se manda cuando pasan 5 días desde que se asignó la solicitud de visita gratis (o desde que llegó, si nunca se asignó) y nadie hizo la visita: avisa que por ahora no hay Foodie y lo invita a ver la tabla comparativa de paquetes.",
+    title: "Solicitud sin MysterFoodie disponible (al negocio)",
+    desc: "Se manda cuando pasan 5 días desde que se asignó la solicitud de visita gratis (o desde que llegó, si nunca se asignó) y nadie hizo la visita: avisa que por ahora no hay un MysterFoodie disponible y lo invita a ver la tabla comparativa de paquetes.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "contacto", desc: "Nombre de la persona de contacto (o \"equipo de <negocio>\")" },

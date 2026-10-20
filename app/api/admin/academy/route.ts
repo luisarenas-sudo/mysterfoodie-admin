@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 /**
- * Exporta la lista de espera de la Foodie Academy en CSV (solo Master Chef).
+ * Exporta la lista de espera de la MysterFoodie Academy en CSV (solo Master Chef).
  * Útil el día que abra la Academy: ?pendientes=1 trae solo a quienes aún no se
  * les avisa (notified_at vacío).
  */
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   return new NextResponse("﻿" + lines.join("\n"), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="foodie-academy-${soloPendientes ? "pendientes" : "lista"}.csv"`,
+      "Content-Disposition": `attachment; filename="mysterfoodie-academy-${soloPendientes ? "pendientes" : "lista"}.csv"`,
     },
   });
 }

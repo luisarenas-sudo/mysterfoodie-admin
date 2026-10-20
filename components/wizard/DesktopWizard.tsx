@@ -40,7 +40,7 @@ const EMPTY_BUSINESS: Business = {
 };
 
 export type BoundAssignment = {
-  /** Presente cuando la visita viene de una asignación de Foodie; ausente cuando admin/sibarita visitan un negocio directamente. */
+  /** Presente cuando la visita viene de una asignación de Shopper; ausente cuando admin/sibarita visitan un negocio directamente. */
   assignmentId?: string;
   client: {
     id: string;

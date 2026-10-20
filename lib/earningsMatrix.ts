@@ -20,11 +20,11 @@ export type Scenario = {
 
 export const SCENARIOS: Scenario[] = [
   { key: "1", label: "Acción 1 — Admin vende y Admin visita", short: "Admin vende y visita", admin: 850, sibarita: 0, foodie: 0 },
-  { key: "2", label: "Acción 2 — Admin vende y asigna directo a un Foodie", short: "Admin vende, Foodie visita", admin: 450, sibarita: 0, foodie: 400 },
+  { key: "2", label: "Acción 2 — Admin vende y asigna directo a un Shopper", short: "Admin vende, Shopper visita", admin: 450, sibarita: 0, foodie: 400 },
   {
     key: "3a",
-    label: "Acción 3 — Admin vende y asigna a un Sibarita, que asigna a un Foodie",
-    short: "Admin vende, Sibarita gestiona, Foodie visita",
+    label: "Acción 3 — Admin vende y asigna a un Sibarita, que asigna a un Shopper",
+    short: "Admin vende, Sibarita gestiona, Shopper visita",
     admin: 300,
     sibarita: 150,
     foodie: 400,
@@ -38,7 +38,7 @@ export const SCENARIOS: Scenario[] = [
     foodie: 0,
   },
   { key: "4", label: "Acción 4 — Sibarita vende y el mismo Sibarita visita", short: "Sibarita vende y visita", admin: 150, sibarita: 700, foodie: 0 },
-  { key: "5", label: "Acción 5 — Sibarita vende y asigna la visita a un Foodie", short: "Sibarita vende, Foodie visita", admin: 150, sibarita: 300, foodie: 400 },
+  { key: "5", label: "Acción 5 — Sibarita vende y asigna la visita a un Shopper", short: "Sibarita vende, Shopper visita", admin: 150, sibarita: 300, foodie: 400 },
 ];
 
 export function scenarioByKey(key: ScenarioKey): Scenario {

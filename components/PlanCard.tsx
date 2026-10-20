@@ -45,7 +45,7 @@ function Dots({ done, total }: { done: number; total: number }) {
 /**
  * Plan mensual de visitas de un negocio (solo Master Chef): contratar uno
  * nuevo, o ver y administrar el vigente (avance del mes, cobro, asignar
- * Foodie a cada visita, reenviar ticket, pausar o cancelar).
+ * Shopper a cada visita, reenviar ticket, pausar o cancelar).
  */
 export default function PlanCard({
   clientId,
@@ -300,7 +300,7 @@ export default function PlanCard({
             </div>
 
             <label className="block text-[13px] font-semibold">
-              Foodie por default (opcional)
+              Shopper por default (opcional)
               <select
                 value={defaultFoodieId}
                 onChange={(e) => setDefaultFoodieId(e.target.value)}
@@ -315,7 +315,7 @@ export default function PlanCard({
               </select>
             </label>
             <p className="-mt-2 text-[12px]" style={{ color: MUTED }}>
-              Para cuidar el anonimato conviene rotar de Foodie y no repetir al mismo en la misma sucursal.
+              Para cuidar el anonimato conviene rotar de Shopper y no repetir al mismo en la misma sucursal.
             </p>
 
             {isChain && (
@@ -333,7 +333,7 @@ export default function PlanCard({
             )}
 
             <label className="block text-[13px] font-semibold">
-              Indicaciones para el Foodie (opcional)
+              Indicaciones para el Shopper (opcional)
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -427,7 +427,7 @@ export default function PlanCard({
               ? "Hecha"
               : v.status === "cancelada"
                 ? "Cancelada"
-                : `${v.assignedToName ? `Foodie: ${v.assignedToName}` : "Sin Foodie asignado"}${v.windowLabel ? ` · ${v.windowLabel}` : ""}`}
+                : `${v.assignedToName ? `Shopper: ${v.assignedToName}` : "Sin Shopper asignado"}${v.windowLabel ? ` · ${v.windowLabel}` : ""}`}
           </div>
         </div>
         {v.status === "completada" && v.shortCode && (
@@ -443,9 +443,9 @@ export default function PlanCard({
             value={assignFor[v.id] ?? ""}
             onChange={(e) => setAssignFor((prev) => ({ ...prev, [v.id]: e.target.value }))}
             className="min-w-0 flex-1 rounded-[12px] border border-stone-200 bg-white px-3 py-2 text-[16px]"
-            aria-label="Foodie para esta visita"
+            aria-label="Shopper para esta visita"
           >
-            <option value="">{v.assignedToName ? "Reasignar a…" : "Elige un Foodie…"}</option>
+            <option value="">{v.assignedToName ? "Reasignar a…" : "Elige un Shopper…"}</option>
             {foodies.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name} · {f.pendingCount === 0 ? "libre" : `${f.pendingCount} pend.`}
@@ -455,7 +455,7 @@ export default function PlanCard({
           <button
             type="button"
             disabled={busy || !assignFor[v.id]}
-            onClick={() => call(`/api/asignaciones/${v.id}`, "PATCH", { assignedTo: assignFor[v.id] }, () => "Visita asignada y Foodie avisado.")}
+            onClick={() => call(`/api/asignaciones/${v.id}`, "PATCH", { assignedTo: assignFor[v.id] }, () => "Visita asignada y Shopper avisado.")}
             className="mf-tap flex-shrink-0 rounded-[12px] px-3.5 py-2 text-[14px] font-bold text-white disabled:opacity-40"
             style={{ background: "#F24444" }}
           >
@@ -528,11 +528,11 @@ export default function PlanCard({
       </div>
 
       <label className="mt-3 block text-[12px] font-semibold" style={{ color: MUTED }}>
-        Foodie por default (también para las visitas que sigan sin Foodie)
+        Shopper por default (también para las visitas que sigan sin Shopper)
         <select
           value={plan.defaultFoodieId ?? ""}
           disabled={busy}
-          onChange={(e) => call(`/api/planes/${plan.id}`, "PATCH", { defaultFoodieId: e.target.value || null }, () => "Foodie por default actualizado.")}
+          onChange={(e) => call(`/api/planes/${plan.id}`, "PATCH", { defaultFoodieId: e.target.value || null }, () => "Shopper por default actualizado.")}
           className="mt-1 w-full rounded-[12px] border border-stone-200 bg-white px-3 py-2 text-[16px] font-normal text-black"
         >
           <option value="">Ninguno (lo asigno visita por visita)</option>
@@ -546,7 +546,7 @@ export default function PlanCard({
 
       {plan.notes && (
         <p className="mt-3 rounded-[12px] px-3 py-2 text-[13px]" style={{ background: "#FFF9E5" }}>
-          <strong>Indicaciones para el Foodie:</strong> {plan.notes}
+          <strong>Indicaciones para el Shopper:</strong> {plan.notes}
         </p>
       )}
 

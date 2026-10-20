@@ -1,7 +1,7 @@
 import { CATEGORIES } from "./categories";
 
 /**
- * Etiquetas rápidas para el cierre de la visita: el Foodie toca en vez de
+ * Etiquetas rápidas para el cierre de la visita: el Shopper toca en vez de
  * escribir. Se convierten en frases dentro del campo de comentarios, que es
  * lo que ya leen el reporte, el PDF y el tablero (no hace falta columna nueva).
  */
@@ -59,7 +59,7 @@ export function composeComments(parts: CommentParts): string {
   return blocks.join("\n\n");
 }
 
-/** Cuántas cosas escribió/tocó el Foodie en el cierre (para el borrador). */
+/** Cuántas cosas escribió/tocó el Shopper en el cierre (para el borrador). */
 export function commentPartsHaveContent(p: CommentParts): boolean {
   return (
     p.good.length > 0 ||

@@ -5,7 +5,7 @@ import { VERDICT_BANDS } from "./verdict";
 import { BRAND_RED, SUPPORT_EMAIL, escapeHtml, renderButton, renderEmailShell } from "./email";
 
 /**
- * Correo de confirmación de la lista de espera de la Foodie Academy: qué se
+ * Correo de confirmación de la lista de espera de la MysterFoodie Academy: qué se
  * aprende (los 52 indicadores), la metodología y los esquemas de ganancias.
  * Las cifras salen de las mismas fuentes que la app (categorías, matriz de
  * ganancias, catálogo de planes), así que si cambian, el correo cambia solo.
@@ -26,10 +26,10 @@ const EJEMPLOS: Record<string, string> = {
 /** Nombre de la categoría tal como lo ve el negocio en mysterfoodie.com. */
 const nombreCat = (key: string, label: string) => (key === "alimentos" ? "Alimentos y bebidas" : label);
 
-export const ACADEMY_SUBJECT = "Ya estás en la lista de la Foodie Academy";
+export const ACADEMY_SUBJECT = "Ya estás en la lista de la MysterFoodie Academy";
 
 export function academyConfirmationEmail(): { subject: string; html: string; text: string } {
-  const sc2 = scenarioByKey("2"); // Master Chef vende y el Foodie visita
+  const sc2 = scenarioByKey("2"); // Master Chef vende y el Shopper visita
   const foodieReporte = sc2.foodie;
   const foodiePlan = splitForPrice(sc2, PLAN_CATALOG.starter.pricePerVisit).foodie;
   const sibVendeVisita = scenarioByKey("4").sibarita;
@@ -56,7 +56,7 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
 
   const card = `
     <h1 style="margin: 0 0 8px; font-size: 24px; line-height: 1.25; color: #111827;">¡Qué gusto tenerte en la lista!</h1>
-    ${p("Gracias por tu interés en la <strong>Foodie Academy</strong>, el programa donde formamos a los MysterFoodies y Sibaritas que evalúan restaurantes y bares con criterio profesional. En cuanto abramos la primera generación, <strong>este es el correo al que te avisaremos</strong>: no tienes que hacer nada más.")}
+    ${p("Gracias por tu interés en la <strong>MysterFoodie Academy</strong>, el programa donde formamos a los MysterFoodies y Sibaritas que evalúan restaurantes y bares con criterio profesional. En cuanto abramos la primera generación, <strong>este es el correo al que te avisaremos</strong>: no tienes que hacer nada más.")}
 
     ${h("Lo que aprenderías a calificar")}
     ${p(`Cada visita se evalúa con <strong>${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías</strong>. Aprenderías a observarlos, a calificarlos con el mismo protocolo y a registrar sugerencias útiles:`)}
@@ -66,13 +66,13 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
     ${p("Las visitas son <strong>anónimas</strong>: llegas como cualquier cliente, consumes y vives la experiencia completa, de la fachada a la cuenta. Casi todos los indicadores se califican de 1 a 5 (1 es malo, 3 regular y 5 excelente); los de sí/no, como accesibilidad, se convierten a esa misma escala.")}
     ${p("La calificación general es el <strong>promedio de los promedios</strong> de las categorías, no un promedio plano de los indicadores, y se traduce en un veredicto:")}
     <div style="margin: 0 0 6px;">${bandas}</div>
-    ${p("Cada visita termina en un reporte claro para el negocio, con seguimiento personalizado de nuestro equipo. Todo bajo nuestro lema: <em>Palabra Foodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.</em>")}
+    ${p("Cada visita termina en un reporte claro para el negocio, con seguimiento personalizado de nuestro equipo. Todo bajo nuestro lema: <em>Palabra MysterFoodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.</em>")}
 
     ${h("Esquemas de ganancias")}
     ${p("Si completas la certificación y cumples los requisitos, podrías acceder a estos esquemas (se paga por reporte entregado):")}
     <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
-      ${earn("Foodie · visitas asignadas", `${hasta(foodieReporte)} por cada reporte completo que se entregue de tu visita. En los planes mensuales, ${hasta(foodiePlan)} por visita, cada mes que el plan siga activo, y tu consumo se reembolsa con el ticket.`)}
-      ${earn("Sibarita · abres negocios", `${hasta(sibVendeVisita)} por reporte si das de alta el negocio y lo visitas tú; ${hasta(sibVendeAsigna)} si asignas la visita a un Foodie de tu red.`)}
+      ${earn("Shopper · visitas asignadas", `${hasta(foodieReporte)} por cada reporte completo que se entregue de tu visita. En los planes mensuales, ${hasta(foodiePlan)} por visita, cada mes que el plan siga activo, y tu consumo se reembolsa con el ticket.`)}
+      ${earn("Sibarita · abres negocios", `${hasta(sibVendeVisita)} por reporte si das de alta el negocio y lo visitas tú; ${hasta(sibVendeAsigna)} si asignas la visita a un Shopper de tu red.`)}
     </table>
     <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #6b7280;">Son ejemplos, no una promesa de ingreso: la cantidad de visitas depende de las asignaciones de cada mes. Los requisitos, costos y fechas de la certificación se anunciarán al abrir la convocatoria.</p>
 
@@ -81,7 +81,7 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
   `;
 
   const text = [
-    "¡Qué gusto tenerte en la lista de la Foodie Academy!",
+    "¡Qué gusto tenerte en la lista de la MysterFoodie Academy!",
     "",
     "En cuanto abramos la primera generación te avisaremos a este correo.",
     "",
@@ -91,8 +91,8 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
     "METODOLOGÍA: visitas anónimas; casi todos los indicadores se califican de 1 a 5 y los de sí/no se convierten a esa escala; la calificación general es el promedio de los promedios de las categorías. Más en https://mysterfoodie.com/metodologia/",
     "",
     "ESQUEMAS DE GANANCIAS (si completas la certificación y cumples los requisitos; se paga por reporte entregado):",
-    `- Foodie: ${hasta(foodieReporte)} por reporte completo entregado; en planes mensuales ${hasta(foodiePlan)} por visita, recurrente.`,
-    `- Sibarita: ${hasta(sibVendeVisita)} por reporte si das de alta el negocio y lo visitas tú; ${hasta(sibVendeAsigna)} si asignas la visita a un Foodie.`,
+    `- Shopper: ${hasta(foodieReporte)} por reporte completo entregado; en planes mensuales ${hasta(foodiePlan)} por visita, recurrente.`,
+    `- Sibarita: ${hasta(sibVendeVisita)} por reporte si das de alta el negocio y lo visitas tú; ${hasta(sibVendeAsigna)} si asignas la visita a un Shopper.`,
     "Son ejemplos, no una promesa de ingreso. Requisitos, costos y fechas se anunciarán al abrir la convocatoria.",
     "",
     `Para darte de baja responde con la palabra "baja" o escribe a ${SUPPORT_EMAIL}.`,

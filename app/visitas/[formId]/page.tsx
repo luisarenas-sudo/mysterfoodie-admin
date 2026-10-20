@@ -77,7 +77,7 @@ export default async function VisitaDetailPage({
             </h1>
             <p className="mt-1 text-sm text-stone-500">
               {formatDateLong(visit.createdAt)}
-              {visit.shopperName ? ` · Foodie: ${visit.shopperName}` : ""}
+              {visit.shopperName ? ` · Shopper: ${visit.shopperName}` : ""}
               {visit.waiterName ? ` · Mesero: ${visit.waiterName}` : ""}
             </p>
           </div>

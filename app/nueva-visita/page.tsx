@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
  * Admin y Sibarita eligen un negocio ya guardado (el más reciente
  * hasta arriba) para visitarlo, o agregan uno nuevo -- ambos casos
  * terminan en /negocios/[id], el mismo lugar donde se decide "Nueva
- * visita a este negocio" o "Asignar a un Foodie", sin importar si el
+ * visita a este negocio" o "Asignar a un Shopper", sin importar si el
  * negocio ya existía o se acaba de crear.
  *
- * Un Foodie (agente) ya no puede elegir libremente: solo ve sus
+ * Un Shopper (agente) ya no puede elegir libremente: solo ve sus
  * negocios asignados y abre el wizard pre-cargado desde ahí (ver
  * /nueva-visita/[assignmentId] y /api/visits).
  */

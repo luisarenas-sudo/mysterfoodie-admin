@@ -14,7 +14,7 @@ const PRICE_OPTIONS: { value: string; label: string; price: number }[] = [
   })),
 ];
 
-const ROLE_LABEL = { admin: "Master Chef (Admin)", sibarita: "Sibarita", foodie: "Foodie" } as const;
+const ROLE_LABEL = { admin: "Master Chef (Admin)", sibarita: "Sibarita", foodie: "Shopper" } as const;
 
 function mxn(n: number) {
   return `$${n.toLocaleString("es-MX")} MXN`;
@@ -112,7 +112,7 @@ export default function FinanzasCalculator() {
                 <th className="w-24 px-3 py-2 font-medium">Visitas</th>
                 <th className="px-3 py-2 text-right font-medium">Admin</th>
                 <th className="px-3 py-2 text-right font-medium">Sibarita</th>
-                <th className="px-3 py-2 text-right font-medium">Foodie</th>
+                <th className="px-3 py-2 text-right font-medium">Shopper</th>
               </tr>
             </thead>
             <tbody>
@@ -166,7 +166,7 @@ export default function FinanzasCalculator() {
             </div>
           </div>
           <div className="card p-4 text-center">
-            <div className="text-xs uppercase tracking-wide text-stone-500">Foodies</div>
+            <div className="text-xs uppercase tracking-wide text-stone-500">Shoppers</div>
             <div className="mt-1 text-xl font-bold text-ink">{mxn(totals.foodie)}</div>
             <div className="mt-0.5 text-xs text-stone-400">
               {totals.bruto > 0 ? Math.round((totals.foodie / totals.bruto) * 100) : 0}% del bruto
@@ -178,7 +178,7 @@ export default function FinanzasCalculator() {
       <div>
         <h2 className="text-base font-bold text-ink">3. Ganancia de un perfil individual</h2>
         <p className="mt-1 text-sm text-stone-500">
-          Por ejemplo: cuánto gana 1 Foodie que hace 10 visitas asignadas, o 1 Sibarita por 5 ventas
+          Por ejemplo: cuánto gana 1 Shopper que hace 10 visitas asignadas, o 1 Sibarita por 5 ventas
           que él mismo visita.
         </p>
         <div className="mt-3 card p-4">

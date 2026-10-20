@@ -16,7 +16,7 @@ export default function MobileHome({
   avatarUrl?: string | null;
   stats: HomeSummary;
   rey: ReyNegocio;
-  /** Solo para un Foodie: cuántas visitas asignadas tiene pendientes (null = no aplica a este rol). */
+  /** Solo para un Shopper: cuántas visitas asignadas tiene pendientes (null = no aplica a este rol). */
   pendingAssignments?: number | null;
   /** Pendientes del usuario (ya filtrados: sin los que cerró). */
   alerts?: HomeAlert[];

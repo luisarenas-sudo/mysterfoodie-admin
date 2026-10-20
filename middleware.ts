@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
   const adminOnly = pathname.startsWith("/admin") || pathname.startsWith("/automatizaciones") || pathname.startsWith("/planes") || pathname.startsWith("/solicitudes");
   // /negocios lo puede usar admin o sibarita (dar de alta negocios).
   const negociosAccess = pathname.startsWith("/negocios");
-  // Operativa diaria: admin, agente (Foodie) y sibarita.
+  // Operativa diaria: admin, agente (Shopper) y sibarita.
   const operativo =
     pathname === "/" ||
     pathname.startsWith("/mis-visitas") ||

@@ -118,12 +118,12 @@ export function renderEmailShell(cardHtml: string): string {
   `;
 }
 
-/** Caja gris de "Palabra Foodie" (la garantía de honestidad del estudio). */
+/** Caja gris de "Palabra MysterFoodie" (la garantía de honestidad del estudio). */
 function renderGuaranteeBlock(): string {
   return `
     <div style="margin: 24px 0; background-color: #f8f9fb; border: 1px solid #eceef2; border-radius: 16px; padding: 20px 22px; text-align: center;">
       <p style="margin: 0 0 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: #8a8f98; text-transform: uppercase;">
-        Palabra Foodie
+        Palabra MysterFoodie
       </p>
       <p style="margin: 0; font-size: 17px; font-weight: bold; line-height: 1.45; color: #1f2937;">
         &ldquo;${PALABRA_FOODIE_QUOTE}&rdquo;
@@ -226,7 +226,7 @@ export async function sendResultEmail(
 
 // ============================================================
 // Automatizaciones: todas las plantillas editables (asesoría de
-// seguimiento, asignación a un Foodie, confirmación de asesoría
+// seguimiento, asignación a un Shopper, confirmación de asesoría
 // agendada) usan el mismo mecanismo: texto plano ya renderizado
 // (variables {{...}} ya sustituidas vía renderTemplate, ver
 // lib/automations.ts) envuelto en el mismo wrapper visual simple, con

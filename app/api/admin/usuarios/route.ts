@@ -74,12 +74,12 @@ export async function POST(req: NextRequest) {
   if (!role || !["admin", "agente", "cliente", "sibarita"].includes(role)) {
     return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
   }
-  // Un Sibarita solo puede invitar Foodies (agente); admin puede invitar
+  // Un Sibarita solo puede invitar Shoppers (agente); admin puede invitar
   // cualquier rol. Esto refuerza del lado del servidor lo que ya limita
   // la UI de MobileInviteForm con su prop allowedRoles.
   if (requester.role === "sibarita" && role !== "agente") {
     return NextResponse.json(
-      { error: "Como Sibarita solo puedes invitar Foodies" },
+      { error: "Como Sibarita solo puedes invitar Shoppers" },
       { status: 403 }
     );
   }

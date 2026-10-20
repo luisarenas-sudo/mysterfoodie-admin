@@ -14,8 +14,8 @@ function formatDateLong(iso: string) {
 }
 
 /**
- * Lista de negocios asignados a un Foodie, pendientes de visitar. Un
- * Foodie ya no puede levantar una visita libre (ver /api/visits): solo
+ * Lista de negocios asignados a un Shopper, pendientes de visitar. Un
+ * Shopper ya no puede levantar una visita libre (ver /api/visits): solo
  * puede abrir una de estas asignaciones, que lo lleva al wizard
  * pre-cargado con el negocio correspondiente.
  */

@@ -35,7 +35,7 @@ export const PLAN_CATALOG = {
     pricePerVisit: 700,
     zoneRestricted: false,
     includes: [
-      "Visitas Mystery Shopper anónimas, hechas por un Foodie",
+      "Visitas Mystery Shopper anónimas, hechas por un MysterFoodie",
       "Reporte completo (PDF) de cada visita, sin costo extra",
       "Avance mes con mes de tu calificación",
       "Seguimiento personalizado del equipo MysterFoodie",

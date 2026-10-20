@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Solicitudes de "Solicita una visita GRATIS" (mysterfoodie.com), solo Master Chef: aquí se asigna
- * cada negocio nuevo a un sibarita, a un Foodie o a ti. Al abrirla también se actualiza el estado
+ * cada negocio nuevo a un sibarita, a un Shopper o a ti. Al abrirla también se actualiza el estado
  * (visitas hechas y solicitudes vencidas), como respaldo del cron.
  */
 export default async function SolicitudesPage() {
@@ -29,7 +29,7 @@ export default async function SolicitudesPage() {
         </div>
         <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Solicitudes de visita</h1>
         <p className="mt-1 text-sm text-stone-500">
-          Negocios que pidieron su visita gratis en la web. Asigna cada uno: tiene 3 días en exclusiva; los días 4 y 5 también lo ven los Foodies, y al día 5 sin visita se le avisa al negocio.
+          Negocios que pidieron su visita gratis en la web. Asigna cada uno: tiene 3 días en exclusiva; los días 4 y 5 también lo ven los Shoppers, y al día 5 sin visita se le avisa al negocio.
         </p>
         <SolicitudesPanel rows={rows} assignees={assignees} meId={profile.userId} />
       </main>

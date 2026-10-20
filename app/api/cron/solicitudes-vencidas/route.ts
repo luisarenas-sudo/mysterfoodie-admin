@@ -4,7 +4,7 @@ import { syncVisitRequests } from "@/lib/visitRequests";
 
 /**
  * Revisa las solicitudes de visita gratis: marca las que ya tienen visita y a las que llegaron
- * a los 5 días sin visita les manda el correo "por el momento no contamos con un foodie..."
+ * a los 5 días sin visita les manda el correo "por el momento no contamos con un MysterFoodie..."
  * (una sola vez). Un Cron Job de Supabase la llama cada hora con `x-cron-secret: ${CRON_SECRET}`
  * (ver supabase/crons.sql).
  */

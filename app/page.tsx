@@ -26,7 +26,7 @@ export default async function Page() {
         }
       : { includeNegociosRecientes: profile?.role === "admin" };
 
-  // Un Foodie solo puede levantar visitas que le asignaron: el Inicio le avisa
+  // Un Shopper solo puede levantar visitas que le asignaron: el Inicio le avisa
   // cuántas tiene esperando (antes tenía que entrar a "Nueva visita" para saberlo).
   const [stats, rey, pending, alerts] = await Promise.all([
     getHomeSummary(scope),

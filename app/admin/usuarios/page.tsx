@@ -100,7 +100,7 @@ export default async function UsuariosPage() {
           <StatCard
             label="Usuarios totales"
             value={stats.totalUsuarios}
-            sublabel={`${stats.usuariosPorRol.admin} admin · ${stats.usuariosPorRol.sibarita} sibaritas · ${stats.usuariosPorRol.agente} foodies · ${stats.usuariosPorRol.cliente} clientes`}
+            sublabel={`${stats.usuariosPorRol.admin} admin · ${stats.usuariosPorRol.sibarita} sibaritas · ${stats.usuariosPorRol.agente} shoppers · ${stats.usuariosPorRol.cliente} clientes`}
           />
           <StatCard
             label="Visitas registradas"

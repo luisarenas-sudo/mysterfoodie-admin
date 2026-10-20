@@ -237,7 +237,7 @@ export async function generateMetadata({ params }: { params: Promise<{ shortCode
   }
   const where = d.city ? ` en ${d.city}` : "";
   const title = `${d.name}: ${d.score.toFixed(1)} de 5 ${starsText(d.score)} · ${d.verdictLabel}`;
-  const description = `Así salió la visita Mystery Shopper a ${d.name}${where}. ${d.verdictSummary} Mira el resultado y desbloquea el reporte completo con asesoría gratuita. Palabra Foodie.`;
+  const description = `Así salió la visita Mystery Shopper a ${d.name}${where}. ${d.verdictSummary} Mira el resultado y desbloquea el reporte completo con asesoría gratuita. Palabra MysterFoodie.`;
   return {
     title,
     description,
@@ -439,7 +439,7 @@ export default async function ReportPage({
       )}
 
       <div className="mt-10 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
-        <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra Foodie</h3>
+        <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</h3>
         <p className="mt-2 text-sm italic leading-relaxed text-white/85">
           &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
         </p>

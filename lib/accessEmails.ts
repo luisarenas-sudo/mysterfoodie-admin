@@ -16,6 +16,14 @@ function esc(t: string): string {
   return escapeHtml(t);
 }
 
+/** Los del equipo son MysterFoodies con un rango; el cliente solo tiene su cuenta. */
+function rankTitle(p: { role: string; roleLabel: string }): string {
+  return p.role === "cliente" ? p.roleLabel : `MysterFoodie ${p.roleLabel}`;
+}
+function inviteWhat(p: { role: string; roleLabel: string }): string {
+  return p.role === "cliente" ? `a MysterFoodie como ${p.roleLabel}` : `a ser ${rankTitle(p)}`;
+}
+
 export function renderInviteHtml(p: {
   name?: string | null;
   invitedBy?: string | null;
@@ -70,8 +78,8 @@ export function renderInviteHtml(p: {
     <p style="margin: 0 0 18px; font-size: 15px; line-height: 1.6; color: #374151;">Hola${p.name ? ` ${esc(p.name)}` : ""}, ${who} para unirte${p.businessName ? ` con la cuenta de <strong>${esc(p.businessName)}</strong>` : ""}.</p>
 
     <div style="background-color: #f8f9fb; border: 1px solid #eceef2; border-radius: 18px; padding: 18px 20px;">
-      <p style="margin: 0 0 4px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: #8a8f98; text-transform: uppercase;">Tu rol</p>
-      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #111827;">${c.emoji} ${esc(p.roleLabel)}</p>
+      <p style="margin: 0 0 4px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: #8a8f98; text-transform: uppercase;">Tu rango</p>
+      <p style="margin: 0; font-size: 20px; font-weight: bold; color: #111827;">${c.emoji} ${esc(rankTitle(p))}</p>
       <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">${esc(c.tagline)}</p>
     </div>
 
@@ -107,7 +115,7 @@ export async function sendInviteEmail(p: {
   const c = inviteContentForRole(p.role, p.businessName);
   const text =
     `Hola${p.name ? ` ${p.name}` : ""},\n\n` +
-    `${p.invitedBy ? `${p.invitedBy} te invitó` : "Te invitaron"} a MysterFoodie como ${p.roleLabel}.\n${c.tagline}.\n\n` +
+    `${p.invitedBy ? `${p.invitedBy} te invitó` : "Te invitaron"} ${inviteWhat(p)}.\n${c.tagline}.\n\n` +
     c.can.map((i) => `- ${i.title}: ${i.text}`).join("\n") +
     (c.goal ? `\n\n${c.goal.title}\n${c.goal.body}\n${c.goal.footnote}` : "") +
     `\n\nCrea tu contraseña aquí:\n${p.url}\n\n` +
@@ -115,7 +123,7 @@ export async function sendInviteEmail(p: {
     `\n\nSaludos,\nMysterFoodie`;
   return sendHtmlEmail({
     to: p.to,
-    subject: `Te invitaron a MysterFoodie como ${p.roleLabel}`,
+    subject: `Te invitaron ${inviteWhat(p)}`,
     html: renderInviteHtml(p),
     text,
   });

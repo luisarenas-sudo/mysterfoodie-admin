@@ -72,7 +72,7 @@ function MonthNav({ month }: { month: string }) {
   );
 }
 
-/** Vista de un Sibarita o un Foodie: solo sus ventas del mes y su ganancia. */
+/** Vista de un Sibarita o un Shopper: solo sus ventas del mes y su ganancia. */
 function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; userId: string; visits: PaidVisit[] }) {
   const mine = visits.filter((v) => (role === "sibarita" ? v.sibaritaId === userId : v.foodieId === userId));
   const share = (v: PaidVisit) => (role === "sibarita" ? v.sibarita : v.foodie);
@@ -108,7 +108,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
             </div>
             {role === "sibarita" && foodiePay > 0 && (
               <div className="flex justify-between" style={{ color: MUTED }}>
-                <span>− Pago a Foodies por sus visitas</span>
+                <span>− Pago a Shoppers por sus visitas</span>
                 <span>−{formatMxn(foodiePay)}</span>
               </div>
             )}
@@ -144,7 +144,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
                 </div>
                 <div className="mt-1 text-[12px]" style={{ color: MUTED }}>
                   {kindLabel(v)} {formatMxn(v.price)} · {commissionLabel} −{formatMxn(commission)}
-                  {role === "sibarita" && v.foodie > 0 ? ` · Pago al Foodie −${formatMxn(v.foodie)}` : ""}
+                  {role === "sibarita" && v.foodie > 0 ? ` · Pago al Shopper −${formatMxn(v.foodie)}` : ""}
                 </div>
               </div>
             );
@@ -155,7 +155,7 @@ function PersonalView({ role, userId, visits }: { role: "sibarita" | "agente"; u
       <p className="mt-4 px-1 text-[12px] leading-relaxed" style={{ color: MUTED }}>
         Una venta cuenta cuando el negocio paga y se le entrega el reporte completo (PDF); el mes se toma de esa fecha.
         En los planes mensuales cuenta cada visita entregada, todos los meses, una vez cobrado el mes del plan. El reembolso
-        del ticket de consumo no es ganancia: se paga aparte al Foodie. La comisión por uso de la aplicación cubre la
+        del ticket de consumo no es ganancia: se paga aparte al Shopper. La comisión por uso de la aplicación cubre la
         plataforma, la gestión de reportes y el cobro.
       </p>
     </>
@@ -201,7 +201,7 @@ function AdminView({
         <StatCard label="Ventas del mes" value={String(visits.length)} hint={`${formatMxn(bruto)} brutos`} />
         <StatCard label="Mi parte" value={formatMxn(adminTotal)} hint={ROLE_LABELS.admin} />
         <StatCard label="Sibaritas" value={formatMxn(sibTotal)} />
-        <StatCard label="Foodies" value={formatMxn(foodieTotal)} />
+        <StatCard label="Shoppers" value={formatMxn(foodieTotal)} />
       </div>
       {unpaidPlan.count > 0 && (
         <div className="mt-3">
@@ -229,7 +229,7 @@ function AdminView({
       </div>
       {rows.length === 0 ? (
         <p className="px-1 text-[14px]" style={{ color: MUTED }}>
-          Ningún Sibarita ni Foodie tiene ventas este mes.
+          Ningún Sibarita ni Shopper tiene ventas este mes.
         </p>
       ) : (
         <div className="card overflow-hidden">

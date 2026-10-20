@@ -409,7 +409,7 @@ export default function MobileReportePublico({
               <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra Foodie</div>
+          <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</div>
         </div>
         <div className="text-[13.5px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
           &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;

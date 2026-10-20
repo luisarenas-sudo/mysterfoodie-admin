@@ -12,7 +12,7 @@ import Image from "next/image";
  *
  * No repite el crédito de Flanco Izquierdo aquí: la página
  * (app/r/[shortCode]/page.tsx) ya pone un <FlancoCredit /> hasta abajo,
- * después de "Palabra Foodie", y tenerlo duplicado justo debajo del
+ * después de "Palabra MysterFoodie", y tenerlo duplicado justo debajo del
  * botón de compra se veía mal.
  */
 export default function CheckoutPayerForm({

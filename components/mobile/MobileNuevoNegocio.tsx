@@ -183,7 +183,7 @@ export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormI
       }
       // El detalle del negocio recién creado ya confirma el alta (nombre,
       // "aún sin visitas") y desde ahí se decide el siguiente paso:
-      // visitarlo ahora mismo o asignarlo a un Foodie -- no se obliga
+      // visitarlo ahora mismo o asignarlo a un Shopper -- no se obliga
       // nada aquí.
       router.push(`/negocios/${data.id}`);
     } catch {

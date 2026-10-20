@@ -5,7 +5,7 @@ import { sendHtmlEmail } from "@/lib/email";
 import { academyConfirmationEmail } from "@/lib/academyEmail";
 
 /**
- * Lista de espera de la Foodie Academy. Es PÚBLICA: la llama el formulario de
+ * Lista de espera de la MysterFoodie Academy. Es PÚBLICA: la llama el formulario de
  * mysterfoodie.com (otro origen, por eso el CORS). Guarda el correo en
  * academy_waitlist (supabase/foodie_academy.sql) y manda el correo de
  * confirmación UNA sola vez por correo. Protecciones: honeypot, validación,

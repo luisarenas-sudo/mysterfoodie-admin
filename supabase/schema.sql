@@ -295,7 +295,7 @@ values (
 on conflict (key) do nothing;
 
 -- ============================================================
--- "Añadido por": saber qué rango (Master Chef/Sibarita/Foodie) y qué
+-- "Añadido por": saber qué rango (Master Chef/Sibarita/Shopper) y qué
 -- persona dio de alta cada negocio, para mostrarlo en la lista de
 -- Negocios (ver app/api/clients/route.ts, app/api/visits/route.ts y
 -- lib/dashboard.ts). Ya aplicada en Supabase.

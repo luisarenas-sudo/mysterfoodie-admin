@@ -93,7 +93,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 /**
  * Elimina un negocio y todo lo que depende de él: sus visitas (y lo
  * que depende de cada visita - calificaciones, indicadores, correos,
- * pagos del reporte), sus asignaciones a Foodies y sus citas de
+ * pagos del reporte), sus asignaciones a Shoppers y sus citas de
  * asesoría agendadas. Se borra en este orden específico para nunca
  * violar una foreign key (primero lo que depende de "forms", luego
  * "forms", luego lo que depende directo de "clients", y al final

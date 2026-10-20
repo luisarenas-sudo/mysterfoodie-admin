@@ -6,10 +6,10 @@ import { getAutomation, renderTemplate } from "./automations";
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
 /**
- * Avisa por correo a un Foodie que se le asignó una visita (usa la
+ * Avisa por correo a un Shopper que se le asignó una visita (usa la
  * automatización editable "asignacion_visita") y marca notified_at. Lo usan
  * la asignación manual (/api/asignaciones) y las visitas de los planes
- * mensuales (cuando hay Foodie por default o se asigna después).
+ * mensuales (cuando hay Shopper por default o se asigna después).
  */
 export async function sendAssignmentEmail(
   db: Db,
@@ -24,7 +24,7 @@ export async function sendAssignmentEmail(
   }
 ): Promise<SendEmailOutcome> {
   const { assignmentId, client, foodie, note, baseUrl, linkVisitas: linkOverride } = params;
-  if (!foodie.email) return { status: "failed", error: "El Foodie no tiene correo" };
+  if (!foodie.email) return { status: "failed", error: "El Shopper no tiene correo" };
 
   const linkVisitas = linkOverride || `${baseUrl}/nueva-visita`;
   const ubicacion = [businessTypePhrase(client.type), client.city].filter(Boolean).join(" · ");

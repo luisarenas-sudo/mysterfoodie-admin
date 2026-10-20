@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
   if (body.defaultFoodieId) {
     const { data: foodie } = await db.from("profiles").select("id, role").eq("id", body.defaultFoodieId).maybeSingle();
     if (!foodie || foodie.role !== "agente") {
-      return NextResponse.json({ error: "El usuario seleccionado no es un Foodie" }, { status: 400 });
+      return NextResponse.json({ error: "El usuario seleccionado no es un Shopper" }, { status: 400 });
     }
     defaultFoodieId = foodie.id;
   }

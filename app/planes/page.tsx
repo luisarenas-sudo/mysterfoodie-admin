@@ -82,7 +82,7 @@ export default async function PlanesPage() {
                     </span>
                     {r.unassigned > 0 && r.status === "activo" && (
                       <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
-                        {r.unassigned} sin Foodie
+                        {r.unassigned} sin Shopper
                       </span>
                     )}
                   </div>

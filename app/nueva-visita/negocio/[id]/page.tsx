@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
  * Abre el wizard pre-cargado con un negocio ya existente -- lo que usa
  * el botón "Nueva visita a este negocio" en /negocios/[id]. Solo
  * admin/sibarita: pueden visitar libremente cualquier negocio, a
- * diferencia de un Foodie, que solo entra por una asignación (ver
+ * diferencia de un Shopper, que solo entra por una asignación (ver
  * /nueva-visita/[assignmentId]).
  */
 export default async function VisitarNegocioPage({

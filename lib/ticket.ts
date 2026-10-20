@@ -4,7 +4,7 @@ import { getAutomation, renderTemplate } from "./automations";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 
 /**
- * Ticket de consumo de una visita: la foto del ticket que el Foodie sube
+ * Ticket de consumo de una visita: la foto del ticket que el Shopper sube
  * después de terminar y enviar la visita. Vive en el bucket privado
  * "tickets" de Supabase Storage; se ve con URLs firmadas de vida corta.
  * 3 días después de subirlo, el negocio recibe un aviso (una sola vez):

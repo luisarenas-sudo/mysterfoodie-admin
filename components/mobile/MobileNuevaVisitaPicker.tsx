@@ -17,11 +17,11 @@ const TYPE_LABEL: Record<string, string> = {
  * negocio ya guardado (el más reciente hasta arriba) para visitarlo, o
  * agregar uno nuevo. Tocar un negocio lleva a su detalle (/negocios/[id]),
  * que es el mismo lugar donde luego se decide "Nueva visita a este
- * negocio" o "Asignar a un Foodie" -- un solo lugar para esas acciones,
+ * negocio" o "Asignar a un Shopper" -- un solo lugar para esas acciones,
  * sin importar por dónde se llegó.
  *
  * Es un overlay de pantalla completa (mismo tratamiento que
- * MobileVisitasAsignadas en esta misma ruta para un Foodie, y que el
+ * MobileVisitasAsignadas en esta misma ruta para un Shopper, y que el
  * wizard en /nueva-visita/[...]): MobileChrome oculta el tab bar en
  * cualquier /nueva-visita*, así que esta pantalla necesita su propio
  * botón de "Atrás".

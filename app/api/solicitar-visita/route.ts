@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (name.length < 2) return json(req, { ok: false, error: "Escribe el nombre de tu negocio." }, 400);
   if (!type) return json(req, { ok: false, error: "Elige el tipo de negocio." }, 400);
   if (city.length < 2) return json(req, { ok: false, error: "Escribe la ciudad." }, 400);
-  if (address.length < 5) return json(req, { ok: false, error: "Escribe la dirección (calle y colonia) para que el Foodie llegue." }, 400);
+  if (address.length < 5) return json(req, { ok: false, error: "Escribe la dirección (calle y colonia) para que el MysterFoodie llegue." }, 400);
   if (contactName.length < 2) return json(req, { ok: false, error: "Escribe tu nombre." }, 400);
   if (email.length < 6 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return json(req, { ok: false, error: "Escribe un correo válido." }, 400);

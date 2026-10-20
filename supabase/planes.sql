@@ -39,8 +39,8 @@ create table if not exists plan_periods (
 alter table client_plans enable row level security;
 alter table plan_periods enable row level security;
 
--- Las visitas del plan viven en visit_assignments (así el Foodie las ve igual
--- que cualquier visita asignada). Sin Foodie todavía = assigned_to vacío.
+-- Las visitas del plan viven en visit_assignments (así el Shopper las ve igual
+-- que cualquier visita asignada). Sin Shopper todavía = assigned_to vacío.
 alter table visit_assignments add column if not exists plan_id uuid references client_plans(id) on delete cascade;
 alter table visit_assignments add column if not exists plan_month text;
 alter table visit_assignments alter column assigned_to drop not null;

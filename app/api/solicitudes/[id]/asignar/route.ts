@@ -3,7 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { assignVisitRequest } from "@/lib/visitRequests";
 
-/** El Master Chef asigna (o reasigna) una solicitud de visita gratis a un sibarita, un Foodie o a sí mismo. */
+/** El Master Chef asigna (o reasigna) una solicitud de visita gratis a un sibarita, un Shopper o a sí mismo. */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let session;
   try {

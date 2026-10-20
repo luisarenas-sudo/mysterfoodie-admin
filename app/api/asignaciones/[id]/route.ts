@@ -4,8 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { sendAssignmentEmail } from "@/lib/assignments";
 
 /**
- * Asignar (o reasignar) a un Foodie una visita ya creada -- por ahora las
- * visitas de los planes mensuales, que nacen sin Foodie. Solo Master Chef.
+ * Asignar (o reasignar) a un Shopper una visita ya creada -- por ahora las
+ * visitas de los planes mensuales, que nacen sin Shopper. Solo Master Chef.
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let session;
@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
   const assignedTo = body.assignedTo?.trim();
-  if (!assignedTo) return NextResponse.json({ error: "Falta el Foodie a asignar" }, { status: 400 });
+  if (!assignedTo) return NextResponse.json({ error: "Falta el Shopper a asignar" }, { status: 400 });
 
   const db = getSupabaseServiceClient();
   const { data: assignment } = await db
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { data: foodie } = await db.from("profiles").select("id, email, full_name, role").eq("id", assignedTo).maybeSingle();
   if (!foodie || foodie.role !== "agente") {
-    return NextResponse.json({ error: "El usuario seleccionado no es un Foodie" }, { status: 400 });
+    return NextResponse.json({ error: "El usuario seleccionado no es un Shopper" }, { status: 400 });
   }
 
   const { error } = await db
