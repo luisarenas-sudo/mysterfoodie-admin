@@ -149,6 +149,7 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
                   : r.stage === "sibaritas"
                     ? "Pasaron más de 3 horas sin asignar: ya se ofreció a los sibaritas. En 2 horas más se abre a los Shoppers."
                     : "Tienes 2 horas para asignarla (te avisamos por correo). Después se ofrece sola a los sibaritas y, 2 horas más tarde, a los Shoppers."}{" "}
+                <span style={{ color: MUTED }}>El tiempo corre de 8 am a 8 pm; lo que llega de noche empieza a contar a las 8 am.</span>{" "}
                 Tú decides: asígnala para hacer la visita gratis y desarrollar al cliente, o avisa que hay más solicitudes de lo normal.
               </div>
             )}

@@ -24,7 +24,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  *    y se le invita a ver los paquetes. Una solicitud que nunca se asignó vence igual, 5 días
  *    después de llegar.
  *
- * Solicitudes sin asignar (escalamiento, medido desde que llegan; ver supabase/solicitudes_escalamiento.sql):
+ * Solicitudes sin asignar (escalamiento, en horas hábiles de 8:00 a 20:00 CDMX desde que llegan; ver supabase/solicitudes_escalamiento.sql):
  *  - +2 h: correo al Master Chef "Tienes nuevas visitas no asignadas" con botón a /solicitudes.
  *  - +3 h: se ofrecen a los sibaritas (quien la toma primero se la queda).
  *  - +5 h: se ofrecen también a los Shoppers.
@@ -40,6 +40,40 @@ const HOUR_MS = 60 * 60 * 1000;
 export const ALERT_AFTER_HOURS = 2;
 export const SIBARITAS_AFTER_HOURS = 3;
 export const SHOPPERS_AFTER_HOURS = 5;
+
+/**
+ * Horario de avisos y asignaciones: de 8:00 a 20:00 hora CDMX (UTC-6 todo el año). Fuera de ese horario el Master Chef
+ * se entera de inmediato (correo de nueva solicitud y Pendientes del dashboard), pero el reloj de escalamiento
+ * (2 h / 3 h / 5 h) solo corre dentro del horario: una solicitud de las 11 pm empieza a contar a las 8 am.
+ */
+export const NOTIFY_FROM_HOUR = 8;
+export const NOTIFY_TO_HOUR = 20;
+const CDMX_OFFSET_MS = 6 * HOUR_MS;
+
+/** Milisegundos transcurridos entre dos momentos contando solo las ventanas de 8:00 a 20:00 (CDMX). */
+export function businessElapsedMs(fromMs: number, toMs: number): number {
+  if (toMs <= fromMs) return 0;
+  const from = fromMs - CDMX_OFFSET_MS;
+  const to = toMs - CDMX_OFFSET_MS;
+  let total = 0;
+  for (let day = Math.floor(from / DAY_MS); day <= Math.floor(to / DAY_MS); day++) {
+    const start = Math.max(from, day * DAY_MS + NOTIFY_FROM_HOUR * HOUR_MS);
+    const end = Math.min(to, day * DAY_MS + NOTIFY_TO_HOUR * HOUR_MS);
+    if (end > start) total += end - start;
+  }
+  return total;
+}
+
+/** ¿Ahora estamos dentro del horario de avisos (8:00 a 20:00 CDMX)? */
+export function inNotificationWindow(nowMs = Date.now()): boolean {
+  const hour = new Date(nowMs - CDMX_OFFSET_MS).getUTCHours();
+  return hour >= NOTIFY_FROM_HOUR && hour < NOTIFY_TO_HOUR;
+}
+
+/** Horas hábiles (8-20 CDMX) que lleva una solicitud sin asignar. */
+export function businessHoursSince(createdIso: string, nowMs = Date.now()): number {
+  return businessElapsedMs(new Date(createdIso).getTime(), nowMs) / HOUR_MS;
+}
 
 export const REQUEST_SOURCES = new Set(["nav", "inicio", "servicios", "footer", "pagina", "nosotros", "otra"]);
 
@@ -499,9 +533,8 @@ async function takeUnassignedRequest(
   if (request.kind === "programada") {
     return { ok: false, error: "Esta visita la acuerda el Master Chef", status: 409 };
   }
-  const age = Date.now() - new Date(request.created_at as string).getTime();
-  const needed = (role === "sibarita" ? SIBARITAS_AFTER_HOURS : SHOPPERS_AFTER_HOURS) * HOUR_MS;
-  if (age < needed) return { ok: false, error: "Esta visita todavía no está disponible para ti", status: 409 };
+  const needed = role === "sibarita" ? SIBARITAS_AFTER_HOURS : SHOPPERS_AFTER_HOURS;
+  if (businessHoursSince(request.created_at as string) < needed) return { ok: false, error: "Esta visita todavía no está disponible para ti", status: 409 };
 
   const { data: claimed } = await db
     .from("visit_requests")
@@ -638,11 +671,11 @@ export async function syncVisitRequests(db: Db): Promise<SyncResult> {
         }
       }
     } else if (r.status === "pendiente") {
-      const age = Date.now() - new Date(r.created_at as string).getTime();
-      if (age >= ALERT_AFTER_HOURS * HOUR_MS && !r.unassigned_alert_at) esc.alert.push(r.id as string);
+      const age = businessHoursSince(r.created_at as string);
+      if (age >= ALERT_AFTER_HOURS && !r.unassigned_alert_at) esc.alert.push(r.id as string);
       if (r.kind !== "programada") {
-        if (age >= SIBARITAS_AFTER_HOURS * HOUR_MS && !r.pool_sibaritas_notified_at) esc.sibaritas.push(r.id as string);
-        if (age >= SHOPPERS_AFTER_HOURS * HOUR_MS && !r.pool_shoppers_notified_at) esc.shoppers.push(r.id as string);
+        if (age >= SIBARITAS_AFTER_HOURS && !r.pool_sibaritas_notified_at) esc.sibaritas.push(r.id as string);
+        if (age >= SHOPPERS_AFTER_HOURS && !r.pool_shoppers_notified_at) esc.shoppers.push(r.id as string);
       }
     }
   }
@@ -655,6 +688,8 @@ const typeLine = (type: string | null, city: string | null) => [businessTypePhra
 
 /** Manda los avisos de escalamiento (una sola vez por solicitud y paso). */
 async function escalateUnassigned(db: Db, esc: Escalation, result: SyncResult): Promise<void> {
+  // Los avisos solo salen de 8:00 a 20:00 (CDMX); lo pendiente sale en la primera corrida de la mañana.
+  if (!inNotificationWindow()) return;
   const ids = [...new Set([...esc.alert, ...esc.sibaritas, ...esc.shoppers])];
   if (ids.length === 0) return;
   const { data: reqs } = await db.from("visit_requests").select("id, status, kind, schedule_pref, client_id").in("id", ids);
@@ -701,7 +736,7 @@ async function escalateUnassigned(db: Db, esc: Escalation, result: SyncResult): 
     const html = renderEmailShell(`
       <div style="width: 68px; height: 68px; line-height: 68px; margin: 0 auto 18px; border-radius: 34px; background-color: #fff1f0; color: #f24444; font-size: 38px; font-weight: bold; text-align: center;">?</div>
       <h2 style="margin: 0 0 14px; font-size: 24px; line-height: 1.25; color: #111827; text-align: center;">Tienes nuevas visitas no asignadas</h2>
-      <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Estas solicitudes llevan más de ${ALERT_AFTER_HOURS} horas esperando que alguien las tome:</p>
+      <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Estas solicitudes llevan más de ${ALERT_AFTER_HOURS} horas (en horario de 8 am a 8 pm) esperando que alguien las tome:</p>
       <ul style="margin: 0 0 18px; padding-left: 20px; font-size: 15px; line-height: 1.55; color: #374151;">${lis}</ul>
       <div style="margin: 0 0 16px;">${renderButton(`${baseUrl}/solicitudes`, "Ir a asignar las visitas")}</div>
       <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6b7280;">${escapeHtml(pie)}</p>
@@ -883,8 +918,8 @@ export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
         stage:
           r.status === "pendiente" && (r.kind as string | null) !== "programada"
             ? (() => {
-                const age = now - new Date(r.created_at as string).getTime();
-                return age >= SHOPPERS_AFTER_HOURS * HOUR_MS ? "shoppers" : age >= SIBARITAS_AFTER_HOURS * HOUR_MS ? "sibaritas" : "master";
+                const age = businessHoursSince(r.created_at as string, now);
+                return age >= SHOPPERS_AFTER_HOURS ? "shoppers" : age >= SIBARITAS_AFTER_HOURS ? "sibaritas" : "master";
               })()
             : null,
       } satisfies SolicitudRow;
@@ -952,13 +987,15 @@ export async function getOpenPoolFor(db: Db, userId: string, role: "agente" | "s
   const hours = role === "sibarita" ? SIBARITAS_AFTER_HOURS : SHOPPERS_AFTER_HOURS;
   const { data: sin } = await db
     .from("visit_requests")
-    .select("id, client_id, assigned_to, expires_at")
+    .select("id, client_id, assigned_to, expires_at, created_at")
     .eq("status", "pendiente")
     .neq("kind", "programada")
-    .lte("created_at", new Date(Date.now() - hours * HOUR_MS).toISOString())
     .gt("expires_at", nowIso)
     .order("created_at", { ascending: true });
-  for (const r of sin || []) rows.push({ ...(r as Omit<Row, "origin">), origin: "sin_asignar" });
+  for (const r of sin || []) {
+    if (businessHoursSince(r.created_at as string) < hours) continue;
+    rows.push({ id: r.id as string, client_id: r.client_id as string, assigned_to: (r.assigned_to as string | null) ?? null, expires_at: r.expires_at as string, origin: "sin_asignar" });
+  }
 
   const mine = rows.filter((r) => r.assigned_to !== userId);
   if (mine.length === 0) return [];

@@ -2,7 +2,7 @@ import { getSupabaseServiceClient } from "./supabase";
 import { currentMonthCdmx, isVisitOverdue, monthLabel, shiftMonth, visitWindowLabel } from "./months";
 import { getPendingAssignmentsFor } from "./dashboard";
 import { formatMxn } from "./earningsMatrix";
-import { getOpenPoolFor } from "./visitRequests";
+import { getOpenPoolFor, businessHoursSince } from "./visitRequests";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -127,14 +127,14 @@ async function requestAlerts(db: Db): Promise<HomeAlert[]> {
   }
   if (gratis.length > 0) {
     const oldest = gratis[0].created_at as string;
-    const late = Date.now() - new Date(oldest).getTime() >= 2 * 60 * 60 * 1000;
+    const late = businessHoursSince(oldest) >= 2;
     alerts.push({
       key: "ad:solic:gratis",
       kind: "pendiente",
       tone: late ? "urgent" : "warn",
       emoji: "❔",
       title: gratis.length === 1 ? `Visita gratis por asignar: ${nameOf.get(gratis[0].client_id as string) ?? "Negocio"}` : `${gratis.length} visitas gratis por asignar`,
-      detail: `La más antigua llegó ${agoLabel(oldest)} · a las 3 h se ofrecen a sibaritas`,
+      detail: `La más antigua llegó ${agoLabel(oldest)} · a las 3 h hábiles se ofrecen a sibaritas`,
       href: "/solicitudes",
     });
   }

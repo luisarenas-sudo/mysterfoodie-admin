@@ -25,7 +25,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     emoji: "📅",
     highlights: [
       "En la web, «Programa tu visita» lleva al formulario con un switch: el negocio elige día y horario y ve sus beneficios ($850 + consumo). Entra como solicitud programada: tarea prioritaria para el Master Chef, que acuerda fecha y pago en persona.",
-      "Las visitas gratis avisan que dependen de la disponibilidad de los MysterFoodies. Si nadie asigna una en 2 horas, el Master Chef recibe un correo «Tienes nuevas visitas no asignadas»; a las 3 horas se ofrece a los sibaritas y a las 5 a los Shoppers (quien la toma primero se la queda).",
+      "Las visitas gratis avisan que dependen de la disponibilidad de los MysterFoodies. De 8 am a 8 pm corre el reloj (lo que llega de noche avisa de inmediato al Master Chef, pero empieza a contar a las 8 am). Si nadie asigna una en 2 horas, el Master Chef recibe un correo «Tienes nuevas visitas no asignadas»; a las 3 horas se ofrece a los sibaritas y a las 5 a los Shoppers (quien la toma primero se la queda).",
       "En Solicitudes, el Master Chef decide: asignar la visita gratis para desarrollar al cliente o «Avisar alta demanda» (el negocio recibe un aviso amable con los paquetes).",
       "Si el negocio fue visitado porque pidió su visita, el reporte ya no se ofrece a $850: ve su resumen y puede programar una visita o conocer los paquetes. Solo quien fue visitado sin solicitarlo puede comprarlo.",
     ],
