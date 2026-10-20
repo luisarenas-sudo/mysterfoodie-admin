@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getPayment } from "@/lib/mercadopago";
 import { deliverFullReportEmail } from "@/lib/fullReportDelivery";
 import { settleProfilePurchase } from "@/lib/profilePurchases";
+import { settleVisitPayment } from "@/lib/visitRequests";
 
 /**
  * Webhook de MercadoPago (configurar esta URL como notification_url;
@@ -56,6 +57,12 @@ export async function POST(req: NextRequest) {
   // Compra del perfil anónimo de un MysterFoodie ("perfil:<purchaseId>"): no toca report_payments ni el reporte.
   if (formId.startsWith("perfil:")) {
     await settleProfilePurchase(db, formId.slice("perfil:".length), payment);
+    return NextResponse.json({ ok: true });
+  }
+
+  // Pago de una visita programada desde la web ("visita:<requestId>"): tampoco toca el reporte.
+  if (formId.startsWith("visita:")) {
+    await settleVisitPayment(db, formId.slice("visita:".length), payment);
     return NextResponse.json({ ok: true });
   }
 

@@ -104,7 +104,7 @@ async function poolAlerts(db: Db, userId: string, role: "agente" | "sibarita"): 
 async function requestAlerts(db: Db): Promise<HomeAlert[]> {
   const { data: rows } = await db
     .from("visit_requests")
-    .select("id, kind, schedule_pref, created_at, client_id")
+    .select("id, kind, schedule_pref, created_at, client_id, paid_at")
     .eq("status", "pendiente")
     .order("created_at", { ascending: true });
   if (!rows || rows.length === 0) return [];
@@ -122,7 +122,7 @@ async function requestAlerts(db: Db): Promise<HomeAlert[]> {
       tone: "urgent",
       emoji: "📅",
       title: `Visita programada: ${nameOf.get(r.client_id as string) ?? "Negocio"}`,
-      detail: `${r.schedule_pref ? `Pidió ${r.schedule_pref} · ` : ""}$850 + consumo · acuerda fecha y pago`,
+      detail: `${r.schedule_pref ? `Pidió ${r.schedule_pref} · ` : ""}$850 + consumo · ${r.paid_at ? "ya pagada: confirma fecha y consumo" : "pago pendiente en línea"}`,
       href: "/solicitudes",
     });
   }

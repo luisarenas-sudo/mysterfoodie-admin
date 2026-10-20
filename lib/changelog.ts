@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.28.0",
+    date: "2026-10-20",
+    title: "Visita asegurada con pago en línea",
+    emoji: "💳",
+    highlights: [
+      "En la web, «Programa tu visita» lleva al formulario gratis; ahí un botón desbloquea la visita asegurada: el negocio elige día y horario y la paga de una vez con Mercado Pago.",
+      "Al confirmarse el pago, el negocio recibe su confirmación y el Master Chef un aviso; en Solicitudes la visita aparece como Pagada (o Pago pendiente) y solo falta confirmar el día y el consumo.",
+      "Si el negocio no termina de pagar, le llega por correo la liga para hacerlo cuando quiera.",
+    ],
+  },
+  {
     version: "0.27.1",
     date: "2026-10-20",
     title: "Todo con su icono",

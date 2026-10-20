@@ -107,7 +107,7 @@ export type RequestInput = {
 
 export type CreateOutcome =
   | { ok: true; requestId: string; duplicate: false }
-  | { ok: true; duplicate: true }
+  | { ok: true; requestId: string; duplicate: true }
   | { ok: false; error: string };
 
 /** Crea (o reutiliza) el negocio, su cuenta y la solicitud; manda los correos. */
@@ -157,7 +157,7 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
           phone: input.phone,
         });
       }
-      return { ok: true, duplicate: true };
+      return { ok: true, duplicate: true, requestId: open[0].id as string };
     }
   }
 
@@ -259,6 +259,7 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
     tieneCuenta,
     baseUrl,
     kind: input.kind,
+    payUrl: input.kind === "programada" ? visitPayUrl(baseUrl, request.id as string) : null,
   });
 
   // Aviso al Master Chef.
@@ -293,6 +294,8 @@ async function sendRequestReceivedEmail(p: {
   tieneCuenta: boolean;
   baseUrl: string;
   kind: RequestKind;
+  /** Liga para pagar la visita programada (solo programada). */
+  payUrl: string | null;
 }): Promise<SendEmailOutcome> {
   const programada = p.kind === "programada";
   // La plantilla editable habla de la visita gratis: la programada usa siempre su propio texto.
@@ -313,8 +316,9 @@ async function sendRequestReceivedEmail(p: {
     ? `Hola ${p.contacto},\n\n` +
       `¡Gracias por querer programar tu visita! Tu negocio ${p.negocio} ya está en MysterFoodie y recibimos tu solicitud.\n\n` +
       `Estos son los datos que registramos:\n${p.datos}\n\n` +
-      `Qué sigue: el Master Chef de MysterFoodie te escribirá por WhatsApp o por correo para acordar contigo la fecha, el horario y la forma de pago. ` +
-      `Esta visita cuesta $${FULL_REPORT_PRICE_MXN} MXN sin IVA, más el consumo de la visita. Todavía no se cobra nada. ` +
+      `Qué sigue: tu visita queda asegurada en cuanto se confirme el pago de $${FULL_REPORT_PRICE_MXN} MXN (sin IVA, más el consumo de la visita). ` +
+      `Si aún no pagas o se interrumpió, puedes hacerlo cuando quieras con Mercado Pago: ${p.payUrl ?? ""}\n\n` +
+      `Con tu pago confirmado, la visita queda programada y la realiza un MysterFoodie en exclusiva para tu negocio; el Master Chef te escribirá por WhatsApp o correo para confirmar el día y acordar el consumo. ` +
       `La visita es anónima: el MysterFoodie llegará como un cliente más.\n\n` +
       `${cuentaDefault}\n\n` +
       `Saludos,\nMysterFoodie`
@@ -357,7 +361,7 @@ async function notifyAdmins(p: {
       to: a.email as string,
       subject: programada ? `Visita PROGRAMADA solicitada: ${p.negocio}` : `Nueva solicitud de visita gratis: ${p.negocio}`,
       bodyText: programada
-        ? `Un negocio quiere programar su visita ($${FULL_REPORT_PRICE_MXN} + consumo). Es prioridad: contáctalo para acordar fecha, pago y consumo.\n\n` +
+        ? `Un negocio programó su visita ($${FULL_REPORT_PRICE_MXN} + consumo) y está pasando a pagar en línea con Mercado Pago. Es prioridad: cuando se confirme el pago te llega otro correo; si no paga, escríbele para cerrarla.\n\n` +
           `Negocio: ${p.negocio}\nUbicación: ${p.ubicacion}\nContacto: ${p.contacto}\n` +
           `${p.phone ? `WhatsApp / teléfono: ${p.phone}\n` : ""}` +
           `${p.schedulePref ? `Fecha y horario que pidió: ${p.schedulePref}\n` : ""}` +
@@ -372,6 +376,67 @@ async function notifyAdmins(p: {
     if (out.status === "sent") sent = true;
   }
   return sent ? "sent" : "failed";
+}
+
+// ---------------------------------------------------------------------------
+// Pago en línea de la visita programada
+// ---------------------------------------------------------------------------
+
+/** Liga que lleva a Mercado Pago a pagar una visita programada (la crea la preferencia al abrirla). */
+export const visitPayUrl = (baseUrl: string, requestId: string) => `${baseUrl}/api/pagar-visita?id=${requestId}`;
+
+/**
+ * Mercado Pago avisó de un pago con external_reference "visita:<id>". Marca la solicitud como pagada (una sola vez),
+ * le avisa al negocio que su visita quedó asegurada y al Master Chef que ya puede coordinar fecha y consumo.
+ */
+export async function settleVisitPayment(
+  db: Db,
+  requestId: string,
+  payment: { id: string | number; status?: string | null; transaction_amount?: number | null }
+): Promise<void> {
+  const { data: request } = await db.from("visit_requests").select("id, client_id, kind, paid_at, schedule_pref").eq("id", requestId).maybeSingle();
+  if (!request || payment.status !== "approved" || request.paid_at) return;
+  const { data: updated, error } = await db
+    .from("visit_requests")
+    .update({ paid_at: new Date().toISOString(), payment_id: String(payment.id), payment_amount: payment.transaction_amount ?? null })
+    .eq("id", requestId)
+    .is("paid_at", null)
+    .select("id");
+  if (error) {
+    console.error("No se pudo marcar la visita como pagada:", error.message);
+    return;
+  }
+  if (!updated || updated.length === 0) return; // otro aviso del mismo pago ya la marcó
+
+  const { data: client } = await db.from("clients").select("name, type, city, contact_name, email, phone").eq("id", request.client_id as string).maybeSingle();
+  const baseUrl = baseUrlOf();
+  const negocio = (client?.name as string) ?? "Negocio";
+  if (client?.email) {
+    await sendTemplatedEmail({
+      to: client.email as string,
+      subject: `Pago recibido: tu visita está asegurada (${negocio})`,
+      bodyText:
+        `Hola ${(client.contact_name as string) || ""},\n\n`.replace("Hola ,", "Hola,") +
+        `¡Recibimos tu pago! La visita a ${negocio} queda asegurada y programada: la realizará un MysterFoodie en exclusiva para tu negocio.\n\n` +
+        `${request.schedule_pref ? `Fecha y horario que pediste: ${request.schedule_pref}.\n` : ""}` +
+        `El Master Chef te escribirá por WhatsApp o correo para confirmar el día y acordar el consumo de la visita. ` +
+        `Es una visita anónima: el MysterFoodie llegará como un cliente más. Cuando termine, recibirás tu reporte completo.\n\n` +
+        `Saludos,\nMysterFoodie`,
+      glosario: GLOSARIO_NEGOCIO,
+    }).catch(() => undefined);
+  }
+  const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").not("email", "is", null);
+  for (const a of admins || []) {
+    await sendTemplatedEmail({
+      to: a.email as string,
+      subject: `Visita programada PAGADA: ${negocio}`,
+      bodyText:
+        `${negocio} pagó su visita programada ($${payment.transaction_amount ?? FULL_REPORT_PRICE_MXN} MXN, Mercado Pago). Ya está asegurada: coordina fecha y consumo con el negocio y asígnala.\n\n` +
+        `${client?.phone ? `WhatsApp / teléfono: ${client.phone}\n` : ""}${request.schedule_pref ? `Fecha y horario que pidió: ${request.schedule_pref}\n` : ""}\n` +
+        `Asígnala aquí:\n${baseUrl}/solicitudes`,
+      ctaLabel: "Asignar la visita",
+    }).catch(() => undefined);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -865,6 +930,8 @@ export type SolicitudRow = {
   /** Fecha y horario que pidió el negocio (solo programada). */
   schedulePref: string | null;
   decision: "visita" | "alta_demanda" | null;
+  /** Cuándo pagó la visita programada en línea (null = sin pagar). */
+  paidAt: string | null;
   /** Solo en pendientes gratis: quién la puede tomar ahora (según las horas sin asignar). */
   stage: "master" | "sibaritas" | "shoppers" | null;
 };
@@ -875,7 +942,7 @@ export type Assignee = { id: string; name: string; role: "admin" | "agente" | "s
 export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
   const { data: rows } = await db
     .from("visit_requests")
-    .select("id, status, created_at, message, source, client_id, assignment_id, assigned_to, assigned_at, open_at, expires_at, kind, schedule_pref, decision")
+    .select("id, status, created_at, message, source, client_id, assignment_id, assigned_to, assigned_at, open_at, expires_at, kind, schedule_pref, decision, paid_at")
     .order("created_at", { ascending: false })
     .limit(200);
   if (!rows || rows.length === 0) return [];
@@ -925,6 +992,7 @@ export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
         kind: ((r.kind as string | null) === "programada" ? "programada" : "gratis") as RequestKind,
         schedulePref: (r.schedule_pref as string | null) ?? null,
         decision: ((r.decision as string | null) ?? null) as SolicitudRow["decision"],
+        paidAt: (r.paid_at as string | null) ?? null,
         stage:
           r.status === "pendiente" && (r.kind as string | null) !== "programada"
             ? (() => {

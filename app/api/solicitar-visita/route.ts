@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { BUSINESS_TYPES } from "@/lib/categories";
-import { REQUEST_SOURCES, createVisitRequest } from "@/lib/visitRequests";
+import { REQUEST_SOURCES, createVisitRequest, visitPayUrl } from "@/lib/visitRequests";
 
 /**
  * "Solicita una visita GRATIS". Es PÚBLICA: la llama el formulario de mysterfoodie.com
@@ -119,7 +119,12 @@ export async function POST(req: NextRequest) {
       console.error("solicitar-visita", out.error);
       return json(req, { ok: false, error: "No pudimos guardar tu solicitud. Intenta más tarde." }, 500);
     }
-    // Respuesta idéntica si ya tenía una solicitud abierta (no se revela ni se reenvían correos).
+    // Programada: se devuelve la liga de pago (Mercado Pago) a la que la web redirige. Si ya tenía una solicitud abierta
+    // la respuesta es igual (no se revela ni se reenvían correos).
+    if (kind === "programada") {
+      const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";
+      return json(req, { ok: true, payUrl: visitPayUrl(baseUrl, out.requestId) });
+    }
     return json(req, { ok: true });
   } catch (err) {
     console.error("solicitar-visita", err instanceof Error ? err.message : err);

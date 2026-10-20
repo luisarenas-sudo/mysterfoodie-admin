@@ -102,13 +102,19 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
                     Programada · prioridad
                   </span>
                 )}
+                {r.kind === "programada" && (
+                  <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={r.paidAt ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "#FFF3D6", color: "#8A5A00" }}>
+                    {r.paidAt ? `Pagada · ${fmt(r.paidAt)}` : "Pago pendiente"}
+                  </span>
+                )}
               </div>
             </div>
 
             {r.kind === "programada" && (
               <div className="mt-2 rounded-lg px-3 py-2 text-[12.5px]" style={{ background: "#FFF1F0", color: "rgba(60,60,67,0.9)" }}>
-                <strong>Quiere contratar su visita ($850 + consumo).</strong>
-                {r.schedulePref ? ` Pidió: ${r.schedulePref}.` : ""} Contáctalo para acordar fecha, pago y consumo; luego asígnala. No se cobra nada automáticamente.
+                <strong>{r.paidAt ? "Pagó su visita asegurada ($850 + consumo)." : "Quiere asegurar su visita ($850 + consumo): pasó a pagar en línea."}</strong>
+                {r.schedulePref ? ` Pidió: ${r.schedulePref}.` : ""}{" "}
+                {r.paidAt ? "Ya está asegurada: confirma el día y el consumo con el negocio y asígnala." : "Si no completa el pago, escríbele (le mandamos la liga por correo); en cuanto se confirme, aquí aparece como pagada."}
                 <div className="mt-1.5 flex flex-wrap gap-2">
                   {r.phone && (
                     <a

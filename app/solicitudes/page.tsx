@@ -29,7 +29,7 @@ export default async function SolicitudesPage() {
         </div>
         <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Solicitudes de visita</h1>
         <p className="mt-1 text-sm text-stone-500">
-          Negocios que pidieron una visita en la web. Las <strong>programadas</strong> ($850 + consumo) son prioridad: acuerda fecha y pago con el negocio. Las <strong>gratis</strong> las asignas tú (o avisas alta demanda): si en 2 horas nadie las asigna te llega un correo; a las 3 horas se ofrecen a los sibaritas y a las 5 a los Shoppers. Avisos y asignaciones automáticas solo de 8 am a 8 pm: lo que llega de noche te avisa de inmediato, pero el reloj empieza a correr a las 8 am. Ya asignada, tiene 3 días en exclusiva; los días 4 y 5 también la ven los Shoppers, y al día 5 sin visita se le avisa al negocio.
+          Negocios que pidieron una visita en la web. Las <strong>programadas</strong> ($850 + consumo) son prioridad: el negocio las paga en línea al pedirlas; cuando aparecen como pagadas, confirma fecha y consumo y asígnalas. Las <strong>gratis</strong> las asignas tú (o avisas alta demanda): si en 2 horas nadie las asigna te llega un correo; a las 3 horas se ofrecen a los sibaritas y a las 5 a los Shoppers. Avisos y asignaciones automáticas solo de 8 am a 8 pm: lo que llega de noche te avisa de inmediato, pero el reloj empieza a correr a las 8 am. Ya asignada, tiene 3 días en exclusiva; los días 4 y 5 también la ven los Shoppers, y al día 5 sin visita se le avisa al negocio.
         </p>
         <SolicitudesPanel rows={rows} assignees={assignees} meId={profile.userId} />
       </main>
