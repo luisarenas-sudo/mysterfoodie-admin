@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
-import { BLOCKS, MAX_EARNINGS_PER_SALE, MIN_VISITS_PASSPORT, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockDef, type BlockKey, type Persona } from "@/lib/personaCatalog";
+import { FieldInput } from "@/components/persona/PersonaFields";
+import { BLOCK_EMOJI } from "@/lib/personaUi";
+import { BLOCKS, MAX_EARNINGS_PER_SALE, activeFields, MIN_VISITS_PASSPORT, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockDef, type BlockKey, type Persona } from "@/lib/personaCatalog";
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -49,6 +51,11 @@ export default function AnonProfileForm({
       return { ...p, [block]: cur };
     });
 
+  const answeredCount = (k: BlockKey) =>
+    activeFields(k, persona).filter((f) => {
+      const v = persona[k]?.[f.key];
+      return f.kind === "one" ? typeof v === "string" : Array.isArray(v) && v.length > 0;
+    }).length;
   const effective = shared.filter((k) => isBlockComplete(k, persona));
   const estimate = earningsForBlocks(effective);
 
@@ -96,7 +103,7 @@ export default function AnonProfileForm({
     <div>
       <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff", border: "1.5px solid rgba(60,60,67,0.1)" }}>
         <div className="text-[13px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>Con lo que compartes hoy ganarías</div>
-        <div className="mt-0.5 text-[26px] font-extrabold" style={{ color: "#F24444" }}>{money(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
+        <div key={estimate} className="mf-pop mt-0.5 text-[26px] font-extrabold" style={{ color: "#F24444" }}>{money(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
         <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
           Si compartes todo: hasta {money(MAX_EARNINGS_PER_SALE)} por perfil Passport. Cada bloque paga un porcentaje fijo del escalón de precio al que pertenece (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport).
         </div>
@@ -112,7 +119,7 @@ export default function AnonProfileForm({
                 <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: def.tier === "passport" ? "#5856D6" : "#F24444" }}>
                   Nivel {def.tier === "passport" ? "Passport" : "ID"} · gana {def.pct}%
                 </div>
-                <div className="heading text-[19px]">{def.label}</div>
+                <div className="heading text-[19px]"><span aria-hidden="true">{BLOCK_EMOJI[def.key]} </span>{def.label}</div>
                 <div className="text-[13px] text-stone-500">{def.desc}</div>
               </div>
               <button
@@ -158,21 +165,23 @@ export default function AnonProfileForm({
               </label>
             )}
 
-            {def.fields.map((f) => {
-              const cur = persona[def.key]?.[f.key];
-              return (
-                <div key={f.key} className="mt-3">
-                  <div className="mb-1.5 text-[13.5px] font-semibold">{f.label}{f.kind === "many" ? " (puedes elegir varias)" : ""}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {f.options.map((o) => (
-                      <Chip key={o} on={f.kind === "one" ? cur === o : Array.isArray(cur) && cur.includes(o)} onClick={() => setField(def.key, f.key, f.kind, o)}>
-                        {o}
-                      </Chip>
-                    ))}
-                  </div>
+            {def.fields.length > 0 && (
+              <div className="mt-3">
+                <div className="mb-1 inline-block rounded-full px-2.5 py-1 text-[11.5px] font-bold" style={{ background: "#F2F2F7" }}>
+                  {answeredCount(def.key)}/{activeFields(def.key, persona).length} contestadas
                 </div>
-              );
-            })}
+                {activeFields(def.key, persona).map((f) => (
+                  <div key={f.key} className="mf-slide-in mt-4">
+                    <div className="mb-1 flex items-center gap-2 text-[14px] font-bold">
+                      <span>{f.label}</span>
+                      {f.when && <span className="rounded-full px-2 py-0.5 text-[10.5px]" style={{ background: "#FFF0EE", color: "#F24444" }}>🎁 extra</span>}
+                    </div>
+                    {f.kind === "many" && <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Puedes elegir varias</div>}
+                    <FieldInput block={def.key} field={f} value={persona[def.key]?.[f.key]} onPick={(o) => setField(def.key, f.key, f.kind, o)} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
       })}

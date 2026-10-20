@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ALIAS_STYLES, type AliasStyle } from "@/lib/alias";
+import { BLOCK_EMOJI } from "@/lib/personaUi";
+import { PersonaDeck, Celebration } from "@/components/persona/PersonaFields";
 import { BLOCKS, ID_BLOCKS, PASSPORT_BLOCKS, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockKey, type Persona } from "@/lib/personaCatalog";
 import { CUISINES, DISHES, EXPERIENCE_LEVELS, MIN_CUISINES, MIN_DISHES, TIME_SLOTS, WEEK_DAYS, type FoodOption } from "@/lib/foodCatalog";
 
@@ -80,6 +82,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [phase, setPhase] = useState<"q" | "share">("q");
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
   const toggle = (k: "days" | "slots" | "cuisines" | "dishes", v: string) =>
@@ -137,6 +140,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
     if (m) return setError(m);
     setError(null);
     if (step < STEPS.length - 1) {
+      if (step + 1 === 5) setPhase(PASSPORT_BLOCKS.every((k) => isBlockComplete(k, f.persona)) ? "share" : "q");
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -273,31 +277,28 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
         )}
         {step === 5 && (
           <>
-            <p className="mb-4 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
-              Los negocios que visites podrán conocer a su MysterFoodie de forma anónima: con tu nombre anónimo, rangos y categorías, nunca tu nombre, foto, contacto ni documentos.
-              Contesta estas preguntas y decide qué bloques compartes: por cada bloque que compartas ganas un porcentaje fijo cada vez que un negocio compre tu perfil.
-            </p>
-            {BLOCKS.filter((b) => b.fields.length > 0).map((b) => (
-              <div key={b.key} className="mb-5">
-                <div className="heading mb-2 text-[18px]">{b.label}</div>
-                {b.fields.map((fl) => {
-                  const cur = f.persona[b.key]?.[fl.key];
-                  return (
-                    <div key={fl.key} className="mb-3">
-                      <div className="mb-1.5 text-[13.5px] font-semibold">{fl.label}{fl.kind === "many" ? " (puedes elegir varias)" : ""}</div>
-                      <div className="flex flex-wrap gap-2">
-                        {fl.options.map((o) => (
-                          <Chip key={o} on={fl.kind === "one" ? cur === o : Array.isArray(cur) && cur.includes(o)} onClick={() => setField(b.key, fl.key, fl.kind, o)}>
-                            {o}
-                          </Chip>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-
+            {phase === "q" ? (
+              <>
+                <p className="mb-4 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
+                  🕶️ Los negocios que visites conocerán a su MysterFoodie de forma anónima: con tu nombre anónimo, rangos y categorías, nunca tu nombre, foto, contacto ni documentos.
+                  Juega con estas preguntas: toca, elige y avanza. Algunas respuestas abren una pregunta extra.
+                </p>
+                <PersonaDeck
+                  blocks={PASSPORT_BLOCKS}
+                  persona={f.persona}
+                  onPick={(b, fl, o) => setField(b, fl.key, fl.kind, o)}
+                  onDone={() => { setPhase("share"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  onExit={() => { setError(null); setStep(4); }}
+                />
+              </>
+            ) : (
+              <>
+                <div className="mb-3 text-center">
+                  <Celebration />
+                  <div className="text-[40px]" aria-hidden="true">🎉</div>
+                  <div className="heading text-[22px]">¡Listo, ya casi eres un MysterFoodie!</div>
+                  <button type="button" onClick={() => setPhase("q")} className="mf-tap mt-1 text-[13px] font-semibold" style={{ color: "#F24444" }}>Revisar mis respuestas</button>
+                </div>
             <div className="heading mb-1 text-[18px]">¿Qué compartes y cuánto ganas?</div>
             <p className="mb-2 text-[12.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
               Puedes cambiarlo cuando quieras en Perfil → Mi perfil anónimo. Cada bloque paga su porcentaje del escalón de precio (${TIER_INCREMENT.id} el nivel ID y ${TIER_INCREMENT.passport} el nivel Passport).
@@ -316,7 +317,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
                     style={{ border: `1.5px solid ${on ? "#F24444" : "rgba(60,60,67,0.14)"}` }}
                   >
                     <span>
-                      <span className="block text-[14.5px] font-semibold">{b.label}</span>
+                      <span className="block text-[14.5px] font-semibold"><span aria-hidden="true">{BLOCK_EMOJI[b.key]} </span>{b.label}</span>
                       <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Nivel {b.tier === "passport" ? "Passport" : "ID"} · ganas {b.pct}%</span>
                     </span>
                     <span className="text-[13px] font-bold" style={{ color: on ? "#34C759" : "rgba(60,60,67,0.45)" }}>{on ? "Comparto" : "No comparto"}</span>
@@ -324,8 +325,10 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
                 );
               })}
             </div>
-            <p className="mb-4 text-[13px] font-semibold">
-              Compartiendo lo que tienes activado ganarías ${earningsForBlocks(f.shareBlocks.filter((k) => isBlockComplete(k, f.persona))).toFixed(2)} por cada perfil vendido.
+            <p className="mb-4 rounded-2xl px-4 py-3 text-center text-[13px] font-semibold" style={{ background: "#FFF0EE" }}>
+              💰 Compartiendo lo que tienes activado ganarías
+              <span key={f.shareBlocks.join()} className="mf-pop mt-0.5 block text-[26px] font-extrabold" style={{ color: "#F24444" }}>${earningsForBlocks(f.shareBlocks.filter((k) => isBlockComplete(k, f.persona))).toFixed(2)}</span>
+              por cada perfil vendido
             </p>
             <label className="mb-4 flex items-start gap-3">
               <input type="checkbox" className="mt-1 h-5 w-5" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
@@ -334,14 +337,16 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
               </span>
             </label>
           </>
+            )}
+          </>
         )}
       </div>
 
       {error && <p className="mt-3 rounded-[12px] px-3.5 py-2.5 text-[13.5px] font-medium" style={{ background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>{error}</p>}
 
-      <div className="mt-4 flex gap-2.5">
+      <div className="mt-4 flex gap-2.5" style={{ display: step === 5 && phase === "q" ? "none" : undefined }}>
         {step > 0 && (
-          <button type="button" onClick={() => { setError(null); setStep(step - 1); }} className="mf-tap min-h-[52px] rounded-[14px] px-5 text-[15px] font-semibold" style={{ background: "rgba(60,60,67,0.08)" }}>
+          <button type="button" onClick={() => { setError(null); if (step === 5 && phase === "share") setPhase("q"); else setStep(step - 1); }} className="mf-tap min-h-[52px] rounded-[14px] px-5 text-[15px] font-semibold" style={{ background: "rgba(60,60,67,0.08)" }}>
             Atrás
           </button>
         )}
