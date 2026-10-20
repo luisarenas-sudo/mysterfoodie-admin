@@ -5,7 +5,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
 
 /**
  * ¿Este correo de resultado es el primero que recibe esa dirección? Si es así, va con el
- * bloque "Nuestro mundo" (qué es un MysterFoodie, los planes...). Se mira el registro de
+ * aclaración entre paréntesis de las palabras de la marca (qué es un MysterFoodie, los planes...). Se mira el registro de
  * correos; `excludeFormId` evita contar el propio correo cuando se reenvía.
  */
 export async function glosarioIfFirstEmail(db: Db, email: string, excludeFormId?: string): Promise<GlosarioKey[] | undefined> {

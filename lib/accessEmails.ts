@@ -1,5 +1,5 @@
-import { BRAND_RED, escapeHtml, renderButton, renderEmailShell, renderGlosarioBlock, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
-import { GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "./glosario";
+import { BRAND_RED, escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
+import { annotateFirst, GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "./glosario";
 import { inviteContentForRole } from "./inviteContent";
 import { ACCESS_TTL_DAYS } from "./accessTokens";
 
@@ -84,7 +84,7 @@ export function renderInviteHtml(p: {
       <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">${esc(c.tagline)}</p>
     </div>
 
-    <p style="margin: 20px 0 6px; font-size: 15px; line-height: 1.6; color: #4b5563;">${esc(c.intro)} Esto es lo que podrás hacer:</p>
+    <p style="margin: 20px 0 6px; font-size: 15px; line-height: 1.6; color: #4b5563;">${esc(annotateFirst(c.intro, p.role === "cliente" ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO))} Esto es lo que podrás hacer:</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">${canRows}</table>
     ${goal}
 
@@ -93,8 +93,6 @@ export function renderInviteHtml(p: {
 
     <div style="margin: 24px 0 0;">${renderButton(p.url, "Crear mi contraseña")}</div>
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">También puedes continuar con tu cuenta de Google desde esa pantalla.</p>
-
-    ${renderGlosarioBlock(p.role === "cliente" ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO)}
 
     <div style="margin: 24px 0 0; border: 1px dashed #d1d5db; border-radius: 16px; padding: 16px 18px; text-align: center;">
       <p style="margin: 0 0 6px; font-size: 13px; line-height: 1.55; color: #6b7280;">¿El botón no abre? Entra a <strong>${esc(host)}/set-password</strong>, escribe tu correo y este código:</p>

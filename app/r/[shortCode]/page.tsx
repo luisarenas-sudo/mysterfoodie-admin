@@ -1,5 +1,3 @@
-import GlosarioCard from "@/components/GlosarioCard";
-import { GLOSARIO_NEGOCIO } from "@/lib/glosario";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict } from "@/lib/verdict";
 import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
@@ -466,7 +464,6 @@ export default async function ReportPage({
         </div>
       )}
 
-      <GlosarioCard className="mt-8" keys={GLOSARIO_NEGOCIO} subtitle="Qué es un MysterFoodie y cómo funcionan nuestros planes" />
 
       <div className="mt-6 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
         <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</h3>

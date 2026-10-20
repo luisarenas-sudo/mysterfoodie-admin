@@ -2,7 +2,8 @@ import { CATEGORIES, TOTAL_ITEM_COUNT } from "./categories";
 import { formatMxn, scenarioByKey, splitForPrice } from "./earningsMatrix";
 import { PLAN_CATALOG } from "./planCatalog";
 import { VERDICT_BANDS } from "./verdict";
-import { BRAND_RED, SUPPORT_EMAIL, escapeHtml, renderButton, renderEmailShell, renderGlosarioBlock } from "./email";
+import { BRAND_RED, SUPPORT_EMAIL, escapeHtml, renderButton, renderEmailShell } from "./email";
+import { annotateFirst } from "./glosario";
 
 /**
  * Correo de confirmación de la lista de espera de la MysterFoodie Uni: qué se
@@ -56,7 +57,7 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
 
   const card = `
     <h1 style="margin: 0 0 8px; font-size: 24px; line-height: 1.25; color: #111827;">¡Qué gusto tenerte en la lista!</h1>
-    ${p("Gracias por tu interés en la <strong>MysterFoodie Uni</strong>, el programa donde formamos a los MysterFoodies y Sibaritas que evalúan restaurantes y bares con criterio profesional. En cuanto abramos la primera generación, <strong>este es el correo al que te avisaremos</strong>: no tienes que hacer nada más.")}
+    ${p(annotateFirst("Gracias por tu interés en la <strong>MysterFoodie Uni</strong>, el programa donde formamos a los MysterFoodies y Sibaritas que evalúan restaurantes y bares con criterio profesional. En cuanto abramos la primera generación, <strong>este es el correo al que te avisaremos</strong>: no tienes que hacer nada más.", ["mysterfoodie", "sibarita"]))}
 
     ${h("Lo que aprenderías a calificar")}
     ${p(`Cada visita se evalúa con <strong>${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías</strong>. Aprenderías a observarlos, a calificarlos con el mismo protocolo y a registrar sugerencias útiles:`)}
@@ -75,8 +76,6 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
       ${earn("Sibarita · abres negocios", `${hasta(sibVendeVisita)} por reporte si das de alta el negocio y lo visitas tú; ${hasta(sibVendeAsigna)} si asignas la visita a un Shopper de tu red.`)}
     </table>
     <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #6b7280;">Son ejemplos, no una promesa de ingreso: la cantidad de visitas depende de las asignaciones de cada mes. Los requisitos, costos y fechas de la certificación se anunciarán al abrir la convocatoria.</p>
-
-    ${renderGlosarioBlock(["mysterfoodie", "shopper", "sibarita", "master_chef"], "Los rangos del equipo")}
 
     <div style="margin: 28px 0 8px;">${renderButton("https://mysterfoodie.com/metodologia/", "Conoce la metodología completa")}</div>
     <p style="margin: 18px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">Dejaste tu correo en mysterfoodie.com. Si no fuiste tú o ya no quieres recibir avisos, responde este correo con la palabra <strong>baja</strong> o escríbenos a <a href="mailto:${SUPPORT_EMAIL}" style="color: #9ca3af;">${SUPPORT_EMAIL}</a>. Tratamos tus datos conforme a nuestro <a href="https://mysterfoodie.com/privacidad/" style="color: #9ca3af;">Aviso de Privacidad</a>.</p>

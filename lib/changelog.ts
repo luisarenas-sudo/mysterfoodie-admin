@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.26.0",
+    date: "2026-10-20",
+    title: "Palabras de la marca, sin desplegables",
+    emoji: "📝",
+    highlights: [
+      "Quitamos el desplegable «Nuestro mundo» de la app: ahora las palabras de la marca se aclaran entre paréntesis, solo en el primer correo que recibe cada persona.",
+      "En la web, al pasar el mouse (o tocar) una palabra como MysterFoodie, Sibarita o Starter sale una nota pixeleada estilo Game Boy con su significado.",
+      "En computadora, Perfil también esconde tu nombre anónimo: da 3 clics a tu nombre y la foto cambia por el logo, igual que en el celular.",
+    ],
+  },
+  {
     version: "0.25.0",
     date: "2026-10-20",
     title: "Cargo por uso de la plataforma y ganancias claras por perfil",

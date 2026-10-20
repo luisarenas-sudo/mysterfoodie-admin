@@ -1,12 +1,9 @@
-import GlosarioCard from "@/components/GlosarioCard";
-import { GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "@/lib/glosario";
 import DeleteAccountButton from "@/components/perfil/DeleteAccountButton";
 import { redirect } from "next/navigation";
 import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import Link from "next/link";
-import Avatar from "@/components/Avatar";
 import ConnectGoogleButton from "@/components/auth/ConnectGoogleButton";
 import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 import DeleteButton from "@/components/DeleteButton";
@@ -17,6 +14,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { countPendingRequests } from "@/lib/visitRequests";
 import { countPendingApplications } from "@/lib/aspirantes";
 import IdentityCard from "@/components/perfil/IdentityCard";
+import DesktopIdentity from "@/components/perfil/DesktopIdentity";
 
 export const dynamic = "force-dynamic";
 
@@ -330,7 +328,6 @@ export default async function PerfilPage({
         </div>
       </div>
 
-      <GlosarioCard className="mx-5 mt-4" keys={isCliente ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO} subtitle={isCliente ? "Qué es un MysterFoodie y cómo funcionan nuestros planes" : "Qué significan MysterFoodie, tu rango y la Uni"} />
 
       <div className="mx-5 mt-2.5 text-center">
         <FlancoCredit />
@@ -371,14 +368,15 @@ export default async function PerfilPage({
         Perfil del <span className="text-brand-600">MysterFoodie</span>
       </h1>
 
-      <div className="mt-6 flex items-center gap-3.5 card p-[18px]">
-        <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
-        <div className="min-w-0">
-          <div className="truncate text-lg font-bold text-ink">{displayName}</div>
-          <div className="mt-0.5 text-sm font-semibold text-brand-700">{mysterfoodieTitle(profile.role)}</div>
-          <div className="mt-0.5 truncate text-sm text-stone-600">{profile.email}</div>
-        </div>
-      </div>
+      <DesktopIdentity
+        displayName={displayName}
+        avatarUrl={profile.avatarUrl}
+        email={profile.email}
+        title={mysterfoodieTitle(profile.role)}
+        alias={myAlias}
+        canHaveAlias={!isCliente}
+        canChangeAlias={canChangeAlias}
+      />
 
       <div className="mt-4 flex flex-wrap gap-3">
         <Link href="/perfil/editar" className="btn-secondary text-sm">
@@ -506,7 +504,6 @@ export default async function PerfilPage({
         </div>
       )}
 
-      <GlosarioCard className="mt-6" keys={isCliente ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO} subtitle={isCliente ? "Qué es un MysterFoodie y cómo funcionan nuestros planes" : "Qué significan MysterFoodie, tu rango y la Uni"} />
 
       {isCliente && (
         <p className="mt-6 text-sm text-stone-500">
