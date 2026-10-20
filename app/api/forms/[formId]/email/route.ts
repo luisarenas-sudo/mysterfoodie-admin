@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id, overall_score, short_code, report_url, waiter_name, plan_id, created_at")
+    .select("id, client_id, overall_score, short_code, report_url, waiter_name, plan_id, created_at, free_demo")
     .eq("id", formId)
     .maybeSingle();
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
 
   // Visita de un plan mensual: el negocio ya pagó, así que se reenvía el reporte
   // completo con PDF (no el resumen "gancho" de venta).
-  if (form.plan_id) {
+  if (form.plan_id || form.free_demo) {
     const { outcome } = await deliverPlanReportEmail(
       db,
       {
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
         short_code: form.short_code,
         created_at: form.created_at,
       },
-      { to: recipientEmail }
+      { to: recipientEmail, demo: Boolean(form.free_demo) }
     );
     return NextResponse.json({ email: outcome, recipientEmail });
   }

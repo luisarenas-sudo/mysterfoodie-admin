@@ -1,5 +1,6 @@
 "use client";
 
+import FreeSendButton from "./FreeSendButton";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
@@ -132,7 +133,7 @@ function stepLabel(step: StepDef): string {
   return "Revisar";
 }
 
-export default function DesktopWizard({ boundAssignment, defaultShopperName }: { boundAssignment?: BoundAssignment; defaultShopperName?: string } = {}) {
+export default function DesktopWizard({ boundAssignment, defaultShopperName, canSendFree }: { boundAssignment?: BoundAssignment; defaultShopperName?: string; canSendFree?: boolean } = {}) {
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
@@ -248,7 +249,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName }: {
     }
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -261,7 +262,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName }: {
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true } : payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -630,6 +631,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName }: {
             )}
           </div>
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+          {canSendFree && <FreeSendButton variant="desktop" onConfirm={() => handleSubmit(true)} disabled={submitting} />}
         </div>
       )}
 
@@ -648,7 +650,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName }: {
         {current.kind === "review" ? (
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             disabled={submitting}
             className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >

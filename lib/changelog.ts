@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.18.0",
+    date: "2026-10-20",
+    title: "Enviar GRATIS: reporte demo",
+    emoji: "🎁",
+    highlights: [
+      "Al terminar una visita, Master Chef y Sibarita pueden tocar «Enviar GRATIS» (tres toques para evitar accidentes).",
+      "El negocio recibe su reporte completo sin link de pago, con el PDF marcado con «GRATIS» en marca de agua muy clara.",
+      "Corre todo igual que una compra: reporte abierto en línea, correo con PDF y las mismas automatizaciones.",
+      "Un demo gratis no cuenta como venta en Ganancias.",
+    ],
+  },
+  {
     version: "0.17.0",
     date: "2026-10-20",
     title: "Eliminar cuenta con hoja de salida",

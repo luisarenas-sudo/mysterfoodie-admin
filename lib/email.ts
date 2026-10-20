@@ -351,6 +351,8 @@ export type SendFullReportEmailParams = {
   pdfFilename: string;
   /** Visita de un plan mensual: cambia el asunto y el encabezado para mostrar el avance ("2 de 3"). */
   planProgress?: { done: number; total: number; monthLabel: string; planName: string };
+  /** Demo gratis (sin pago): mismo correo y PDF, pero el PDF lleva marca de agua y el encabezado no agradece una compra. */
+  demo?: boolean;
 };
 
 function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
@@ -358,6 +360,8 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
   const verdict = getVerdict(score);
   const heading = planProgress
     ? `Visita ${planProgress.done} de ${planProgress.total} de ${planProgress.monthLabel.toLowerCase()}`
+    : params.demo
+    ? "Tu reporte completo, de cortesía"
     : "¡Gracias por tu compra!";
   const progressBar = planProgress
     ? `<p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6b7280;">Plan ${escapeHtml(planProgress.planName)}: ${"●".repeat(Math.min(planProgress.done, planProgress.total))}${"○".repeat(Math.max(planProgress.total - planProgress.done, 0))} ${planProgress.done} de ${planProgress.total} visitas del mes.</p>`

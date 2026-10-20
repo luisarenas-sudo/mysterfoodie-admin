@@ -18,7 +18,7 @@ export default async function VisitarNegocioPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireRole("admin", "sibarita");
+  const profile = await requireRole("admin", "sibarita");
   const { id } = await params;
 
   const client = await getClientDetail(id);
@@ -35,11 +35,14 @@ export default async function VisitarNegocioPage({
     },
   };
 
+  // Solo Master Chef y Sibarita deciden regalar un demo; el Shopper no.
+  const canSendFree = profile.role === "admin" || profile.role === "sibarita";
+
   return (
     <>
-      <MobileWizard boundAssignment={boundAssignment} />
+      <MobileWizard boundAssignment={boundAssignment} canSendFree={canSendFree} />
       <div className="hidden md:block">
-        <DesktopWizard boundAssignment={boundAssignment} />
+        <DesktopWizard boundAssignment={boundAssignment} canSendFree={canSendFree} />
       </div>
     </>
   );

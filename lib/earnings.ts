@@ -64,6 +64,7 @@ export async function getMonthEarnings(
       .from("forms")
       .select("id, client_id, created_by, report_unlocked_at")
       .is("plan_id", null)
+      .eq("free_demo", false)
       .not("report_unlocked_at", "is", null)
       .gte("report_unlocked_at", start.toISOString())
       .lt("report_unlocked_at", end.toISOString())

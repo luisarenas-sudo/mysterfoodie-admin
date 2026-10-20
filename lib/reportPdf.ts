@@ -21,6 +21,8 @@ export type ReportPdfParams = {
   flags?: Flags;
   menuType?: string | null;
   comments?: string | null;
+  /** Demo gratis (sin pago): marca de agua "GRATIS" muy clara en todas las páginas, a manera de sello CONFIDENCIAL. */
+  demo?: boolean;
 };
 
 const RED = "#F24444";
@@ -77,6 +79,23 @@ function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: numb
     align: "right",
     lineBreak: false,
   });
+  doc.page.margins.bottom = prevBottomMargin;
+}
+
+/** Marca de agua diagonal "GRATIS" muy clara; va encima del contenido pero con opacidad baja para no estorbar la lectura. */
+function drawWatermark(doc: PDFKit.PDFDocument) {
+  const prevBottomMargin = doc.page.margins.bottom;
+  doc.page.margins.bottom = 0;
+  doc.save();
+  doc.opacity(0.07);
+  doc.fillColor("#222222");
+  doc.font("Helvetica-Bold").fontSize(150);
+  const cx = doc.page.width / 2;
+  const cy = doc.page.height / 2;
+  doc.rotate(-35, { origin: [cx, cy] });
+  const w = doc.widthOfString("GRATIS");
+  doc.text("GRATIS", cx - w / 2, cy - 75, { lineBreak: false });
+  doc.restore();
   doc.page.margins.bottom = prevBottomMargin;
 }
 
@@ -421,6 +440,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
       for (let i = range.start; i < range.start + range.count; i++) {
         doc.switchToPage(i);
         drawFooter(doc, i - range.start + 1, range.count);
+        if (params.demo) drawWatermark(doc);
       }
 
       doc.end();

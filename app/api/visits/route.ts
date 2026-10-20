@@ -1,4 +1,4 @@
-import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
+import { deliverFullReportEmail, deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -34,6 +34,8 @@ type Body = {
   selects: Record<string, string>;
   comments?: string;
   waiterName?: string;
+  /** Demo gratis: el reporte se entrega abierto (sin link de pago) y el PDF lleva marca de agua. */
+  freeDemo?: boolean;
 };
 
 export async function POST(req: NextRequest) {
@@ -62,6 +64,10 @@ export async function POST(req: NextRequest) {
       { error: "Como Shopper solo puedes registrar visitas que te hayan sido asignadas" },
       { status: 403 }
     );
+  }
+
+  if (body.freeDemo && profile.role === "agente") {
+    return NextResponse.json({ error: "Solo un Master Chef o un Sibarita puede enviar un demo gratis" }, { status: 403 });
   }
 
   let db;
@@ -221,6 +227,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Demo gratis: se trata como un reporte ya comprado (queda desbloqueado, llega el
+  // PDF y corren las mismas automatizaciones), pero sin cobro y con marca de agua.
+  // Una visita de plan ya viene incluida, así que ahí no aplica.
+  const freeDemo = Boolean(body.freeDemo) && !planId;
+
   const score = overallScore(body.ratings, body.flags || {});
   const catScores = categoryScores(body.ratings, body.flags || {});
   const shortCode = nanoid(8);
@@ -243,6 +254,7 @@ export async function POST(req: NextRequest) {
       waiter_name: body.waiterName?.trim() || null,
       // Visita de plan: queda ligada al plan y con el reporte completo ya abierto.
       ...(planId ? { plan_id: planId, report_unlocked_at: new Date().toISOString() } : {}),
+      ...(freeDemo ? { free_demo: true, report_unlocked_at: new Date().toISOString() } : {}),
     })
     .select("id")
     .single();
@@ -321,6 +333,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  let demoReport: Awaited<ReturnType<typeof deliverFullReportEmail>> | null = null;
+  if (freeDemo) {
+    try {
+      demoReport = await deliverFullReportEmail(
+        db,
+        {
+          id: form.id,
+          overall_score: score,
+          client_id: clientId,
+          report_url: reportUrl,
+          short_code: shortCode,
+          created_at: new Date().toISOString(),
+        },
+        { recipientEmail: business.email || process.env.ADMIN_EMAIL || null, demo: true }
+      );
+    } catch (err) {
+      console.error("No se pudo mandar el reporte demo gratis:", err);
+    }
+  }
+
   const waiterName = body.waiterName?.trim() || null;
   const templateVars = resultadoVars({
     negocio: business.name,
@@ -342,7 +374,7 @@ export async function POST(req: NextRequest) {
 
   // En un plan no se manda el resumen "gancho" de venta: el negocio ya pagó y
   // recibe el reporte completo con PDF (más abajo).
-  const recipientEmail = planId ? "" : business.email || process.env.ADMIN_EMAIL || "";
+  const recipientEmail = planId || freeDemo ? "" : business.email || process.env.ADMIN_EMAIL || "";
   let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
   if (recipientEmail) {
@@ -389,7 +421,8 @@ export async function POST(req: NextRequest) {
     reportUrl,
     overallScore: score,
     categoryScores: catScores,
-    email: planReport ? planReport.outcome : emailOutcome,
+    email: planReport ? planReport.outcome : demoReport ?? emailOutcome,
+    freeDemo,
     plan: planReport?.progress ?? null,
     dmMessage,
     dmLink,

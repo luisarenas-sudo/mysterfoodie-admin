@@ -30,6 +30,8 @@ export async function deliverFullReportEmail(
     recipientEmail?: string | null;
     /** Visita de un plan mensual: el correo muestra "visita X de N". */
     planProgress?: { done: number; total: number; monthLabel: string; planName: string };
+    /** Demo gratis: PDF con marca de agua y encabezado sin "gracias por tu compra". */
+    demo?: boolean;
   } = {}
 ): Promise<FullReportOutcome> {
   const { data: client } = await db
@@ -87,6 +89,7 @@ export async function deliverFullReportEmail(
     flags,
     menuType: ticketRow?.menu_type ?? null,
     comments: ticketRow?.comments ?? null,
+    demo: opts.demo,
   });
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";
@@ -108,6 +111,7 @@ export async function deliverFullReportEmail(
     pdfBuffer,
     pdfFilename: `reporte-completo-${form.short_code}.pdf`,
     planProgress: opts.planProgress,
+    demo: opts.demo,
   });
 
   // Queda en el registro de correos: se ve en la visita y, si falla, avisa en Pendientes.
@@ -130,7 +134,7 @@ export async function deliverFullReportEmail(
 export async function deliverPlanReportEmail(
   db: ReturnType<typeof getSupabaseServiceClient>,
   form: UnlockedForm,
-  opts: { to?: string | null } = {}
+  opts: { to?: string | null; demo?: boolean } = {}
 ): Promise<{ outcome: FullReportOutcome; progress: PlanProgress | null }> {
   let progress: PlanProgress | null = null;
   const { data: assignment } = await db
@@ -157,6 +161,6 @@ export async function deliverPlanReportEmail(
     };
   }
 
-  const outcome = await deliverFullReportEmail(db, form, { recipientEmail: opts.to, planProgress: progress ?? undefined });
+  const outcome = await deliverFullReportEmail(db, form, { recipientEmail: opts.to, planProgress: progress ?? undefined, demo: opts.demo });
   return { outcome, progress };
 }

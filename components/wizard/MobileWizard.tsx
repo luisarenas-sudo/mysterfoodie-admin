@@ -1,5 +1,6 @@
 "use client";
 
+import FreeSendButton from "./FreeSendButton";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
@@ -239,7 +240,7 @@ const inputStyle: React.CSSProperties = {
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
 
-export default function MobileWizard({ boundAssignment }: { boundAssignment?: BoundAssignment } = {}) {
+export default function MobileWizard({ boundAssignment, canSendFree }: { boundAssignment?: BoundAssignment; canSendFree?: boolean } = {}) {
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
@@ -382,7 +383,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
     }
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -395,7 +396,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true } : payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -828,6 +829,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
               />
             </MobileField>
             {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+            {canSendFree && <FreeSendButton onConfirm={() => handleSubmit(true)} disabled={submitting} />}
           </div>
         )}
       </div>
@@ -863,7 +865,7 @@ export default function MobileWizard({ boundAssignment }: { boundAssignment?: Bo
         ) : (
           <button
             type="button"
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             disabled={submitting}
             className="mf-tap flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
             style={{ background: ACCENT }}
