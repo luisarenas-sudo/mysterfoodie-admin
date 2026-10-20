@@ -273,6 +273,15 @@ export default async function PerfilPage({
             iconBg="#34C759"
             title="Finanzas"
             subtitle={profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes"}
+          />
+        )}
+        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+          <Row
+            href="/planes"
+            icon="📅"
+            iconBg="#007AFF"
+            title="Planes"
+            subtitle={profile.role === "admin" ? "Visitas mensuales por sucursal y lo que gana cada perfil" : "Tus visitas de plan: cuánto ganas y por qué"}
             last={profile.role !== "admin"}
           />
         )}

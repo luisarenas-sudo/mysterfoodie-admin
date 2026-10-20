@@ -55,7 +55,7 @@ type Classified = { scenario: ScenarioKey | null; sibaritaId: string | null; foo
 
 export async function getMonthEarnings(
   month: string
-): Promise<{ visits: PaidVisit[]; profiles: Map<string, ProfileLite>; unpaidPlan: UnpaidPlanVisits }> {
+): Promise<{ visits: PaidVisit[]; profiles: Map<string, ProfileLite>; unpaidPlan: UnpaidPlanVisits; pendingPlan: PaidVisit[] }> {
   const db = getSupabaseServiceClient();
   const { start, end } = monthBounds(month);
 
@@ -80,7 +80,7 @@ export async function getMonthEarnings(
 
   const formRows = forms || [];
   const planFormRows = planForms || [];
-  const empty = { visits: [] as PaidVisit[], profiles: new Map<string, ProfileLite>(), unpaidPlan: { count: 0, amount: 0 } };
+  const empty = { visits: [] as PaidVisit[], profiles: new Map<string, ProfileLite>(), unpaidPlan: { count: 0, amount: 0 }, pendingPlan: [] as PaidVisit[] };
   if (formRows.length === 0 && planFormRows.length === 0) return empty;
 
   const allRows = [...formRows, ...planFormRows];
@@ -189,6 +189,9 @@ export async function getMonthEarnings(
   const visits: PaidVisit[] = formRows.map((f) => build(f, f.report_unlocked_at as string, "reporte", PRICE_MXN));
 
   const unpaidPlan: UnpaidPlanVisits = { count: 0, amount: 0 };
+  // Visitas de plan ya hechas cuyo mes aún no se marca como cobrado: no suman ganancia todavía, pero
+  // cada perfil puede ver cuánto le tocará (pantalla Planes).
+  const pendingPlan: PaidVisit[] = [];
   for (const f of planFormRows) {
     const plan = planById.get(f.plan_id as string);
     const price = (plan?.price_per_visit as number | undefined) ?? 0;
@@ -199,11 +202,13 @@ export async function getMonthEarnings(
     } else {
       unpaidPlan.count += 1;
       unpaidPlan.amount += price;
+      pendingPlan.push(build(f, f.created_at as string, "plan", price, plan.plan_name as string));
     }
   }
 
   visits.sort((a, b) => (a.soldAt < b.soldAt ? 1 : -1));
-  return { visits, profiles, unpaidPlan };
+  pendingPlan.sort((a, b) => (a.soldAt < b.soldAt ? 1 : -1));
+  return { visits, profiles, unpaidPlan, pendingPlan };
 }
 
 export { PRICE_MXN };

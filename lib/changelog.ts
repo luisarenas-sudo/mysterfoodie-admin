@@ -21,11 +21,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: "0.28.1",
     date: "2026-10-20",
-    title: "Planes solo en la web",
-    emoji: "🧭",
+    title: "Planes: cuánto ganas y por qué",
+    emoji: "📅",
     highlights: [
-      "La comparativa de planes vive solo en mysterfoodie.com/servicios; ya no hay pantalla «Planes» en la app ni en el menú.",
-      "Los planes de cada negocio se siguen contratando y administrando desde su ficha en Negocios; «Ver comparativa» abre la web.",
+      "La pantalla Planes ahora es para todos los MysterFoodies: cada quien ve sus visitas de plan del mes, cuánto le toca por cada una y la razón (vendió, gestionó o visitó).",
+      "Aparece también lo ya hecho pero por cobrar, para saber qué se suma cuando se cobre el mes del plan.",
+      "La comparativa de planes vive solo en mysterfoodie.com/servicios; «Ver comparativa» abre la web.",
     ],
   },
   {
