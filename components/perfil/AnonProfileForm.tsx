@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
+import { BLOCKS, MAX_EARNINGS_PER_SALE, MIN_VISITS_PASSPORT, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockDef, type BlockKey, type Persona } from "@/lib/personaCatalog";
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -16,16 +17,47 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   );
 }
 
-/** Código postal y gustos de la persona: alimentan su perfil anónimo (lo que ven los negocios que lo compran). */
-export default function AnonProfileForm({ initial }: { initial: { postalCode: string; cuisines: string[]; dishes: string[] } }) {
+const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
+
+/** Código postal, gustos, preguntas del buyer persona y qué bloques comparte (cada uno paga un % por venta). */
+export default function AnonProfileForm({
+  initial,
+  visits,
+}: {
+  initial: { postalCode: string; cuisines: string[]; dishes: string[]; persona: Persona; shared: BlockKey[] };
+  visits: number;
+}) {
   const [cp, setCp] = useState(initial.postalCode);
   const [cuisines, setCuisines] = useState(initial.cuisines);
   const [dishes, setDishes] = useState(initial.dishes);
+  const [persona, setPersona] = useState<Persona>(initial.persona);
+  const [shared, setShared] = useState<BlockKey[]>(initial.shared);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const toggle = (list: string[], set: (v: string[]) => void) => (key: string) =>
+  const toggleIn = (list: string[], set: (v: string[]) => void) => (key: string) =>
     set(list.includes(key) ? list.filter((k) => k !== key) : [...list, key]);
+
+  const setField = (block: BlockKey, field: string, kind: "one" | "many", value: string) =>
+    setPersona((p) => {
+      const cur = { ...(p[block] ?? {}) };
+      if (kind === "one") cur[field] = value;
+      else {
+        const arr = Array.isArray(cur[field]) ? (cur[field] as string[]) : [];
+        cur[field] = arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
+      }
+      return { ...p, [block]: cur };
+    });
+
+  const effective = shared.filter((k) => isBlockComplete(k, persona));
+  const estimate = earningsForBlocks(effective);
+
+  function toggleShare(def: BlockDef) {
+    setMsg(null);
+    if (shared.includes(def.key)) return setShared(shared.filter((k) => k !== def.key));
+    if (!isBlockComplete(def.key, persona)) return setMsg({ ok: false, text: `Contesta todas las preguntas de «${def.label}» para compartirlo.` });
+    setShared([...shared, def.key]);
+  }
 
   async function save() {
     setBusy(true);
@@ -34,7 +66,7 @@ export default function AnonProfileForm({ initial }: { initial: { postalCode: st
       const res = await fetch("/api/perfil/anonimo", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postalCode: cp, cuisines, dishes }),
+        body: JSON.stringify({ postalCode: cp, cuisines, dishes, persona, shareBlocks: shared }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo guardar.");
@@ -46,8 +78,8 @@ export default function AnonProfileForm({ initial }: { initial: { postalCode: st
     }
   }
 
-  const group = (title: string, hint: string, options: FoodOption[], sel: string[], onToggle: (k: string) => void) => (
-    <div className="mb-5">
+  const chipGroup = (title: string, hint: string, options: readonly FoodOption[], sel: string[], onToggle: (k: string) => void) => (
+    <div className="mb-4">
       <div className="text-[13.5px] font-semibold">{title}</div>
       <div className="mb-2 text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>{hint}</div>
       <div className="flex flex-wrap gap-2">
@@ -62,23 +94,89 @@ export default function AnonProfileForm({ initial }: { initial: { postalCode: st
 
   return (
     <div>
-      <label className="mb-5 block">
-        <span className="mb-1.5 block text-[13.5px] font-semibold">Código postal de tu casa</span>
-        <input
-          inputMode="numeric"
-          maxLength={5}
-          value={cp}
-          onChange={(e) => setCp(e.target.value.replace(/\D/g, "").slice(0, 5))}
-          placeholder="91900"
-          className="w-full rounded-[12px] bg-white px-3.5 py-3 text-[16px] outline-none"
-          style={{ border: "1.5px solid rgba(60,60,67,0.14)" }}
-        />
-        <span className="mt-1 block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-          Solo sirve para saber de qué zona eres. Los negocios ven la zona, nunca tu código postal.
-        </span>
-      </label>
-      {group("Tipos de cocina que te gustan", `Elige al menos ${MIN_CUISINES}.`, CUISINES, cuisines, toggle(cuisines, setCuisines))}
-      {group("Platillos que te gustan", `Elige al menos ${MIN_DISHES}.`, DISHES, dishes, toggle(dishes, setDishes))}
+      <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff", border: "1.5px solid rgba(60,60,67,0.1)" }}>
+        <div className="text-[13px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>Con lo que compartes hoy ganarías</div>
+        <div className="mt-0.5 text-[26px] font-extrabold" style={{ color: "#F24444" }}>{money(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
+        <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+          Si compartes todo: hasta {money(MAX_EARNINGS_PER_SALE)} por perfil Passport. Cada bloque paga un porcentaje fijo del escalón de precio al que pertenece (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport).
+        </div>
+      </div>
+
+      {BLOCKS.map((def) => {
+        const on = shared.includes(def.key);
+        const locked = def.tier === "passport" && visits < MIN_VISITS_PASSPORT;
+        return (
+          <div key={def.key} className="mb-3.5 rounded-2xl bg-white p-4" style={{ border: on ? "1.5px solid #F24444" : "1.5px solid rgba(60,60,67,0.1)" }}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: def.tier === "passport" ? "#5856D6" : "#F24444" }}>
+                  Nivel {def.tier === "passport" ? "Passport" : "ID"} · gana {def.pct}%
+                </div>
+                <div className="heading text-[19px]">{def.label}</div>
+                <div className="text-[13px] text-stone-500">{def.desc}</div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                onClick={() => toggleShare(def)}
+                className="relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors"
+                style={{ background: on ? "#34C759" : "rgba(120,120,128,0.32)" }}
+              >
+                <span className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all" style={{ left: on ? 22 : 2 }} />
+                <span className="sr-only">Compartir {def.label}</span>
+              </button>
+            </div>
+            {locked && (
+              <p className="mt-2 text-[12px]" style={{ color: "#9A6A00" }}>
+                Los bloques Passport se entregan a partir de {MIN_VISITS_PASSPORT} visitas (llevas {visits}); puedes dejar tus respuestas listas desde ahora.
+              </p>
+            )}
+
+            {def.key === "gustos" && (
+              <div className="mt-3">
+                {chipGroup("Tipos de cocina que te gustan", `Elige al menos ${MIN_CUISINES}.`, CUISINES, cuisines, toggleIn(cuisines, setCuisines))}
+                {chipGroup("Platillos que te gustan", `Elige al menos ${MIN_DISHES}.`, DISHES, dishes, toggleIn(dishes, setDishes))}
+              </div>
+            )}
+
+            {def.key === "sector" && (
+              <label className="mt-3 block">
+                <span className="mb-1.5 block text-[13.5px] font-semibold">Código postal de tu casa</span>
+                <input
+                  inputMode="numeric"
+                  maxLength={5}
+                  value={cp}
+                  onChange={(e) => setCp(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  placeholder="91900"
+                  className="w-full rounded-[12px] px-3.5 py-3 text-[16px] outline-none"
+                  style={{ border: "1.5px solid rgba(60,60,67,0.14)" }}
+                />
+                <span className="mt-1 block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+                  Solo sirve para saber de qué zona eres. Los negocios ven la zona, nunca tu código postal.
+                </span>
+              </label>
+            )}
+
+            {def.fields.map((f) => {
+              const cur = persona[def.key]?.[f.key];
+              return (
+                <div key={f.key} className="mt-3">
+                  <div className="mb-1.5 text-[13.5px] font-semibold">{f.label}{f.kind === "many" ? " (puedes elegir varias)" : ""}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {f.options.map((o) => (
+                      <Chip key={o} on={f.kind === "one" ? cur === o : Array.isArray(cur) && cur.includes(o)} onClick={() => setField(def.key, f.key, f.kind, o)}>
+                        {o}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+
       {msg && (
         <p className="mb-3 rounded-[12px] px-3.5 py-2.5 text-[13.5px] font-medium" style={msg.ok ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>
           {msg.text}

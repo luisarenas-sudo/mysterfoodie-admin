@@ -6,6 +6,7 @@ import { ROLE_LABELS } from "./brand";
 import { aliasSlug, isAliasStyle, pickAlias, type AliasStyle } from "./alias";
 import { appBaseUrl } from "./aliasStore";
 import { isValidPostalCode } from "./zonas";
+import { PASSPORT_BLOCKS, isBlockComplete, isBlockKey, sanitizePersona, type BlockKey, type Persona } from "./personaCatalog";
 import { CUISINES, DISHES, EXPERIENCE_LEVELS, MIN_CUISINES, MIN_DISHES, TIME_SLOTS, WEEK_DAYS } from "./foodCatalog";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
@@ -28,6 +29,8 @@ export type ApplicationInput = {
   aliasStyle: AliasStyle;
   cuisines: string[];
   dishes: string[];
+  persona: Persona;
+  shareBlocks: BlockKey[];
   ipHash: string | null;
 };
 
@@ -51,6 +54,8 @@ export function parseApplication(p: Record<string, unknown>): { ok: true; value:
   const cuisines = list(p.cuisines, CUISINES.map((c) => c.key));
   const dishes = list(p.dishes, DISHES.map((d) => d.key));
   const inviterSlug = str(p.inviterSlug, 80);
+  const persona = sanitizePersona(p.persona);
+  const shareBlocks: BlockKey[] = Array.isArray(p.shareBlocks) ? [...new Set((p.shareBlocks as unknown[]).filter(isBlockKey))] : [];
 
   if (!inviterSlug) return { ok: false, error: "Esta invitación no es válida." };
   if (fullName.split(" ").filter(Boolean).length < 2) return { ok: false, error: "Escribe tu nombre completo (nombre y apellido)." };
@@ -69,11 +74,12 @@ export function parseApplication(p: Record<string, unknown>): { ok: true; value:
   if (!isAliasStyle(p.aliasStyle)) return { ok: false, error: "Elige el estilo de tu nombre anónimo." };
   if (cuisines.length < MIN_CUISINES) return { ok: false, error: "Elige al menos un tipo de cocina que te guste." };
   if (dishes.length < MIN_DISHES) return { ok: false, error: `Elige al menos ${MIN_DISHES} platillos que te gusten.` };
+  if (!PASSPORT_BLOCKS.every((k) => isBlockComplete(k, persona))) return { ok: false, error: "Contesta las preguntas de tu perfil anónimo." };
   if (p.consent !== true) return { ok: false, error: "Acepta el aviso de privacidad para continuar." };
 
   return {
     ok: true,
-    value: { inviterSlug, fullName, whatsapp, email, city, colonia, postalCode, isAdult: true, instagram, experienceLevel, experienceText, days, slots, hasVehicle: p.hasVehicle, aliasStyle: p.aliasStyle, cuisines, dishes },
+    value: { inviterSlug, fullName, whatsapp, email, city, colonia, postalCode, isAdult: true, instagram, experienceLevel, experienceText, days, slots, hasVehicle: p.hasVehicle, aliasStyle: p.aliasStyle, cuisines, dishes, persona, shareBlocks: shareBlocks.filter((k) => isBlockComplete(k, persona)) },
   };
 }
 
@@ -112,6 +118,8 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
     alias_style: input.aliasStyle,
     cuisines: input.cuisines,
     dishes: input.dishes,
+    persona: input.persona,
+    share_blocks: input.shareBlocks,
     ip_hash: input.ipHash,
   });
   if (error) return { ok: false, error: error.message };
@@ -180,6 +188,8 @@ export async function approveApplication(db: Db, id: string, reviewerId: string)
     postal_code: app.postal_code ?? null,
     food_cuisines: app.cuisines ?? null,
     food_dishes: app.dishes ?? null,
+    persona: app.persona ?? {},
+    share_blocks: app.share_blocks ?? [],
   });
   if (profileError) return { ok: false, error: profileError.message, status: 500 };
 

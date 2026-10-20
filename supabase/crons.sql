@@ -7,6 +7,7 @@ from cron.job b,
   (values ('plan-visitas',    '0 12 * * *', 'plan-visitas'),     -- 6:00 am CDMX
           ('followup-emails', '0 14 * * *', 'followup-emails'),  -- 8:00 am CDMX (asesoría tras el pago)
           ('ticket-emails',   '0 15 * * *', 'ticket-emails'),    -- 9:00 am CDMX (oferta/aviso del ticket)
+          ('perfil-oferta',   '0 16 * * *', 'perfil-oferta'),    -- 10:00 am CDMX (oferta del perfil del MysterFoodie)
           ('solicitudes-vencidas', '*/10 * * * *', 'solicitudes-vencidas') -- cada 10 min (solicitudes de visita: avisos a las 2/3/5 h sin asignar, hechas, sin Shopper a los 5 días)
   ) as v(jobname, horario, ruta)
 where b.jobname = 'activar-cuenta-negocio';

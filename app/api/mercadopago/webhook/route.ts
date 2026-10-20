@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getPayment } from "@/lib/mercadopago";
 import { deliverFullReportEmail } from "@/lib/fullReportDelivery";
+import { settleProfilePurchase } from "@/lib/profilePurchases";
 
 /**
  * Webhook de MercadoPago (configurar esta URL como notification_url;
@@ -54,15 +55,7 @@ export async function POST(req: NextRequest) {
 
   // Compra del perfil anónimo de un MysterFoodie ("perfil:<purchaseId>"): no toca report_payments ni el reporte.
   if (formId.startsWith("perfil:")) {
-    const purchaseId = formId.slice("perfil:".length);
-    const patch: Record<string, string | number | null> = {
-      mercadopago_payment_id: String(payment.id),
-      status: payment.status ?? "pending",
-      amount: payment.transaction_amount ?? null,
-    };
-    if (payment.status === "approved") patch.paid_at = new Date().toISOString();
-    const { error } = await db.from("profile_purchases").update(patch).eq("id", purchaseId);
-    if (error) console.error("No se pudo actualizar la compra del perfil:", error.message);
+    await settleProfilePurchase(db, formId.slice("perfil:".length), payment);
     return NextResponse.json({ ok: true });
   }
 

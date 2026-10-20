@@ -110,6 +110,17 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  perfil_oferta: {
+    title: "Destapa el perfil de tu MysterFoodie (oferta al negocio)",
+    desc: "Se manda 2 días después de que el negocio tiene su reporte completo (pagado o por plan), una sola vez por MysterFoodie: invita a destapar su perfil anónimo, nivel ID o Passport. Solo sale si esa persona comparte al menos un bloque y el negocio aún no compró su perfil. Si la desactivas, no se manda.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "fecha_visita", desc: "Fecha de la visita, ej. \"5 de octubre\"" },
+      { tag: "precio_id", desc: "Precio del nivel ID, ej. \"$350 MXN + IVA\"" },
+      { tag: "precio_passport", desc: "Precio del nivel Passport, ej. \"$700 MXN + IVA\"" },
+      { tag: "link_perfil", desc: "Enlace al perfil (línea sola para que salga como botón)" },
+    ],
+  },
   solicitud_recibida: {
     title: "Solicitud de visita gratis recibida (al negocio)",
     desc: "Se manda al instante cuando un negocio llena \"Solicita una visita GRATIS\" en mysterfoodie.com: confirma que el negocio fue dado de alta y la solicitud enviada, con sus datos y el enlace para crear su cuenta. Si la desactivas se usa el texto original; el código de 6 dígitos se agrega solo al final.",

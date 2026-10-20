@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ticketEmailContent, ticketEmailVars, TICKET_CTA_LABEL } from "@/lib/ticket";
+import { PERFIL_OFERTA_CTA, PERFIL_OFERTA_DEFAULT, perfilOfertaVars } from "@/lib/perfilOferta";
 import { requireRole } from "@/lib/auth";
 import { getAutomation, renderTemplate, AUTOMATION_CATALOG, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
 import { sendResultEmail, sendTemplatedEmail, sendFullReportEmail, formatSlot } from "@/lib/email";
@@ -179,6 +180,10 @@ export async function POST(req: NextRequest) {
         );
         subject = prefix + mail.subject;
         bodyText = mail.bodyText;
+      } else if (key === "perfil_oferta") {
+        const vars = perfilOfertaVars({ negocio: SAMPLE.negocio, visitDate: new Date().toISOString(), link: `${baseUrl}/mi-negocio` });
+        subject = prefix + tpl(automation?.subjectTemplate, vars, renderTemplate(PERFIL_OFERTA_DEFAULT.subject, vars));
+        bodyText = tpl(automation?.bodyTemplate, vars, renderTemplate(PERFIL_OFERTA_DEFAULT.body, vars));
       } else if (key === "instagram_dm") {
         // No es un correo: se manda como texto para que veas cómo queda el DM.
         const vars = {
@@ -205,6 +210,7 @@ export async function POST(req: NextRequest) {
         activacion_cuenta_negocio: "Crear mi cuenta",
         solicitud_recibida: "Crear mi cuenta",
         solicitud_sin_foodie: "Ver la tabla comparativa de paquetes",
+        perfil_oferta: PERFIL_OFERTA_CTA,
         ticket_oferta: TICKET_CTA_LABEL.oferta,
         ticket_aviso: TICKET_CTA_LABEL.aviso,
       };

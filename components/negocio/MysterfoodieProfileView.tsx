@@ -1,4 +1,5 @@
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
+import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, type BlockKey } from "@/lib/personaCatalog";
 
 const money = (n: number | null) =>
   n == null ? "—" : n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
@@ -37,100 +38,158 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   );
 }
 
-/** Perfil anónimo completo de un MysterFoodie. Solo alias y hábitos agregados: nunca nombre, foto, contacto ni CP. */
+const asArr = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
+
+/** Resumen en una frase del buyer persona, armado con las respuestas compartidas. */
+function personaSummary(p: MysterfoodieProfile): string | null {
+  const d = p.persona.demografia, e = p.persona.estilo_vida, m = p.persona.movilidad;
+  const parts: string[] = [];
+  const edad = asArr(d?.edad)[0];
+  const ocup = asArr(d?.ocupacion)[0];
+  const hogar = asArr(d?.hogar)[0];
+  if (edad || ocup) parts.push(`Persona${edad ? ` de ${edad} años` : ""}${ocup && !ocup.startsWith("Prefiero") ? `, ${ocup.toLowerCase()}` : ""}`);
+  if (hogar && !hogar.startsWith("Prefiero")) parts.push(`vive ${hogar.toLowerCase()}`);
+  const freq = asArr(e?.frecuencia)[0];
+  const gasto = asArr(e?.gasto)[0];
+  if (freq) parts.push(`come fuera ${freq} veces al mes${gasto ? ` y gasta ${gasto.toLowerCase()} por persona` : ""}`);
+  const auto = asArr(m?.auto)[0];
+  if (auto && !auto.startsWith("No maneja")) parts.push(`maneja ${auto.toLowerCase()}`);
+  return parts.length ? `${parts.join("; ")}.` : null;
+}
+
+function PersonaBlock({ p, k }: { p: MysterfoodieProfile; k: BlockKey }) {
+  const def = BLOCK_BY_KEY[k];
+  const data = p.persona[k];
+  if (!data) return null;
+  return (
+    <Section title={def.label}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {def.fields.map((f) => {
+          const vals = asArr(data[f.key]);
+          if (vals.length === 0) return null;
+          return (
+            <div key={f.key}>
+              <div className="text-[12px] font-semibold text-stone-500">{f.label}</div>
+              {f.kind === "many" ? <Chips items={vals} empty="—" /> : <p className="mt-1 text-[15px] font-bold">{vals[0]}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+/** Perfil anónimo de un MysterFoodie, solo con lo que el nivel comprado incluye y lo que él decidió compartir. */
 export default function MysterfoodieProfileView({ profile: p }: { profile: MysterfoodieProfile }) {
-  const maxWord = Math.max(1, ...p.words.map((w) => w.count));
+  const g = p.gustos;
+  const c = p.consumo;
+  const maxWord = Math.max(1, ...(g?.words.map((w) => w.count) ?? [1]));
+  const summary = p.tier === "passport" ? personaSummary(p) : null;
+  const missing = BLOCKS_OF_TIER(p.tier === "passport" ? "passport" : "id").filter((b) => !p.blocks.includes(b.key));
+  const missingAll = p.tier === "passport" ? [...BLOCKS_OF_TIER("id").filter((b) => !p.blocks.includes(b.key)), ...missing] : missing;
+
   return (
     <div className="space-y-3.5">
       <div className="card p-5">
-        <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>{p.rankLabel} · perfil anónimo</p>
+        <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>
+          {p.rankLabel} · perfil {TIERS[p.tier].label}
+        </p>
         <h1 className="heading mt-1 text-3xl text-ink">{p.alias}</h1>
         <p className="mt-1 text-[14px] text-stone-500">
           {p.visits} {p.visits === 1 ? "visita" : "visitas"} con MysterFoodie
           {p.monthsActive >= 1 ? ` · ${p.monthsActive} ${p.monthsActive === 1 ? "mes" : "meses"} en el equipo` : ""}
-          {p.strictness.label ? ` · ${p.strictness.label}` : ""}
+          {c?.strictness.label ? ` · ${c.strictness.label}` : ""}
         </p>
+        {summary && <p className="mt-3 rounded-xl px-3.5 py-3 text-[14.5px] font-medium" style={{ background: "#F2F2F7" }}>{summary}</p>}
       </div>
 
-      <Section title="Palabras que más usa en sus reseñas">
-        {p.words.length === 0 ? (
-          <p className="text-[14px] text-stone-500">Aún no tiene suficientes reseñas para detectar palabras frecuentes.</p>
-        ) : (
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            {p.words.map((w) => (
-              <span key={w.word} className="font-semibold" style={{ fontSize: `${13 + Math.round((w.count / maxWord) * 13)}px`, opacity: 0.55 + (w.count / maxWord) * 0.45 }}>
-                {w.word}
-              </span>
-            ))}
+      {g && (
+        <>
+          <Section title="Palabras que más usa en sus reseñas">
+            {g.words.length === 0 ? (
+              <p className="text-[14px] text-stone-500">Aún no tiene suficientes reseñas para detectar palabras frecuentes.</p>
+            ) : (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                {g.words.map((w) => (
+                  <span key={w.word} className="font-semibold" style={{ fontSize: `${13 + Math.round((w.count / maxWord) * 13)}px`, opacity: 0.55 + (w.count / maxWord) * 0.45 }}>
+                    {w.word}
+                  </span>
+                ))}
+              </div>
+            )}
+            {(g.likes.good.length > 0 || g.likes.improve.length > 0) && (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <div className="text-[12px] font-semibold" style={{ color: "#1E8E4E" }}>Lo que más destaca</div>
+                  <Chips items={g.likes.good.map((x) => x.tag)} empty="—" />
+                </div>
+                <div>
+                  <div className="text-[12px] font-semibold" style={{ color: "#C7301E" }}>Lo que más señala para mejorar</div>
+                  <Chips items={g.likes.improve.map((x) => x.tag)} empty="—" />
+                </div>
+              </div>
+            )}
+          </Section>
+
+          <Section title="Sus gustos">
+            <div className="space-y-3">
+              <div>
+                <div className="text-[12px] font-semibold text-stone-500">Tipos de cocina</div>
+                <Chips items={g.tastes.cuisines} empty="Aún no los ha indicado." />
+              </div>
+              <div>
+                <div className="text-[12px] font-semibold text-stone-500">Platillos favoritos</div>
+                <Chips items={g.tastes.dishes} empty="Aún no los ha indicado." />
+              </div>
+            </div>
+          </Section>
+        </>
+      )}
+
+      {c && (
+        <Section title="Con quién sale y cuánto consume">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <Stat label="Personas por salida" value={c.party.avg != null ? c.party.avg.toFixed(1) : "—"} hint={c.party.usual ? `Lo más común: ${c.party.usual}` : undefined} />
+            <Stat label="Sale solo/a" value={c.party.soloPct != null ? `${c.party.soloPct}%` : "—"} hint={c.party.groupPct != null ? `Grupos de 4+: ${c.party.groupPct}%` : undefined} />
+            <Stat label="Cuenta promedio" value={money(c.consumption.avgTicket)} hint={c.consumption.maxTicket ? `La más alta: ${money(c.consumption.maxTicket)}` : undefined} />
+            <Stat label="Por persona" value={money(c.consumption.avgPerPerson)} />
           </div>
-        )}
-        {(p.likes.good.length > 0 || p.likes.improve.length > 0) && (
+          <p className="mt-3 text-[13px] text-stone-500">
+            Total consumido en sus visitas registradas: <strong>{money(c.consumption.total)}</strong>
+            {c.consumption.samples > 0 ? ` (${c.consumption.samples} cuentas con total capturado)` : " (aún sin totales capturados)"}.
+          </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div>
-              <div className="text-[12px] font-semibold" style={{ color: "#1E8E4E" }}>Lo que más destaca</div>
-              <Chips items={p.likes.good.map((g) => g.tag)} empty="—" />
+              <div className="text-[12px] font-semibold text-stone-500">Cuándo suele salir</div>
+              <p className="mt-1 text-[15px] font-bold">{c.habits.day ? `${c.habits.day}${c.habits.slot ? `, en la ${c.habits.slot}` : ""}` : "Sin datos"}</p>
             </div>
             <div>
-              <div className="text-[12px] font-semibold" style={{ color: "#C7301E" }}>Lo que más señala para mejorar</div>
-              <Chips items={p.likes.improve.map((g) => g.tag)} empty="—" />
+              <div className="text-[12px] font-semibold text-stone-500">Tipos de negocio que visita</div>
+              <Chips items={c.visitedTypes.map((t) => `${t.label} (${t.count})`)} empty="Sin datos" />
+            </div>
+            <div>
+              <div className="text-[12px] font-semibold text-stone-500">Ciudades donde consume</div>
+              <Chips items={c.cities.map((x) => `${x.label} (${x.count})`)} empty="Sin datos" />
             </div>
           </div>
-        )}
-      </Section>
+        </Section>
+      )}
 
-      <Section title="Sus gustos">
-        <div className="space-y-3">
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Tipos de cocina</div>
-            <Chips items={p.tastes.cuisines} empty="Aún no los ha indicado." />
-          </div>
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Platillos favoritos</div>
-            <Chips items={p.tastes.dishes} empty="Aún no los ha indicado." />
-          </div>
-        </div>
-      </Section>
+      {p.sector && (
+        <Section title="Sector que representa">
+          <p className="text-[15px] font-bold">{p.sector.label ?? "Sin definir"}</p>
+        </Section>
+      )}
 
-      <Section title="Con quién sale y cuánto consume">
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-          <Stat label="Personas por salida" value={p.party.avg != null ? p.party.avg.toFixed(1) : "—"} hint={p.party.usual ? `Lo más común: ${p.party.usual}` : undefined} />
-          <Stat label="Sale solo/a" value={p.party.soloPct != null ? `${p.party.soloPct}%` : "—"} hint={p.party.groupPct != null ? `Grupos de 4+: ${p.party.groupPct}%` : undefined} />
-          <Stat label="Cuenta promedio" value={money(p.consumption.avgTicket)} hint={p.consumption.maxTicket ? `La más alta: ${money(p.consumption.maxTicket)}` : undefined} />
-          <Stat label="Por persona" value={money(p.consumption.avgPerPerson)} />
-        </div>
-        <p className="mt-3 text-[13px] text-stone-500">
-          Total consumido en sus visitas registradas: <strong>{money(p.consumption.total)}</strong>
-          {p.consumption.samples > 0 ? ` (${p.consumption.samples} cuentas con total capturado)` : " (aún sin totales capturados)"}.
+      {p.tier === "passport" && (["demografia", "estilo_vida", "movilidad", "medios"] as BlockKey[]).map((k) => <PersonaBlock key={k} p={p} k={k} />)}
+
+      {missingAll.length > 0 && (
+        <p className="px-1 text-[12.5px] leading-snug text-stone-500">
+          Este MysterFoodie decidió no compartir: {missingAll.map((b) => b.label.toLowerCase()).join(", ")}.
         </p>
-      </Section>
-
-      <Section title="Sector y por dónde consume">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Sector que representa</div>
-            <p className="mt-1 text-[15px] font-bold">{p.sector.label ?? "Sin definir"}</p>
-          </div>
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Cuándo suele salir</div>
-            <p className="mt-1 text-[15px] font-bold">
-              {p.habits.day ? `${p.habits.day}${p.habits.slot ? `, en la ${p.habits.slot}` : ""}` : "Sin datos"}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Tipos de negocio que visita</div>
-            <Chips items={p.visitedTypes.map((t) => `${t.label} (${t.count})`)} empty="Sin datos" />
-          </div>
-          <div>
-            <div className="text-[12px] font-semibold text-stone-500">Ciudades donde consume</div>
-            <Chips items={p.cities.map((c) => `${c.label} (${c.count})`)} empty="Sin datos" />
-          </div>
-        </div>
-      </Section>
-
+      )}
       <p className="px-1 text-[12px] leading-snug text-stone-400">
-        Perfil anónimo: se basa en las visitas y respuestas de este MysterFoodie. No incluye su nombre, foto ni datos de contacto.
+        Perfil anónimo: se basa en las visitas y respuestas de este MysterFoodie, que decidió qué compartir. No incluye su nombre, foto, datos de contacto ni documentos; rangos y categorías, nunca datos exactos.
       </p>
     </div>
   );

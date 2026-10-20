@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ALIAS_STYLES, type AliasStyle } from "@/lib/alias";
+import { BLOCKS, ID_BLOCKS, PASSPORT_BLOCKS, TIER_INCREMENT, earningsForBlocks, isBlockComplete, type BlockKey, type Persona } from "@/lib/personaCatalog";
 import { CUISINES, DISHES, EXPERIENCE_LEVELS, MIN_CUISINES, MIN_DISHES, TIME_SLOTS, WEEK_DAYS, type FoodOption } from "@/lib/foodCatalog";
 
 type Form = {
@@ -21,16 +22,18 @@ type Form = {
   aliasStyle: AliasStyle | null;
   cuisines: string[];
   dishes: string[];
+  persona: Persona;
+  shareBlocks: BlockKey[];
   consent: boolean;
   website: string;
 };
 
 const EMPTY: Form = {
   fullName: "", whatsapp: "", email: "", city: "Veracruz", colonia: "", postalCode: "", isAdult: false, instagram: "", experienceLevel: "", experienceText: "",
-  days: [], slots: [], hasVehicle: null, aliasStyle: null, cuisines: [], dishes: [], consent: false, website: "",
+  days: [], slots: [], hasVehicle: null, aliasStyle: null, cuisines: [], dishes: [], persona: {}, shareBlocks: [...ID_BLOCKS], consent: false, website: "",
 };
 
-const STEPS = ["Tus datos", "Dónde vives", "Experiencia", "Disponibilidad", "Lo que te gusta comer"] as const;
+const STEPS = ["Tus datos", "Dónde vives", "Experiencia", "Disponibilidad", "Lo que te gusta comer", "Tu perfil anónimo"] as const;
 
 const input = "w-full rounded-[12px] bg-white px-3.5 py-3 text-[16px] outline-none";
 const inputStyle = { border: "1.5px solid rgba(60,60,67,0.14)" };
@@ -82,6 +85,18 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
   const toggle = (k: "days" | "slots" | "cuisines" | "dishes", v: string) =>
     setF((p) => ({ ...p, [k]: p[k].includes(v) ? p[k].filter((x) => x !== v) : [...p[k], v] }));
 
+  const setField = (block: BlockKey, field: string, kind: "one" | "many", value: string) =>
+    setF((p) => {
+      const cur = { ...(p.persona[block] ?? {}) };
+      if (kind === "one") cur[field] = value;
+      else {
+        const arr = Array.isArray(cur[field]) ? (cur[field] as string[]) : [];
+        cur[field] = arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
+      }
+      return { ...p, persona: { ...p.persona, [block]: cur } };
+    });
+  const toggleShare = (k: BlockKey) => setF((p) => ({ ...p, shareBlocks: p.shareBlocks.includes(k) ? p.shareBlocks.filter((x) => x !== k) : [...p.shareBlocks, k] }));
+
   /** Mensaje de lo que falta en el paso actual (null = completo). TODO es obligatorio. */
   const missing = (s: number): string | null => {
     if (s === 0) {
@@ -109,6 +124,9 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
       if (f.cuisines.length < MIN_CUISINES) return "Elige al menos un tipo de cocina.";
       if (f.dishes.length < MIN_DISHES) return `Elige al menos ${MIN_DISHES} platillos (llevas ${f.dishes.length}).`;
       if (!f.aliasStyle) return "Elige el estilo de tu nombre anónimo.";
+    }
+    if (s === 5) {
+      for (const k of PASSPORT_BLOCKS) if (!isBlockComplete(k, f.persona)) return `Contesta todas las preguntas de «${BLOCKS.find((b) => b.key === k)!.label}».`;
       if (!f.consent) return "Acepta el aviso de privacidad para enviar.";
     }
     return null;
@@ -251,10 +269,68 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
                 <Chip key={s.value} on={f.aliasStyle === s.value} onClick={() => set("aliasStyle", s.value)}>{s.label} · {s.example}</Chip>
               ))}
             </div>
+          </>
+        )}
+        {step === 5 && (
+          <>
+            <p className="mb-4 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
+              Los negocios que visites podrán conocer a su MysterFoodie de forma anónima: con tu nombre anónimo, rangos y categorías, nunca tu nombre, foto, contacto ni documentos.
+              Contesta estas preguntas y decide qué bloques compartes: por cada bloque que compartas ganas un porcentaje fijo cada vez que un negocio compre tu perfil.
+            </p>
+            {BLOCKS.filter((b) => b.fields.length > 0).map((b) => (
+              <div key={b.key} className="mb-5">
+                <div className="heading mb-2 text-[18px]">{b.label}</div>
+                {b.fields.map((fl) => {
+                  const cur = f.persona[b.key]?.[fl.key];
+                  return (
+                    <div key={fl.key} className="mb-3">
+                      <div className="mb-1.5 text-[13.5px] font-semibold">{fl.label}{fl.kind === "many" ? " (puedes elegir varias)" : ""}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {fl.options.map((o) => (
+                          <Chip key={o} on={fl.kind === "one" ? cur === o : Array.isArray(cur) && cur.includes(o)} onClick={() => setField(b.key, fl.key, fl.kind, o)}>
+                            {o}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
+            <div className="heading mb-1 text-[18px]">¿Qué compartes y cuánto ganas?</div>
+            <p className="mb-2 text-[12.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
+              Puedes cambiarlo cuando quieras en Perfil → Mi perfil anónimo. Cada bloque paga su porcentaje del escalón de precio (${TIER_INCREMENT.id} el nivel ID y ${TIER_INCREMENT.passport} el nivel Passport).
+            </p>
+            <div className="mb-3 flex flex-col gap-2">
+              {BLOCKS.map((b) => {
+                const on = f.shareBlocks.includes(b.key);
+                return (
+                  <button
+                    key={b.key}
+                    type="button"
+                    role="switch"
+                    aria-checked={on}
+                    onClick={() => toggleShare(b.key)}
+                    className="mf-tap flex items-center justify-between gap-3 rounded-[14px] bg-white px-3.5 py-3 text-left"
+                    style={{ border: `1.5px solid ${on ? "#F24444" : "rgba(60,60,67,0.14)"}` }}
+                  >
+                    <span>
+                      <span className="block text-[14.5px] font-semibold">{b.label}</span>
+                      <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>Nivel {b.tier === "passport" ? "Passport" : "ID"} · ganas {b.pct}%</span>
+                    </span>
+                    <span className="text-[13px] font-bold" style={{ color: on ? "#34C759" : "rgba(60,60,67,0.45)" }}>{on ? "Comparto" : "No comparto"}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mb-4 text-[13px] font-semibold">
+              Compartiendo lo que tienes activado ganarías ${earningsForBlocks(f.shareBlocks.filter((k) => isBlockComplete(k, f.persona))).toFixed(2)} por cada perfil vendido.
+            </p>
             <label className="mb-4 flex items-start gap-3">
               <input type="checkbox" className="mt-1 h-5 w-5" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
               <span className="text-[13px] leading-snug">
-                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com), y que, si me aprueban, mis gustos, hábitos de consumo y sector (sin mi nombre, foto ni contacto) puedan mostrarse a los negocios como un perfil anónimo con mi nombre anónimo.
+                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com), y que, si me aprueban, los bloques que decidí compartir (sin mi nombre, foto, contacto ni documentos; solo rangos y categorías) puedan mostrarse a los negocios como un perfil anónimo con mi nombre anónimo. Entiendo que puedo cambiarlo cuando quiera.
               </span>
             </label>
           </>

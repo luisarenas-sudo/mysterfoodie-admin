@@ -14,7 +14,7 @@ export default async function PerfilAnonimoPreview({ params }: { params: Promise
   const db = getSupabaseServiceClient();
   const { data: form } = await db.from("forms").select("created_by").eq("id", formId).maybeSingle();
   if (!form?.created_by) notFound();
-  const profile = await buildMysterfoodieProfile(form.created_by);
+  const profile = await buildMysterfoodieProfile(form.created_by, { tier: "passport" });
   if (!profile) notFound();
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
@@ -22,7 +22,7 @@ export default async function PerfilAnonimoPreview({ params }: { params: Promise
         ← Visita
       </Link>
       <p className="mt-3 rounded-xl px-4 py-2 text-[13px]" style={{ background: "#FFF6E0", color: "#9A6A00" }}>
-        Vista previa de Master Chef: así lo ve un negocio que compra el perfil.
+        Vista previa de Master Chef: así lo ve un negocio que compra el nivel Passport (solo con los bloques que el MysterFoodie comparte).
       </p>
       <div className="mt-4">
         <MysterfoodieProfileView profile={profile} />
