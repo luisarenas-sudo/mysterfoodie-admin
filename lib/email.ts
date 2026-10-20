@@ -5,6 +5,7 @@ import { TOTAL_ITEM_COUNT } from "./categories";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 import { PALABRA_FOODIE_QUOTE } from "./brand";
 import { glosarioEntries, type GlosarioKey } from "./glosario";
+import type { EmailCallout } from "./earningsCopy";
 
 export type SendResultEmailParams = {
   to: string;
@@ -280,9 +281,20 @@ export type SendTemplatedEmailParams = {
   ctaLabel?: string;
   /** Primer contacto: bloque "Nuestro mundo" al final del correo. */
   glosario?: GlosarioKey[];
+  /** Cuadro destacado (ej. cuánto podría ganar un sibarita con la visita) antes del glosario. */
+  callout?: EmailCallout;
 };
 
-function renderPlainEmailHtml(bodyText: string, ctaLabel?: string, glosario?: GlosarioKey[]): string {
+/** Cuadro gris con título y viñetas (para datos que conviene destacar dentro de un correo de texto). */
+function renderCalloutBlock(c: EmailCallout): string {
+  const lis = c.lines.map((l) => `<li style="margin: 0 0 6px;">${escapeHtml(l)}</li>`).join("");
+  return `<div style="margin: 20px 0 6px; padding: 16px 18px; border-radius: 14px; background-color: #f4f5fa;">
+    <p style="margin: 0 0 10px; font-size: 15px; font-weight: bold; color: #111827;">${escapeHtml(c.title)}</p>
+    <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55; color: #374151;">${lis}</ul>
+  </div>`;
+}
+
+function renderPlainEmailHtml(bodyText: string, ctaLabel?: string, glosario?: GlosarioKey[], callout?: EmailCallout): string {
   const urlLine = /^\s*(https?:\/\/\S+)\s*$/;
   const linkify = (escaped: string) =>
     escaped.replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color: ${BRAND_RED}; text-decoration: underline;">$1</a>`);
@@ -305,6 +317,7 @@ function renderPlainEmailHtml(bodyText: string, ctaLabel?: string, glosario?: Gl
     }
   }
   flush();
+  if (callout) parts.push(renderCalloutBlock(callout));
   if (glosario?.length) parts.push(renderGlosarioBlock(glosario));
   return renderEmailShell(parts.join(""));
 }
@@ -324,7 +337,7 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
       replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
-      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel, params.glosario),
+      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel, params.glosario, params.callout),
     });
 
     if (result.error) {

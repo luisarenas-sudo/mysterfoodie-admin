@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "./supabase";
 import { businessTypePhrase } from "./categories";
 import { sendTemplatedEmail, type SendEmailOutcome } from "./email";
 import { getAutomation, renderTemplate } from "./automations";
+import type { EmailCallout } from "./earningsCopy";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -22,6 +23,8 @@ export async function sendAssignmentEmail(
     baseUrl: string;
     /** Enlace del botón del correo; por defecto la lista /nueva-visita (una solicitud lleva directo a su visita). */
     linkVisitas?: string;
+    /** Cuadro destacado del correo (ej. cuánto podría ganar un sibarita). */
+    callout?: EmailCallout;
   }
 ): Promise<SendEmailOutcome> {
   const { assignmentId, client, foodie, note, baseUrl, linkVisitas: linkOverride } = params;
@@ -86,6 +89,7 @@ MysterFoodie`;
     bodyText,
     ctaLabel: "Ver mis visitas asignadas",
     glosario,
+    callout: params.callout,
   });
 
   if (outcome.status === "sent") {
