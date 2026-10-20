@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BLOCK_BY_KEY, activeFields, type BlockKey, type FieldDef, type Persona } from "@/lib/personaCatalog";
-import { FIELD_UI, OPTION_EMOJI, type FieldUi } from "@/lib/personaUi";
+import { FIELD_UI, optionIcon, type FieldUi } from "@/lib/personaUi";
 
 const RED = "#F24444";
 const INK = "#1C1C1E";
@@ -15,7 +15,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
   const ui: FieldUi = meta?.ui ?? (field.kind === "many" ? "bubbles" : "cards");
   const picked = asArr(value);
   const isOn = (o: string) => picked.includes(o);
-  const emoji = (o: string) => OPTION_EMOJI[o] ?? "";
+  const emoji = (o: string) => optionIcon(block, field.key, o);
 
   if (ui === "circles") {
     // Burbujas que crecen: de la más chica a la más grande.
@@ -23,7 +23,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
     return (
       <div className="flex flex-wrap items-end justify-center gap-3 py-2">
         {field.options.map((o, i) => {
-          const size = 74 + i * 12;
+          const size = 84 + i * 12;
           const on = isOn(o);
           return (
             <button
@@ -38,7 +38,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
                 border: `2px solid ${on ? RED : LINE}`, boxShadow: on ? "0 6px 16px rgba(242,68,68,0.35)" : "none",
               }}
             >
-              {o}
+              <span className="flex flex-col items-center gap-0.5"><span className="text-[22px] leading-none" aria-hidden="true">{emoji(o)}</span>{o}</span>
             </button>
           );
         })}
@@ -77,6 +77,7 @@ export function FieldInput({ block, field, value, onPick }: { block: BlockKey; f
         <div className="mt-3 flex justify-between gap-1">
           {field.options.map((o) => (
             <button key={o} type="button" onClick={() => onPick(o)} className="flex-1 text-center text-[12px] font-semibold leading-tight" style={{ color: isOn(o) ? RED : "rgba(60,60,67,0.6)" }}>
+              <span className="block text-[18px] leading-none" aria-hidden="true">{emoji(o)}</span>
               {o}
             </button>
           ))}

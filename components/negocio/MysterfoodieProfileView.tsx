@@ -1,37 +1,39 @@
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
 import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, travelerType, type BlockKey } from "@/lib/personaCatalog";
+import { BLOCK_EMOJI, optionIcon } from "@/lib/personaUi";
+import { businessIcon, cuisineIcon, dishIcon, slotIcon, tagIcon } from "@/lib/iconos";
 
 const money = (n: number | null) =>
   n == null ? "—" : n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon?: string; children: React.ReactNode }) {
   return (
     <section className="card p-4">
       <h2 className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
-        {title}
+        {icon && <span aria-hidden="true">{icon} </span>}{title}
       </h2>
       <div className="mt-3">{children}</div>
     </section>
   );
 }
 
-function Chips({ items, empty }: { items: string[]; empty: string }) {
+function Chips({ items, empty, icon }: { items: string[]; empty: string; icon?: (t: string) => string }) {
   if (items.length === 0) return <p className="text-[14px] text-stone-500">{empty}</p>;
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((t) => (
         <span key={t} className="rounded-full px-3 py-1 text-[13px] font-medium" style={{ background: "#F2F2F7" }}>
-          {t}
+          {icon && <span aria-hidden="true">{icon(t)} </span>}{t}
         </span>
       ))}
     </div>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Stat({ label, value, hint, icon }: { label: string; value: string; hint?: string; icon?: string }) {
   return (
     <div className="rounded-xl p-3" style={{ background: "#F2F2F7" }}>
-      <div className="text-[12px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{label}</div>
+      <div className="text-[12px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{icon && <span aria-hidden="true">{icon} </span>}{label}</div>
       <div className="mt-0.5 text-[20px] font-extrabold">{value}</div>
       {hint && <div className="text-[11.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>{hint}</div>}
     </div>
@@ -66,13 +68,13 @@ function PersonaBlock({ p, k }: { p: MysterfoodieProfile; k: BlockKey }) {
   if (!data) return null;
   const traveler = k === "movilidad" ? travelerType(asArr(data.moods)) : null;
   return (
-    <Section title={def.label}>
+    <Section title={def.label} icon={BLOCK_EMOJI[k]}>
       {traveler && (
         <div className="mb-4 rounded-xl px-3.5 py-3" style={{ background: "#F2F2F7" }}>
           <div className="text-[12px] font-semibold text-stone-500">Tipo de viajero</div>
           <div className="heading text-[20px]">{traveler.type}</div>
           <div className="text-[13px] text-stone-600">{traveler.desc}</div>
-          <div className="mt-2"><Chips items={traveler.moods} empty="—" /></div>
+          <div className="mt-2"><Chips items={traveler.moods} empty="—" icon={(t) => optionIcon("movilidad", "moods", t)} /></div>
         </div>
       )}
       <div className="grid gap-3 sm:grid-cols-2">
@@ -82,7 +84,7 @@ function PersonaBlock({ p, k }: { p: MysterfoodieProfile; k: BlockKey }) {
           return (
             <div key={f.key}>
               <div className="text-[12px] font-semibold text-stone-500">{f.label}</div>
-              {f.kind === "many" ? <Chips items={vals} empty="—" /> : <p className="mt-1 text-[15px] font-bold">{vals[0]}</p>}
+              {f.kind === "many" ? <Chips items={vals} empty="—" icon={(t) => optionIcon(k, f.key, t)} /> : <p className="mt-1 text-[15px] font-bold"><span aria-hidden="true">{optionIcon(k, f.key, vals[0])} </span>{vals[0]}</p>}
             </div>
           );
         })}
@@ -117,7 +119,7 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
 
       {g && (
         <>
-          <Section title="Palabras que más usa en sus reseñas">
+          <Section title="Palabras que más usa en sus reseñas" icon="💬">
             {g.words.length === 0 ? (
               <p className="text-[14px] text-stone-500">Aún no tiene suficientes reseñas para detectar palabras frecuentes.</p>
             ) : (
@@ -133,25 +135,25 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <div className="text-[12px] font-semibold" style={{ color: "#1E8E4E" }}>Lo que más destaca</div>
-                  <Chips items={g.likes.good.map((x) => x.tag)} empty="—" />
+                  <Chips items={g.likes.good.map((x) => x.tag)} empty="—" icon={tagIcon} />
                 </div>
                 <div>
                   <div className="text-[12px] font-semibold" style={{ color: "#C7301E" }}>Lo que más señala para mejorar</div>
-                  <Chips items={g.likes.improve.map((x) => x.tag)} empty="—" />
+                  <Chips items={g.likes.improve.map((x) => x.tag)} empty="—" icon={tagIcon} />
                 </div>
               </div>
             )}
           </Section>
 
-          <Section title="Sus gustos">
+          <Section title="Sus gustos" icon="🍜">
             <div className="space-y-3">
               <div>
                 <div className="text-[12px] font-semibold text-stone-500">Tipos de cocina</div>
-                <Chips items={g.tastes.cuisines} empty="Aún no los ha indicado." />
+                <Chips items={g.tastes.cuisines} empty="Aún no los ha indicado." icon={cuisineIcon} />
               </div>
               <div>
                 <div className="text-[12px] font-semibold text-stone-500">Platillos favoritos</div>
-                <Chips items={g.tastes.dishes} empty="Aún no los ha indicado." />
+                <Chips items={g.tastes.dishes} empty="Aún no los ha indicado." icon={dishIcon} />
               </div>
             </div>
           </Section>
@@ -159,12 +161,12 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
       )}
 
       {c && (
-        <Section title="Con quién sale y cuánto consume">
+        <Section title="Con quién sale y cuánto consume" icon="🧾">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <Stat label="Personas por salida" value={c.party.avg != null ? c.party.avg.toFixed(1) : "—"} hint={c.party.usual ? `Lo más común: ${c.party.usual}` : undefined} />
-            <Stat label="Sale solo/a" value={c.party.soloPct != null ? `${c.party.soloPct}%` : "—"} hint={c.party.groupPct != null ? `Grupos de 4+: ${c.party.groupPct}%` : undefined} />
-            <Stat label="Cuenta promedio" value={money(c.consumption.avgTicket)} hint={c.consumption.maxTicket ? `La más alta: ${money(c.consumption.maxTicket)}` : undefined} />
-            <Stat label="Por persona" value={money(c.consumption.avgPerPerson)} />
+            <Stat icon="👥" label="Personas por salida" value={c.party.avg != null ? c.party.avg.toFixed(1) : "—"} hint={c.party.usual ? `Lo más común: ${c.party.usual}` : undefined} />
+            <Stat icon="🧍" label="Sale solo/a" value={c.party.soloPct != null ? `${c.party.soloPct}%` : "—"} hint={c.party.groupPct != null ? `Grupos de 4+: ${c.party.groupPct}%` : undefined} />
+            <Stat icon="🧾" label="Cuenta promedio" value={money(c.consumption.avgTicket)} hint={c.consumption.maxTicket ? `La más alta: ${money(c.consumption.maxTicket)}` : undefined} />
+            <Stat icon="🍴" label="Por persona" value={money(c.consumption.avgPerPerson)} />
           </div>
           <p className="mt-3 text-[13px] text-stone-500">
             Total consumido en sus visitas registradas: <strong>{money(c.consumption.total)}</strong>
@@ -173,22 +175,22 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div>
               <div className="text-[12px] font-semibold text-stone-500">Cuándo suele salir</div>
-              <p className="mt-1 text-[15px] font-bold">{c.habits.day ? `${c.habits.day}${c.habits.slot ? `, en la ${c.habits.slot}` : ""}` : "Sin datos"}</p>
+              <p className="mt-1 text-[15px] font-bold">{c.habits.day ? <><span aria-hidden="true">{slotIcon(c.habits.slot)} </span>{`${c.habits.day}${c.habits.slot ? `, en la ${c.habits.slot}` : ""}`}</> : "Sin datos"}</p>
             </div>
             <div>
               <div className="text-[12px] font-semibold text-stone-500">Tipos de negocio que visita</div>
-              <Chips items={c.visitedTypes.map((t) => `${t.label} (${t.count})`)} empty="Sin datos" />
+              <Chips items={c.visitedTypes.map((t) => `${t.label} (${t.count})`)} empty="Sin datos" icon={(t) => businessIcon(t.replace(/\s*\(\d+\)$/, ""))} />
             </div>
             <div>
               <div className="text-[12px] font-semibold text-stone-500">Ciudades donde consume</div>
-              <Chips items={c.cities.map((x) => `${x.label} (${x.count})`)} empty="Sin datos" />
+              <Chips items={c.cities.map((x) => `${x.label} (${x.count})`)} empty="Sin datos" icon={() => "📍"} />
             </div>
           </div>
         </Section>
       )}
 
       {p.sector && (
-        <Section title="Sector que representa">
+        <Section title="Sector que representa" icon="📍">
           <p className="text-[15px] font-bold">{p.sector.label ?? "Sin definir"}</p>
         </Section>
       )}

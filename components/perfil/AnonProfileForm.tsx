@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES, type FoodOption } from "@/lib/foodCatalog";
 import { FieldInput } from "@/components/persona/PersonaFields";
-import { BLOCK_EMOJI, FIELD_UI, OPTION_EMOJI } from "@/lib/personaUi";
+import { BLOCK_EMOJI, FIELD_UI, optionIcon } from "@/lib/personaUi";
 import { isValidPostalCode } from "@/lib/zonas";
 import {
   BLOCKS, BLOCKS_OF_TIER, BLOCK_BY_KEY, MAX_EARNINGS_PER_SALE, MIN_VISITS_PASSPORT, MYSTERFOODIE_SHARE_PCT, PLATFORM_FEE_PCT, TIER_INCREMENT,
@@ -15,7 +15,7 @@ const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", curr
 const asArr = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 
 const TIER_UI: Record<TierKey, { emoji: string; title: string; desc: string; color: string }> = {
-  id: { emoji: "🪪", title: "Perfil ID", desc: "Tus gustos y palabras, cómo consumes y de qué zona eres.", color: RED },
+  id: { emoji: "🆔", title: "Perfil ID", desc: "Tus gustos y palabras, cómo consumes y de qué zona eres.", color: RED },
   passport: { emoji: "🛂", title: "Perfil Passport", desc: "Tu buyer persona: demografía, estilo de vida, movilidad y viajes, y medios.", color: "#5856D6" },
 };
 
@@ -117,7 +117,7 @@ function BlockSteps({
             >
               <span className="min-w-0">
                 <span className="block text-[11.5px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>{f.label}</span>
-                <span className="block truncate text-[14px] font-bold">{vals.map((v) => `${OPTION_EMOJI[v] ?? ""} ${v}`.trim()).join(" · ")}</span>
+                <span className="block truncate text-[14px] font-bold">{vals.map((v) => `${optionIcon(block, f.key, v)} ${v}`).join(" · ")}</span>
               </span>
               <span className="shrink-0 text-[12px] font-semibold" style={{ color: RED }}>Cambiar</span>
             </button>

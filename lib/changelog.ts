@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.27.1",
+    date: "2026-10-20",
+    title: "Todo con su icono",
+    emoji: "🍜",
+    highlights: [
+      "Cada tipo de cocina, platillo y respuesta del perfil anónimo tiene ahora su propio icono: ya no se repiten ni quedan opciones sin él.",
+      "Las escalas (edad, veces que comes fuera, gasto, viajes, reseñas) muestran un icono en cada opción, no solo en la elegida.",
+      "El perfil que ve el negocio también lleva iconos en gustos, platillos, horarios, tipos de negocio y respuestas del Passport.",
+    ],
+  },
+  {
     version: "0.27.0",
     date: "2026-10-20",
     title: "Mi perfil anónimo, más simple",

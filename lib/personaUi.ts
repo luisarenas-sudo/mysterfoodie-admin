@@ -54,7 +54,7 @@ export const OPTION_EMOJI: Record<string, string> = {
   "Come de todo": "🍔", "Vegetariana": "🥕", "Vegana": "🌱", "Sin gluten": "🌾", "Baja en carbohidratos": "🥑", "Otra": "🍴",
   // intereses
   "Fitness y deporte": "💪", "Viajes": "✈️", "Música y conciertos": "🎶", "Cine y series": "🎬", "Cocinar en casa": "👩‍🍳",
-  "Mascotas": "🐶", "Vida nocturna": "🪩", "Café de especialidad": "☕", "Arte y cultura": "🎨", "Videojuegos": "🎮", "Playa y aire libre": "🏖️",
+  "Mascotas": "🐶", "Vida nocturna": "🌃", "Café de especialidad": "☕", "Arte y cultura": "🎨", "Videojuegos": "🎮", "Playa y aire libre": "🏖️",
   // salidas
   "Pareja": "💕", "Amigos": "🍻", "Familia": "👪", "Compañeros de trabajo": "🧑‍💼",
   // auto
@@ -85,5 +85,20 @@ export const OPTION_EMOJI: Record<string, string> = {
   "Comida completa": "🍽️", "Antojos y snacks": "🍟", "Comida rápida": "🍔", "Café y postres": "☕", "Súper": "🛒",
   "TripAdvisor": "🦉",
   // sí / no
-  "Sí": "✅", "No": "🙅",
+  "Sí": "✅", "No": "🙅", "Prefiero no decir": "🤐",
 };
+
+/** Iconos de las escalas y rangos (las mismas palabras, como «1 a 2», se repiten en varias preguntas): se buscan por «bloque.pregunta». */
+export const RANGE_EMOJI: Record<string, Record<string, string>> = {
+  "demografia.edad": { "18 a 24": "🎒", "25 a 34": "🚀", "35 a 44": "🏡", "45 a 54": "🍷", "55 o más": "🌅" },
+  "estilo_vida.frecuencia": { "1 a 2": "🍴", "3 a 5": "🍽️", "6 a 10": "🔥", "Más de 10": "🏆" },
+  "estilo_vida.gasto": { "Menos de $150": "🪙", "$150 a $300": "💵", "$300 a $600": "💳", "Más de $600": "💎" },
+  "movilidad.carreras": { "1 a 2": "👟", "3 a 5": "🏃", "6 o más": "🏅" },
+  "movilidad.viajes": { "Ninguno": "🏠", "1": "✈️", "2 a 3": "🧳", "4 o más": "🌍" },
+  "medios.resenas": { "Nunca": "🤐", "A veces": "💬", "Casi siempre": "⭐" },
+};
+
+/** Icono de una opción del perfil. Nunca vacío: si faltara alguno, sale un punto de color en vez de un hueco. */
+export function optionIcon(block: string, field: string, option: string): string {
+  return RANGE_EMOJI[`${block}.${field}`]?.[option] ?? OPTION_EMOJI[option] ?? "🔸";
+}
