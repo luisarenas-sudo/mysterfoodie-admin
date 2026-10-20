@@ -1,4 +1,5 @@
 import { glosarioIfFirstEmail } from "@/lib/firstContact";
+import { isRequestedVisit } from "@/lib/visitRequests";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
 
   const emailOutcome = await sendResultEmail({
     glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
+    requested: await isRequestedVisit(db, { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false),
     to: recipientEmail,
     businessName: client.name,
     subject,

@@ -1,7 +1,9 @@
 import { GLOSARIO_NEGOCIO } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
 import { BUSINESS_TYPES, businessTypePhrase } from "./categories";
-import { sendTemplatedEmail, type SendEmailOutcome } from "./email";
+import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
+import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
+import { PACKAGES_URL } from "./links";
 import { getAutomation, renderTemplate } from "./automations";
 import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "./accessTokens";
 import { sendAssignmentEmail } from "./assignments";
@@ -21,15 +23,28 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  *  - Al día EXPIRE_AFTER_DAYS (5) sin visita, se le avisa al negocio que por ahora no hay Shopper
  *    y se le invita a ver los paquetes. Una solicitud que nunca se asignó vence igual, 5 días
  *    después de llegar.
+ *
+ * Solicitudes sin asignar (escalamiento, medido desde que llegan; ver supabase/solicitudes_escalamiento.sql):
+ *  - +2 h: correo al Master Chef "Tienes nuevas visitas no asignadas" con botón a /solicitudes.
+ *  - +3 h: se ofrecen a los sibaritas (quien la toma primero se la queda).
+ *  - +5 h: se ofrecen también a los Shoppers.
+ *  - Una solicitud "programada" ($850 + consumo) no entra a la bolsa ni vence sola: el Master Chef
+ *    acuerda fecha, pago y consumo en persona.
+ *  - El Master Chef puede, en vez de asignarla, avisar "alta demanda" (sin_foodie + correo con paquetes).
  */
 export const OPEN_AFTER_DAYS = 3;
 export const EXPIRE_AFTER_DAYS = 5;
-export const PACKAGES_URL = "https://mysterfoodie.com/servicios/#comparativa";
+export { PACKAGES_URL };
 const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+export const ALERT_AFTER_HOURS = 2;
+export const SIBARITAS_AFTER_HOURS = 3;
+export const SHOPPERS_AFTER_HOURS = 5;
 
 export const REQUEST_SOURCES = new Set(["nav", "inicio", "servicios", "footer", "pagina", "nosotros", "otra"]);
 
 export type RequestStatus = "pendiente" | "asignada" | "completada" | "sin_foodie";
+export type RequestKind = "gratis" | "programada";
 
 const baseUrlOf = () => process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";
 
@@ -49,6 +64,10 @@ export type RequestInput = {
   message: string | null;
   source: string;
   ipHash: string;
+  /** gratis = "Solicita una visita GRATIS"; programada = quiere contratar una visita ($850 + consumo). */
+  kind: RequestKind;
+  /** Fecha/horario que pidió (solo programada), ya en texto legible. */
+  schedulePref: string | null;
 };
 
 export type CreateOutcome =
@@ -84,11 +103,27 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
   if (clientId) {
     const { data: open } = await db
       .from("visit_requests")
-      .select("id")
+      .select("id, kind")
       .eq("client_id", clientId)
       .in("status", ["pendiente", "asignada"])
       .limit(1);
-    if (open && open.length > 0) return { ok: true, duplicate: true };
+    if (open && open.length > 0) {
+      // Ya tenía una solicitud gratis abierta y ahora pide programar: se convierte (el Master Chef recibe aviso).
+      if (input.kind === "programada" && open[0].kind !== "programada") {
+        await db.from("visit_requests").update({ kind: "programada", schedule_pref: input.schedulePref, expires_at: null }).eq("id", open[0].id);
+        await notifyAdmins({
+          negocio: input.name,
+          ubicacion: [businessTypePhrase(type), input.city].filter(Boolean).join(" · "),
+          contacto: input.contactName,
+          baseUrl,
+          isNewClient: false,
+          kind: "programada",
+          schedulePref: input.schedulePref,
+          phone: input.phone,
+        });
+      }
+      return { ok: true, duplicate: true };
+    }
   }
 
   let isNewClient = false;
@@ -127,7 +162,10 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
       status: "pendiente",
       source: input.source,
       message: input.message,
-      expires_at: expiresAt,
+      kind: input.kind,
+      schedule_pref: input.kind === "programada" ? input.schedulePref : null,
+      // La programada no vence sola: el Master Chef la acuerda en persona.
+      expires_at: input.kind === "programada" ? null : expiresAt,
       ip_hash: input.ipHash,
     })
     .select("id")
@@ -178,16 +216,27 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
       `Correo: ${input.email}`,
       input.phone ? `Teléfono / WhatsApp: ${input.phone}` : null,
       input.instagram ? `Instagram: @${input.instagram}` : null,
+      input.kind === "programada" && input.schedulePref ? `Fecha y horario que prefieres: ${input.schedulePref}` : null,
     ]
       .filter(Boolean)
       .join("\n"),
     acceso,
     tieneCuenta,
     baseUrl,
+    kind: input.kind,
   });
 
   // Aviso al Master Chef.
-  const adminOutcome = await notifyAdmins({ negocio: input.name, ubicacion, contacto: input.contactName, baseUrl, isNewClient });
+  const adminOutcome = await notifyAdmins({
+    negocio: input.name,
+    ubicacion,
+    contacto: input.contactName,
+    baseUrl,
+    isNewClient,
+    kind: input.kind,
+    schedulePref: input.schedulePref,
+    phone: input.phone,
+  });
 
   await db
     .from("visit_requests")
@@ -208,8 +257,11 @@ async function sendRequestReceivedEmail(p: {
   acceso: { link: string; code: string } | null;
   tieneCuenta: boolean;
   baseUrl: string;
+  kind: RequestKind;
 }): Promise<SendEmailOutcome> {
-  const automation = await getAutomation("solicitud_recibida");
+  const programada = p.kind === "programada";
+  // La plantilla editable habla de la visita gratis: la programada usa siempre su propio texto.
+  const automation = programada ? null : await getAutomation("solicitud_recibida");
   const useTemplate = Boolean(automation?.enabled && automation.subjectTemplate && automation.bodyTemplate);
 
   const linkAcceso = p.acceso ? p.acceso.link : `${p.baseUrl}/login`;
@@ -221,15 +273,24 @@ async function sendRequestReceivedEmail(p: {
       ? `Este correo ya tiene una cuenta en MysterFoodie: entra aquí para ver tu negocio:\n${linkAcceso}`
       : `Estamos terminando de preparar tu cuenta; te escribiremos en cuanto esté lista.`;
 
-  const defaultSubject = `Tu negocio ya está en MysterFoodie: ${p.negocio}`;
-  const defaultBody =
-    `Hola ${p.contacto},\n\n` +
-    `¡Gracias por pedir tu visita gratis! Tu negocio ${p.negocio} ha sido dado de alta y tu solicitud ha sido enviada.\n\n` +
-    `Estos son los datos que registramos:\n${p.datos}\n\n` +
-    `Qué sigue: asignaremos tu visita a uno de nuestros MysterFoodies. Es una visita anónima, así que no te avisaremos el día ni la hora. ` +
-    `Cuando termine, recibirás por correo el resultado de tu visita.\n\n` +
-    `${cuentaDefault}\n\n` +
-    `Saludos,\nMysterFoodie`;
+  const defaultSubject = programada ? `Recibimos tu solicitud para programar tu visita: ${p.negocio}` : `Tu negocio ya está en MysterFoodie: ${p.negocio}`;
+  const defaultBody = programada
+    ? `Hola ${p.contacto},\n\n` +
+      `¡Gracias por querer programar tu visita! Tu negocio ${p.negocio} ya está en MysterFoodie y recibimos tu solicitud.\n\n` +
+      `Estos son los datos que registramos:\n${p.datos}\n\n` +
+      `Qué sigue: el Master Chef de MysterFoodie te escribirá por WhatsApp o por correo para acordar contigo la fecha, el horario y la forma de pago. ` +
+      `Esta visita cuesta $${FULL_REPORT_PRICE_MXN} MXN sin IVA, más el consumo de la visita. Todavía no se cobra nada. ` +
+      `La visita es anónima: el MysterFoodie llegará como un cliente más.\n\n` +
+      `${cuentaDefault}\n\n` +
+      `Saludos,\nMysterFoodie`
+    : `Hola ${p.contacto},\n\n` +
+      `¡Gracias por pedir tu visita gratis! Tu negocio ${p.negocio} ha sido dado de alta y tu solicitud ha sido enviada.\n\n` +
+      `Estos son los datos que registramos:\n${p.datos}\n\n` +
+      `Qué sigue: asignaremos tu visita a uno de nuestros MysterFoodies, según su disponibilidad (no podemos garantizar que se pueda realizar). ` +
+      `Es una visita anónima, así que no te avisaremos el día ni la hora. ` +
+      `Cuando termine, recibirás por correo el resultado de tu visita.\n\n` +
+      `${cuentaDefault}\n\n` +
+      `Saludos,\nMysterFoodie`;
 
   const subject = useTemplate ? renderTemplate(automation!.subjectTemplate, vars) : defaultSubject;
   let bodyText = useTemplate ? renderTemplate(automation!.bodyTemplate, vars) : defaultBody;
@@ -248,20 +309,30 @@ async function notifyAdmins(p: {
   contacto: string;
   baseUrl: string;
   isNewClient: boolean;
+  kind: RequestKind;
+  schedulePref: string | null;
+  phone: string | null;
 }): Promise<"sent" | "failed"> {
   const db = getSupabaseServiceClient();
   const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").not("email", "is", null);
   let sent = false;
   for (const a of admins || []) {
+    const programada = p.kind === "programada";
     const out = await sendTemplatedEmail({
       to: a.email as string,
-      subject: `Nueva solicitud de visita gratis: ${p.negocio}`,
-      bodyText:
-        `Llegó una solicitud de visita gratis desde la web.\n\n` +
-        `Negocio: ${p.negocio}\nUbicación: ${p.ubicacion}\nContacto: ${p.contacto}\n` +
-        `${p.isNewClient ? "El negocio se dio de alta solo." : "El negocio ya existía."}\n\n` +
-        `Asígnala a un sibarita, un Shopper o a ti desde aquí:\n${p.baseUrl}/solicitudes`,
-      ctaLabel: "Asignar la visita",
+      subject: programada ? `Visita PROGRAMADA solicitada: ${p.negocio}` : `Nueva solicitud de visita gratis: ${p.negocio}`,
+      bodyText: programada
+        ? `Un negocio quiere programar su visita ($${FULL_REPORT_PRICE_MXN} + consumo). Es prioridad: contáctalo para acordar fecha, pago y consumo.\n\n` +
+          `Negocio: ${p.negocio}\nUbicación: ${p.ubicacion}\nContacto: ${p.contacto}\n` +
+          `${p.phone ? `WhatsApp / teléfono: ${p.phone}\n` : ""}` +
+          `${p.schedulePref ? `Fecha y horario que pidió: ${p.schedulePref}\n` : ""}` +
+          `${p.isNewClient ? "El negocio se dio de alta solo." : "El negocio ya existía."}\n\n` +
+          `Cuando lo acuerdes, asígnala a un sibarita, un Shopper o a ti desde aquí:\n${p.baseUrl}/solicitudes`
+        : `Llegó una solicitud de visita gratis desde la web.\n\n` +
+          `Negocio: ${p.negocio}\nUbicación: ${p.ubicacion}\nContacto: ${p.contacto}\n` +
+          `${p.isNewClient ? "El negocio se dio de alta solo." : "El negocio ya existía."}\n\n` +
+          `Asígnala a un sibarita, un Shopper o a ti desde aquí (si en ${ALERT_AFTER_HOURS} h nadie la asigna, te avisamos otra vez):\n${p.baseUrl}/solicitudes`,
+      ctaLabel: programada ? "Ver la solicitud" : "Asignar la visita",
     });
     if (out.status === "sent") sent = true;
   }
@@ -281,7 +352,7 @@ export async function assignVisitRequest(
 ): Promise<AssignResult> {
   const { data: request } = await db
     .from("visit_requests")
-    .select("id, client_id, status, assignment_id")
+    .select("id, client_id, status, assignment_id, kind, schedule_pref")
     .eq("id", p.requestId)
     .maybeSingle();
   if (!request) return { ok: false, error: "Solicitud no encontrada", status: 404 };
@@ -303,7 +374,10 @@ export async function assignVisitRequest(
     .maybeSingle();
   if (!client) return { ok: false, error: "Negocio no encontrado", status: 404 };
 
-  const note = `Solicitud de visita gratis desde la web. Tienes ${OPEN_AFTER_DAYS} días para hacerla; después se abre a los demás Shoppers.`;
+  const programada = request.kind === "programada";
+  const note = programada
+    ? `Visita PROGRAMADA acordada por el Master Chef con el negocio${request.schedule_pref ? ` (pidió: ${request.schedule_pref})` : ""}. Haz la visita en la fecha acordada.`
+    : `Solicitud de visita gratis desde la web. Tienes ${OPEN_AFTER_DAYS} días para hacerla; después se abre a los demás Shoppers.`;
 
   // Si ya había una asignación pendiente se reutiliza (cambia de persona); si no, se crea una.
   let assignmentId: string | null = null;
@@ -340,8 +414,10 @@ export async function assignVisitRequest(
       assignment_id: assignmentId,
       assigned_to: assignee.id,
       assigned_at: new Date(now).toISOString(),
-      open_at: new Date(now + OPEN_AFTER_DAYS * DAY_MS).toISOString(),
-      expires_at: new Date(now + EXPIRE_AFTER_DAYS * DAY_MS).toISOString(),
+      // La programada no se abre a la bolsa ni vence sola; la gratis corre 3 + 2 días.
+      open_at: programada ? null : new Date(now + OPEN_AFTER_DAYS * DAY_MS).toISOString(),
+      expires_at: programada ? null : new Date(now + EXPIRE_AFTER_DAYS * DAY_MS).toISOString(),
+      decision: "visita",
     })
     .eq("id", request.id);
   if (updError) return { ok: false, error: updError.message, status: 500 };
@@ -364,9 +440,10 @@ export async function takeVisitRequest(
 ): Promise<AssignResult> {
   const { data: request } = await db
     .from("visit_requests")
-    .select("id, client_id, status, assignment_id, assigned_to, open_at, expires_at")
+    .select("id, client_id, status, assignment_id, assigned_to, open_at, expires_at, kind, created_at")
     .eq("id", p.requestId)
     .maybeSingle();
+  if (request && request.status === "pendiente") return takeUnassignedRequest(db, p, request);
   if (!request || request.status !== "asignada" || !request.assignment_id) {
     return { ok: false, error: "Esta visita ya no está disponible", status: 409 };
   }
@@ -405,28 +482,126 @@ export async function takeVisitRequest(
   return { ok: true, email };
 }
 
+/**
+ * Un sibarita (desde +3 h) o un Shopper (desde +5 h) toma una solicitud GRATIS que nadie ha asignado.
+ * Quien llegue primero se la queda: el primer paso es un cambio condicional (pendiente -> asignada).
+ */
+async function takeUnassignedRequest(
+  db: Db,
+  p: { requestId: string; foodieId: string; baseUrl: string },
+  request: { id: unknown; kind: unknown; created_at: unknown }
+): Promise<AssignResult> {
+  const { data: foodie } = await db.from("profiles").select("id, role").eq("id", p.foodieId).maybeSingle();
+  const role = foodie?.role as string | undefined;
+  if (role !== "sibarita" && role !== "agente") {
+    return { ok: false, error: "Solo los sibaritas y los Shoppers pueden tomar visitas", status: 403 };
+  }
+  if (request.kind === "programada") {
+    return { ok: false, error: "Esta visita la acuerda el Master Chef", status: 409 };
+  }
+  const age = Date.now() - new Date(request.created_at as string).getTime();
+  const needed = (role === "sibarita" ? SIBARITAS_AFTER_HOURS : SHOPPERS_AFTER_HOURS) * HOUR_MS;
+  if (age < needed) return { ok: false, error: "Esta visita todavía no está disponible para ti", status: 409 };
+
+  const { data: claimed } = await db
+    .from("visit_requests")
+    .update({ status: "asignada", assigned_to: p.foodieId, assigned_at: new Date().toISOString() })
+    .eq("id", p.requestId)
+    .eq("status", "pendiente")
+    .select("id");
+  if (!claimed || claimed.length === 0) return { ok: false, error: "Alguien más ya tomó esta visita", status: 409 };
+
+  const out = await assignVisitRequest(db, { requestId: p.requestId, assigneeId: p.foodieId, assignedBy: p.foodieId, baseUrl: p.baseUrl });
+  if (!out.ok) {
+    await db.from("visit_requests").update({ status: "pendiente", assigned_to: null, assigned_at: null }).eq("id", p.requestId);
+  }
+  return out;
+}
+
+/**
+ * El Master Chef decide NO hacer la visita gratis: se avisa al negocio que el volumen de solicitudes es más alto
+ * de lo normal para nuestros MysterFoodies y se le muestran los paquetes (mismo correo que el de vencimiento).
+ */
+export async function declineForHighDemand(
+  db: Db,
+  requestId: string
+): Promise<{ ok: true; email: string } | { ok: false; error: string; status: number }> {
+  const { data: r } = await db
+    .from("visit_requests")
+    .select("id, client_id, status, nofoodie_email_sent_at")
+    .eq("id", requestId)
+    .maybeSingle();
+  if (!r) return { ok: false, error: "Solicitud no encontrada", status: 404 };
+  if (r.status !== "pendiente") return { ok: false, error: "Solo se puede avisar en solicitudes por asignar", status: 409 };
+  const { data: changed } = await db
+    .from("visit_requests")
+    .update({ status: "sin_foodie", decision: "alta_demanda" })
+    .eq("id", requestId)
+    .eq("status", "pendiente")
+    .select("id");
+  if (!changed || changed.length === 0) return { ok: false, error: "Esa solicitud ya cambió de estado", status: 409 };
+  let email = "ya_enviado";
+  if (!r.nofoodie_email_sent_at) {
+    email = await sendNoFoodieEmail(db, r.client_id as string);
+    if (email === "sent") await db.from("visit_requests").update({ nofoodie_email_sent_at: new Date().toISOString() }).eq("id", requestId);
+  }
+  return { ok: true, email };
+}
+
+/**
+ * ¿Esta visita (forms) es la que se hizo por una solicitud del negocio (gratis o programada)? Si sí, el reporte
+ * NO se vende a $850 sin consumo: el negocio ve el resumen y la opción de programar su visita o ver paquetes.
+ * Solo las personas visitadas por un MysterFoodie SIN haber solicitado pueden comprar el reporte directo.
+ */
+export async function isRequestedVisit(db: Db, form: { id: string; client_id: string | null; created_at: string }): Promise<boolean> {
+  if (!form.client_id) return false;
+  const { data: reqs } = await db
+    .from("visit_requests")
+    .select("created_at")
+    .eq("client_id", form.client_id)
+    .lte("created_at", form.created_at)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (!reqs || reqs.length === 0) return false;
+  const { data: first } = await db
+    .from("forms")
+    .select("id")
+    .eq("client_id", form.client_id)
+    .gte("created_at", reqs[0].created_at as string)
+    .order("created_at", { ascending: true })
+    .limit(1);
+  return first?.[0]?.id === form.id;
+}
+
 // ---------------------------------------------------------------------------
 // Sincronización: visitas hechas y solicitudes vencidas
 // ---------------------------------------------------------------------------
 
-export type SyncResult = { completed: number; expired: number; emailed: number };
+export type SyncResult = { completed: number; expired: number; emailed: number; alerted: number; offered: number };
+
+type Escalation = { alert: string[]; sibaritas: string[]; shoppers: string[] };
 
 /**
  * 1) Marca como completadas las solicitudes cuyo negocio ya tiene una visita posterior a la solicitud
  *    (la haya hecho quien la tenía asignada, otro Shopper o el Master Chef).
  * 2) Las que llegaron a expires_at sin visita pasan a "sin_foodie" y el negocio recibe el correo
  *    "Por el momento no contamos con un MysterFoodie" (una sola vez).
- * La corre el cron diario/frecuente y también se ejecuta al abrir /solicitudes.
+ * 3) Escalamiento de las que siguen sin asignar: +2 h aviso al Master Chef, +3 h se ofrecen a los sibaritas,
+ *    +5 h también a los Shoppers (cada paso se hace una sola vez).
+ * La corre el cron (cada 10 min) y también se ejecuta al abrir /solicitudes.
  */
 export async function syncVisitRequests(db: Db): Promise<SyncResult> {
-  const result: SyncResult = { completed: 0, expired: 0, emailed: 0 };
+  const result: SyncResult = { completed: 0, expired: 0, emailed: 0, alerted: 0, offered: 0 };
   const { data: open } = await db
     .from("visit_requests")
-    .select("id, client_id, status, created_at, assignment_id, expires_at, nofoodie_email_sent_at")
+    .select(
+      "id, client_id, status, kind, created_at, assignment_id, expires_at, nofoodie_email_sent_at, unassigned_alert_at, pool_sibaritas_notified_at, pool_shoppers_notified_at"
+    )
     .in("status", ["pendiente", "asignada", "sin_foodie"]);
   if (!open || open.length === 0) return result;
 
   const nowIso = new Date().toISOString();
+  const esc: Escalation = { alert: [], sibaritas: [], shoppers: [] };
 
   for (const r of open) {
     const { data: form } = await db
@@ -462,9 +637,124 @@ export async function syncVisitRequests(db: Db): Promise<SyncResult> {
           result.emailed += 1;
         }
       }
+    } else if (r.status === "pendiente") {
+      const age = Date.now() - new Date(r.created_at as string).getTime();
+      if (age >= ALERT_AFTER_HOURS * HOUR_MS && !r.unassigned_alert_at) esc.alert.push(r.id as string);
+      if (r.kind !== "programada") {
+        if (age >= SIBARITAS_AFTER_HOURS * HOUR_MS && !r.pool_sibaritas_notified_at) esc.sibaritas.push(r.id as string);
+        if (age >= SHOPPERS_AFTER_HOURS * HOUR_MS && !r.pool_shoppers_notified_at) esc.shoppers.push(r.id as string);
+      }
     }
   }
+
+  await escalateUnassigned(db, esc, result).catch((err) => console.error("solicitudes: escalamiento", err instanceof Error ? err.message : err));
   return result;
+}
+
+const typeLine = (type: string | null, city: string | null) => [businessTypePhrase(type ?? "otro"), city].filter(Boolean).join(" · ");
+
+/** Manda los avisos de escalamiento (una sola vez por solicitud y paso). */
+async function escalateUnassigned(db: Db, esc: Escalation, result: SyncResult): Promise<void> {
+  const ids = [...new Set([...esc.alert, ...esc.sibaritas, ...esc.shoppers])];
+  if (ids.length === 0) return;
+  const { data: reqs } = await db.from("visit_requests").select("id, status, kind, schedule_pref, client_id").in("id", ids);
+  const live = (reqs || []).filter((r) => r.status === "pendiente");
+  if (live.length === 0) return;
+  const { data: clients } = await db
+    .from("clients")
+    .select("id, name, type, city")
+    .in("id", [...new Set(live.map((r) => r.client_id as string))]);
+  const clientById = new Map((clients || []).map((c) => [c.id as string, c]));
+  const infoOf = (id: string) => {
+    const r = live.find((x) => x.id === id);
+    if (!r) return null;
+    const c = clientById.get(r.client_id as string);
+    return { name: (c?.name as string) ?? "Negocio", where: typeLine((c?.type as string) ?? null, (c?.city as string) ?? null), kind: r.kind as RequestKind, pref: r.schedule_pref as string | null };
+  };
+  const baseUrl = baseUrlOf();
+  const stamp = new Date().toISOString();
+  const mark = async (column: string, list: string[]) => {
+    if (list.length) await db.from("visit_requests").update({ [column]: stamp }).in("id", list);
+  };
+
+  // 1) Master Chef: "Tienes nuevas visitas no asignadas"
+  const alertIds = esc.alert.filter((id) => infoOf(id));
+  if (alertIds.length > 0) {
+    const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").not("email", "is", null);
+    const items = alertIds.map((id) => infoOf(id)!);
+    const hayProgramada = items.some((i) => i.kind === "programada");
+    const hayGratis = items.some((i) => i.kind !== "programada");
+    const lis = items
+      .map(
+        (i) =>
+          `<li style="margin: 0 0 8px;"><strong>${escapeHtml(i.name)}</strong>${i.where ? ` · ${escapeHtml(i.where)}` : ""}${
+            i.kind === "programada" ? ` <span style="color: #f24444; font-weight: bold;">· visita programada</span>${i.pref ? ` (pidió: ${escapeHtml(i.pref)})` : ""}` : ""
+          }</li>`
+      )
+      .join("");
+    const pie = [
+      hayGratis ? `Si no las asignas en ${SIBARITAS_AFTER_HOURS - ALERT_AFTER_HOURS} hora más, se ofrecerán automáticamente a los sibaritas; si nadie las acepta en ${SHOPPERS_AFTER_HOURS - SIBARITAS_AFTER_HOURS} horas, a los Shoppers.` : "",
+      hayProgramada ? "Las visitas programadas no se ofrecen solas: necesitan que tú acuerdes fecha, pago y consumo con el negocio." : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const html = renderEmailShell(`
+      <div style="width: 68px; height: 68px; line-height: 68px; margin: 0 auto 18px; border-radius: 34px; background-color: #fff1f0; color: #f24444; font-size: 38px; font-weight: bold; text-align: center;">?</div>
+      <h2 style="margin: 0 0 14px; font-size: 24px; line-height: 1.25; color: #111827; text-align: center;">Tienes nuevas visitas no asignadas</h2>
+      <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Estas solicitudes llevan más de ${ALERT_AFTER_HOURS} horas esperando que alguien las tome:</p>
+      <ul style="margin: 0 0 18px; padding-left: 20px; font-size: 15px; line-height: 1.55; color: #374151;">${lis}</ul>
+      <div style="margin: 0 0 16px;">${renderButton(`${baseUrl}/solicitudes`, "Ir a asignar las visitas")}</div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6b7280;">${escapeHtml(pie)}</p>
+    `);
+    const text =
+      `Tienes nuevas visitas no asignadas\n\n` +
+      items.map((i) => `- ${i.name}${i.where ? ` · ${i.where}` : ""}${i.kind === "programada" ? " (visita programada)" : ""}`).join("\n") +
+      `\n\nAsígnalas aquí: ${baseUrl}/solicitudes\n\n${pie}`;
+    let sent = 0;
+    for (const a of admins || []) {
+      const out = await sendHtmlEmail({ to: a.email as string, subject: "Tienes nuevas visitas no asignadas", html, text });
+      if (out.status === "sent") sent += 1;
+    }
+    if (sent > 0 || (admins || []).length === 0) {
+      await mark("unassigned_alert_at", alertIds);
+      result.alerted += alertIds.length;
+    }
+  }
+
+  // 2) y 3) Se ofrecen a sibaritas y, más tarde, a Shoppers.
+  const offer = async (role: "sibarita" | "agente", list: string[], column: string, intro: string) => {
+    const mine = list.filter((id) => infoOf(id));
+    if (mine.length === 0) return;
+    const { data: people } = await db.from("profiles").select("email").eq("role", role).not("email", "is", null);
+    const items = mine.map((id) => infoOf(id)!);
+    const lista = items.map((i) => `- ${i.name}${i.where ? ` · ${i.where}` : ""}`).join("\n");
+    let sent = 0;
+    for (const person of people || []) {
+      const out = await sendTemplatedEmail({
+        to: person.email as string,
+        subject: items.length === 1 ? `Visita gratis disponible: ${items[0].name}` : `${items.length} visitas gratis disponibles`,
+        bodyText: `${intro}\n\n${lista}\n\nQuien la tome primero se la queda. Tómala desde la app:\n${baseUrl}/nueva-visita`,
+        ctaLabel: "Ver las visitas disponibles",
+      });
+      if (out.status === "sent") sent += 1;
+    }
+    if (sent > 0 || (people || []).length === 0) {
+      await mark(column, mine);
+      result.offered += mine.length;
+    }
+  };
+  await offer(
+    "sibarita",
+    esc.sibaritas,
+    "pool_sibaritas_notified_at",
+    "Hay una visita gratis por hacer que todavía no tiene MysterFoodie. Te la ofrecemos primero a los sibaritas:"
+  );
+  await offer(
+    "agente",
+    esc.shoppers,
+    "pool_shoppers_notified_at",
+    "Hay una visita gratis por hacer que ningún sibarita tomó. Ahora se abre a los Shoppers:"
+  );
 }
 
 async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
@@ -526,6 +816,12 @@ export type SolicitudRow = {
   expiresAt: string | null;
   /** La bolsa de Shoppers ya está abierta (días 4 y 5) para esta solicitud. */
   inOpenPool: boolean;
+  kind: RequestKind;
+  /** Fecha y horario que pidió el negocio (solo programada). */
+  schedulePref: string | null;
+  decision: "visita" | "alta_demanda" | null;
+  /** Solo en pendientes gratis: quién la puede tomar ahora (según las horas sin asignar). */
+  stage: "master" | "sibaritas" | "shoppers" | null;
 };
 
 export type Assignee = { id: string; name: string; role: "admin" | "agente" | "sibarita"; pendingCount: number };
@@ -534,7 +830,7 @@ export type Assignee = { id: string; name: string; role: "admin" | "agente" | "s
 export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
   const { data: rows } = await db
     .from("visit_requests")
-    .select("id, status, created_at, message, source, client_id, assignment_id, assigned_to, assigned_at, open_at, expires_at")
+    .select("id, status, created_at, message, source, client_id, assignment_id, assigned_to, assigned_at, open_at, expires_at, kind, schedule_pref, decision")
     .order("created_at", { ascending: false })
     .limit(200);
   if (!rows || rows.length === 0) return [];
@@ -581,9 +877,24 @@ export async function getSolicitudes(db: Db): Promise<SolicitudRow[]> {
         expiresAt,
         inOpenPool:
           r.status === "asignada" && !!openAt && !!expiresAt && now >= new Date(openAt).getTime() && now < new Date(expiresAt).getTime(),
+        kind: ((r.kind as string | null) === "programada" ? "programada" : "gratis") as RequestKind,
+        schedulePref: (r.schedule_pref as string | null) ?? null,
+        decision: ((r.decision as string | null) ?? null) as SolicitudRow["decision"],
+        stage:
+          r.status === "pendiente" && (r.kind as string | null) !== "programada"
+            ? (() => {
+                const age = now - new Date(r.created_at as string).getTime();
+                return age >= SHOPPERS_AFTER_HOURS * HOUR_MS ? "shoppers" : age >= SIBARITAS_AFTER_HOURS * HOUR_MS ? "sibaritas" : "master";
+              })()
+            : null,
       } satisfies SolicitudRow;
     })
-    .sort((a, b) => rank[a.status] - rank[b.status] || b.createdAt.localeCompare(a.createdAt));
+    .sort(
+      (a, b) =>
+        rank[a.status] - rank[b.status] ||
+        (a.status === "pendiente" ? Number(b.kind === "programada") - Number(a.kind === "programada") : 0) ||
+        b.createdAt.localeCompare(a.createdAt)
+    );
 }
 
 /** Personas a quienes el Master Chef puede asignar: él, sibaritas y Shoppers. */
@@ -613,35 +924,60 @@ export type OpenPoolItem = {
   clientType: string;
   city: string | null;
   expiresAt: string;
+  /** sin_asignar = nadie la tomó (se ofrece a sibaritas/Shoppers); vencimiento = días 4 y 5 de una ya asignada. */
+  origin: "sin_asignar" | "vencimiento";
 };
 
-/** Solicitudes en los días 4 y 5 que cualquier Shopper puede tomar (excluye las suyas). */
-export async function getOpenPoolFor(db: Db, userId: string): Promise<OpenPoolItem[]> {
+/**
+ * Solicitudes gratis que esta persona puede tomar ahora (excluye las suyas y las programadas):
+ *  - Shopper: las de los días 4 y 5 de una asignación + las sin asignar con 5 h o más.
+ *  - Sibarita: las sin asignar con 3 h o más.
+ */
+export async function getOpenPoolFor(db: Db, userId: string, role: "agente" | "sibarita" = "agente"): Promise<OpenPoolItem[]> {
   const nowIso = new Date().toISOString();
-  const { data: rows } = await db
+  type Row = { id: string; client_id: string; assigned_to: string | null; expires_at: string; origin: OpenPoolItem["origin"] };
+  const rows: Row[] = [];
+
+  if (role === "agente") {
+    const { data } = await db
+      .from("visit_requests")
+      .select("id, client_id, assigned_to, expires_at")
+      .eq("status", "asignada")
+      .lte("open_at", nowIso)
+      .gt("expires_at", nowIso)
+      .order("expires_at", { ascending: true });
+    for (const r of data || []) rows.push({ ...(r as Omit<Row, "origin">), origin: "vencimiento" });
+  }
+
+  const hours = role === "sibarita" ? SIBARITAS_AFTER_HOURS : SHOPPERS_AFTER_HOURS;
+  const { data: sin } = await db
     .from("visit_requests")
     .select("id, client_id, assigned_to, expires_at")
-    .eq("status", "asignada")
-    .lte("open_at", nowIso)
+    .eq("status", "pendiente")
+    .neq("kind", "programada")
+    .lte("created_at", new Date(Date.now() - hours * HOUR_MS).toISOString())
     .gt("expires_at", nowIso)
-    .order("expires_at", { ascending: true });
-  const mine = (rows || []).filter((r) => r.assigned_to !== userId);
+    .order("created_at", { ascending: true });
+  for (const r of sin || []) rows.push({ ...(r as Omit<Row, "origin">), origin: "sin_asignar" });
+
+  const mine = rows.filter((r) => r.assigned_to !== userId);
   if (mine.length === 0) return [];
   const { data: clients } = await db
     .from("clients")
     .select("id, name, type, city")
-    .in("id", mine.map((r) => r.client_id as string));
+    .in("id", mine.map((r) => r.client_id));
   const clientById = new Map((clients || []).map((c) => [c.id as string, c]));
   return mine
     .map((r) => {
-      const c = clientById.get(r.client_id as string);
+      const c = clientById.get(r.client_id);
       if (!c) return null;
       return {
-        requestId: r.id as string,
+        requestId: r.id,
         clientName: c.name as string,
         clientType: c.type as string,
         city: (c.city as string | null) ?? null,
-        expiresAt: r.expires_at as string,
+        expiresAt: r.expires_at,
+        origin: r.origin,
       };
     })
     .filter(Boolean) as OpenPoolItem[];

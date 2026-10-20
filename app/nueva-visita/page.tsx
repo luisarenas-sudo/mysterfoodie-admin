@@ -29,7 +29,7 @@ export default async function NuevaVisitaPage() {
 
   if (profile?.role === "agente") {
     const assignments = await getPendingAssignmentsFor(profile.userId);
-    const pool = await getOpenPoolFor(getSupabaseServiceClient(), profile.userId).catch(() => []);
+    const pool = await getOpenPoolFor(getSupabaseServiceClient(), profile.userId, "agente").catch(() => []);
     return (
       <>
         <MobileVisitasAsignadas assignments={assignments} pool={pool} />
@@ -45,10 +45,14 @@ export default async function NuevaVisitaPage() {
   }
 
   const clients = await getClientsForVisitPicker();
+  const pool =
+    profile?.role === "sibarita"
+      ? await getOpenPoolFor(getSupabaseServiceClient(), profile.userId, "sibarita").catch(() => [])
+      : [];
 
   return (
     <>
-      <MobileNuevaVisitaPicker clients={clients} />
+      <MobileNuevaVisitaPicker clients={clients} pool={pool} />
       <main className="mx-auto hidden max-w-xl px-6 py-14 text-center md:block">
         <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
         <h1 className="heading mt-2 text-2xl text-ink">Nueva visita</h1>

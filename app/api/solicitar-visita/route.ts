@@ -57,6 +57,9 @@ export async function POST(req: NextRequest) {
   const message = str(p.message, 500) || null;
   const type = BUSINESS_TYPES.some((t) => t.value === p.type) ? (p.type as string) : "";
   const source = typeof p.source === "string" && REQUEST_SOURCES.has(p.source) ? p.source : "otra";
+  // "programada" = el negocio quiere contratar su visita ($850 + consumo) y pide fecha/horario.
+  const kind = p.kind === "programada" ? "programada" : "gratis";
+  const schedulePref = str(p.schedulePref, 160);
 
   if (name.length < 2) return json(req, { ok: false, error: "Escribe el nombre de tu negocio." }, 400);
   if (!type) return json(req, { ok: false, error: "Elige el tipo de negocio." }, 400);
@@ -72,6 +75,9 @@ export async function POST(req: NextRequest) {
   }
   const phone: string = phoneRaw;
   if (instagram.length < 2) return json(req, { ok: false, error: "Escribe el Instagram de tu negocio." }, 400);
+  if (kind === "programada" && schedulePref.length < 3) {
+    return json(req, { ok: false, error: "Dinos qué día y en qué horario te gustaría la visita." }, 400);
+  }
   if (p.consent !== true) return json(req, { ok: false, error: "Acepta el aviso de privacidad para continuar." }, 400);
 
   let db;
@@ -106,6 +112,8 @@ export async function POST(req: NextRequest) {
       message,
       source,
       ipHash,
+      kind,
+      schedulePref: kind === "programada" ? schedulePref : null,
     });
     if (!out.ok) {
       console.error("solicitar-visita", out.error);

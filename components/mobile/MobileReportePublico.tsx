@@ -9,6 +9,7 @@ import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } f
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
 import FlancoCredit from "@/components/FlancoCredit";
+import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
 
 const ACCENT = "#F24444";
 
@@ -138,6 +139,7 @@ export default function MobileReportePublico({
   overallScore,
   categories,
   unlocked,
+  requested = false,
   price,
   mercadopagoConfigured,
   whatsappFallbackLink,
@@ -161,6 +163,8 @@ export default function MobileReportePublico({
   overallScore: number;
   categories: { key: string; label: string; average: number; count: number }[];
   unlocked: boolean;
+  /** La visita se hizo por una solicitud del negocio: no se vende el reporte, se invita a programar una visita o ver paquetes. */
+  requested?: boolean;
   price: number;
   mercadopagoConfigured: boolean;
   whatsappFallbackLink: string | null;
@@ -257,6 +261,39 @@ export default function MobileReportePublico({
 
       {unlocked ? (
         <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} />
+      ) : requested ? (
+        <>
+          <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
+            <div className="mb-1.5 text-[21px] font-bold">Este es el resumen de tu visita gratis</div>
+            <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
+              Si quieres el detalle de los <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span>, los comentarios de
+              nuestro MysterFoodie{hasTicket ? " y el ticket de consumo" : ""}, programa una visita con reporte completo.
+            </div>
+          </div>
+          <div className="card mx-5 mt-4 p-[22px] text-center">
+            <div className="flex items-baseline justify-center gap-1">
+              <div className="text-[15px]" style={{ color: "rgba(60,60,67,0.5)" }}>$</div>
+              <div className="text-[34px] font-bold">{price.toLocaleString("es-MX")}</div>
+              <div className="text-[14px]" style={{ color: "rgba(60,60,67,0.5)" }}>MXN sin IVA</div>
+            </div>
+            <div className="mb-4 mt-0.5 text-[13.5px] font-semibold" style={{ color: "rgba(60,60,67,0.7)" }}>+ el consumo de la visita</div>
+            <a
+              href={PROGRAM_VISIT_URL}
+              className="mf-tap block rounded-[14px] py-[15px] text-center text-[16px] font-bold text-white"
+              style={{ background: "linear-gradient(180deg,#F24444 0%,#F25631 100%)" }}
+            >
+              Programa tu visita
+            </a>
+            <a href={PACKAGES_URL} className="mt-3 block text-[14px] font-semibold underline" style={{ color: "#F24444" }}>
+              o conoce nuestros paquetes
+            </a>
+          </div>
+          <div className="px-6 pb-2 pt-7 text-center">
+            <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
+              Nuestros MysterFoodies visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
+            </div>
+          </div>
+        </>
       ) : (
         <>
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>

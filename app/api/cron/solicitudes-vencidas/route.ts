@@ -5,7 +5,7 @@ import { syncVisitRequests } from "@/lib/visitRequests";
 /**
  * Revisa las solicitudes de visita gratis: marca las que ya tienen visita y a las que llegaron
  * a los 5 días sin visita les manda el correo "por el momento no contamos con un MysterFoodie..."
- * (una sola vez). Un Cron Job de Supabase la llama cada hora con `x-cron-secret: ${CRON_SECRET}`
+ * (una sola vez); además escala las solicitudes sin asignar (+2 h aviso al Master Chef, +3 h sibaritas, +5 h Shoppers). Un Cron Job de Supabase la llama cada 10 minutos con `x-cron-secret: ${CRON_SECRET}`
  * (ver supabase/crons.sql).
  */
 export async function GET(req: NextRequest) {

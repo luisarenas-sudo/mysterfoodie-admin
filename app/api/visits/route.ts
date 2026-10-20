@@ -1,4 +1,5 @@
 import { glosarioIfFirstEmail } from "@/lib/firstContact";
+import { isRequestedVisit } from "@/lib/visitRequests";
 import { deliverFullReportEmail, deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
@@ -381,6 +382,7 @@ export async function POST(req: NextRequest) {
   if (recipientEmail) {
     emailOutcome = await sendResultEmail({
       glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
+      requested: await isRequestedVisit(db, { id: form.id, client_id: clientId, created_at: new Date().toISOString() }).catch(() => false),
       to: recipientEmail,
       businessName: business.name,
       subject: resultSubject,

@@ -2,6 +2,7 @@ import { getSupabaseServiceClient } from "./supabase";
 import { currentMonthCdmx, isVisitOverdue, monthLabel, shiftMonth, visitWindowLabel } from "./months";
 import { getPendingAssignmentsFor } from "./dashboard";
 import { formatMxn } from "./earningsMatrix";
+import { getOpenPoolFor } from "./visitRequests";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -81,9 +82,68 @@ async function foodieAlerts(userId: string): Promise<HomeAlert[]> {
   return alerts;
 }
 
+// Visitas gratis que nadie asignó y se ofrecen a sibaritas (+3 h) y Shoppers (+5 h).
+async function poolAlerts(db: Db, userId: string, role: "agente" | "sibarita"): Promise<HomeAlert[]> {
+  const pool = await getOpenPoolFor(db, userId, role).catch(() => []);
+  if (pool.length === 0) return [];
+  return [
+    {
+      key: `${role === "agente" ? "fd" : "sb"}:pool`,
+      kind: "pendiente",
+      tone: "warn",
+      emoji: "🙋",
+      title: pool.length === 1 ? `Visita gratis disponible: ${pool[0].clientName}` : `${pool.length} visitas gratis disponibles`,
+      detail: "Nadie las ha tomado: quien la tome primero se la queda",
+      href: "/nueva-visita",
+    },
+  ];
+}
+
+// Solicitudes de visita (web) por asignar: las programadas son prioridad.
+async function requestAlerts(db: Db): Promise<HomeAlert[]> {
+  const { data: rows } = await db
+    .from("visit_requests")
+    .select("id, kind, schedule_pref, created_at, client_id")
+    .eq("status", "pendiente")
+    .order("created_at", { ascending: true });
+  if (!rows || rows.length === 0) return [];
+  const { data: clients } = await db
+    .from("clients")
+    .select("id, name")
+    .in("id", [...new Set(rows.map((r) => r.client_id as string))]);
+  const nameOf = new Map((clients || []).map((c) => [c.id as string, c.name as string]));
+  const alerts: HomeAlert[] = [];
+  const gratis = rows.filter((r) => r.kind !== "programada");
+  for (const r of rows.filter((x) => x.kind === "programada")) {
+    alerts.push({
+      key: `ad:solic:${r.id}`,
+      kind: "pendiente",
+      tone: "urgent",
+      emoji: "📅",
+      title: `Visita programada: ${nameOf.get(r.client_id as string) ?? "Negocio"}`,
+      detail: `${r.schedule_pref ? `Pidió ${r.schedule_pref} · ` : ""}$850 + consumo · acuerda fecha y pago`,
+      href: "/solicitudes",
+    });
+  }
+  if (gratis.length > 0) {
+    const oldest = gratis[0].created_at as string;
+    const late = Date.now() - new Date(oldest).getTime() >= 2 * 60 * 60 * 1000;
+    alerts.push({
+      key: "ad:solic:gratis",
+      kind: "pendiente",
+      tone: late ? "urgent" : "warn",
+      emoji: "❔",
+      title: gratis.length === 1 ? `Visita gratis por asignar: ${nameOf.get(gratis[0].client_id as string) ?? "Negocio"}` : `${gratis.length} visitas gratis por asignar`,
+      detail: `La más antigua llegó ${agoLabel(oldest)} · a las 3 h se ofrecen a sibaritas`,
+      href: "/solicitudes",
+    });
+  }
+  return alerts;
+}
+
 // ----------------------------------------------------------------- admin
 async function adminAlerts(db: Db): Promise<HomeAlert[]> {
-  const alerts: HomeAlert[] = [];
+  const alerts: HomeAlert[] = [...(await requestAlerts(db).catch(() => []))];
   const month = currentMonthCdmx();
   const since = new Date(Date.now() - RECENT_DAYS * DAY_MS).toISOString();
 
@@ -281,7 +341,7 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
 
 // -------------------------------------------------------------- Sibarita
 async function sibaritaAlerts(db: Db, userId: string): Promise<HomeAlert[]> {
-  const alerts: HomeAlert[] = [];
+  const alerts: HomeAlert[] = [...(await poolAlerts(db, userId, "sibarita"))];
   const { data: mine } = await db.from("clients").select("id, name").eq("created_by", userId);
   const ids = (mine || []).map((c) => c.id as string);
   if (ids.length === 0) return alerts;
@@ -333,7 +393,7 @@ export async function getHomeAlerts(profile: { userId: string; role: string }): 
 
   const [raw, dismissed] = await Promise.all([
     profile.role === "agente"
-      ? foodieAlerts(profile.userId)
+      ? Promise.all([foodieAlerts(profile.userId), poolAlerts(db, profile.userId, "agente")]).then(([a, b]) => [...a, ...b])
       : profile.role === "admin"
         ? adminAlerts(db)
         : profile.role === "sibarita"

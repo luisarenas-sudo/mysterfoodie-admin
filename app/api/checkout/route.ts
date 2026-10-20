@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
+import { isRequestedVisit } from "@/lib/visitRequests";
 
 /**
  * Punto de entrada del boton "Comprar reporte completo" en /r/[shortCode].
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   const { data: form } = await db
     .from("forms")
-    .select("id, client_id, report_unlocked_at")
+    .select("id, client_id, report_unlocked_at, created_at")
     .eq("short_code", shortCode)
     .maybeSingle();
 
@@ -40,6 +41,11 @@ export async function GET(req: NextRequest) {
   // Ya esta pagado: no tiene sentido crear otra preference, regresa
   // directo al reporte (que ya mostrara el detalle completo).
   if (form.report_unlocked_at) {
+    return NextResponse.redirect(reportUrl);
+  }
+
+  // Visita hecha por una solicitud del negocio: el reporte no se vende a $850 sin consumo (ver isRequestedVisit).
+  if (await isRequestedVisit(db, { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false)) {
     return NextResponse.redirect(reportUrl);
   }
 

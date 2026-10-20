@@ -18,6 +18,8 @@ export type SendResultEmailParams = {
   introText: string;
   /** Primer contacto con este negocio: bloque "Nuestro mundo" con lo que significan las palabras de la marca. */
   glosario?: GlosarioKey[];
+  /** La visita se hizo porque el negocio la solicitó: no se ofrece el reporte a $850, sino programar una visita o ver paquetes. */
+  requested?: boolean;
 };
 
 export type SendEmailOutcome = {
@@ -217,7 +219,11 @@ function renderEmailHtml(params: SendResultEmailParams): string {
     </p>
 
     ${renderButton(reportUrl, "Ver mi resultado")}
-    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.</p>
+    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">${
+      params.requested
+        ? `Si quieres el estudio completo de ${TOTAL_ITEM_COUNT} indicadores, ahí mismo puedes programar tu visita ($${FULL_REPORT_PRICE_MXN} MXN sin IVA + el consumo de la visita) o conocer nuestros paquetes.`
+        : `Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.`
+    }</p>
     ${params.glosario ? renderGlosarioBlock(params.glosario) : ""}
   `);
 }

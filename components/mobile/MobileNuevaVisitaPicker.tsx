@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { VisitPickerClient } from "@/lib/dashboard";
+import type { OpenPoolItem } from "@/lib/visitRequests";
+import TomarSolicitudButton from "./TomarSolicitudButton";
 import { avatarColorFor, initialsFor } from "@/lib/ring";
 import { getVerdict } from "@/lib/verdict";
 
@@ -26,7 +28,7 @@ const TYPE_LABEL: Record<string, string> = {
  * cualquier /nueva-visita*, así que esta pantalla necesita su propio
  * botón de "Atrás".
  */
-export default function MobileNuevaVisitaPicker({ clients }: { clients: VisitPickerClient[] }) {
+export default function MobileNuevaVisitaPicker({ clients, pool = [] }: { clients: VisitPickerClient[]; pool?: OpenPoolItem[] }) {
   const [query, setQuery] = useState("");
   const filtered = clients.filter((c) => c.name.toLowerCase().includes(query.toLowerCase()));
 
@@ -58,6 +60,27 @@ export default function MobileNuevaVisitaPicker({ clients }: { clients: VisitPic
         <div className="px-5 pb-1.5 text-[13.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
           Elige un negocio para visitar o agrega uno nuevo
         </div>
+
+        {pool.length > 0 && (
+          <section className="px-5 pt-1">
+            <h2 className="text-[15px] font-bold">Visitas gratis disponibles</h2>
+            <p className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+              Nadie las asignó todavía. Quien tome una primero se la queda y tiene 3 días para hacerla.
+            </p>
+            <div className="mt-3 space-y-2.5">
+              {pool.map((p) => (
+                <div key={p.requestId} className="card p-4">
+                  <div className="truncate text-[15.5px] font-bold">{p.clientName}</div>
+                  <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                    {TYPE_LABEL[p.clientType] ?? "Negocio"}
+                    {p.city ? ` · ${p.city}` : ""}
+                  </div>
+                  <TomarSolicitudButton requestId={p.requestId} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="px-5 py-3.5">
           <Link

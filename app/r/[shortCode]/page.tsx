@@ -20,6 +20,8 @@ import CheckoutPayerForm from "@/components/CheckoutPayerForm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getShareData, starsText } from "@/lib/reportShare";
+import { isRequestedVisit } from "@/lib/visitRequests";
+import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
 
@@ -274,6 +276,10 @@ export default async function ReportPage({
   const { form, client, catScores, ratings, flags } = data;
   const verdict = getVerdict(form.overall_score);
   const unlocked = Boolean(form.report_unlocked_at);
+  // Visita hecha porque el negocio la solicitó: no se vende el reporte a $850; se invita a programar una visita o ver paquetes.
+  const requested = unlocked
+    ? false
+    : await isRequestedVisit(getSupabaseServiceClient(), { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false);
   const mercadopagoConfigured = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const whatsappFallbackLink = contactWhatsapp
@@ -313,6 +319,7 @@ export default async function ReportPage({
         overallScore={form.overall_score}
         categories={visibleCategories}
         unlocked={unlocked}
+        requested={requested}
         price={FULL_REPORT_PRICE_MXN}
         mercadopagoConfigured={mercadopagoConfigured}
         whatsappFallbackLink={whatsappFallbackLink}
@@ -393,6 +400,25 @@ export default async function ReportPage({
           comments={form.comments}
           ticketHref={form.ticket_photo_path ? `/r/${shortCode}/ticket` : null}
         />
+      ) : requested ? (
+        <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
+          <p className="font-medium text-ink">Este es el resumen de tu visita gratis.</p>
+          <p className="mt-2 text-sm text-stone-600">
+            Si quieres el detalle de los {TOTAL_ITEM_COUNT} indicadores, los comentarios de nuestro MysterFoodie y el ticket de consumo, programa una visita con
+            reporte completo: ${FULL_REPORT_PRICE_MXN} MXN sin IVA, más el consumo de la visita.
+          </p>
+          <a
+            href={PROGRAM_VISIT_URL}
+            className="mt-4 inline-block rounded-md bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+          >
+            Programa tu visita
+          </a>
+          <p className="mt-3 text-sm">
+            <a href={PACKAGES_URL} className="font-semibold text-brand-600 underline">
+              o conoce nuestros paquetes
+            </a>
+          </p>
+        </div>
       ) : (
         <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
           <p className="font-medium text-ink">Este es un resumen por categoría.</p>
