@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.21.0",
+    date: "2026-10-20",
+    title: "Invita Shoppers con tu QR",
+    emoji: "📲",
+    highlights: [
+      "Sibaritas y Master Chefs tienen en Perfil su QR fijo para invitar Shoppers (con el logo al centro): se descarga como imagen o se comparte directo. La liga es go.mysterfoodie.com/<tu nombre anónimo>.",
+      "Quien escanea llena su solicitud (todo obligatorio): datos, colonia, mayoría de edad, Instagram, experiencia, disponibilidad, vehículo y, al final, qué le gusta comer según lo más típico de Uber Eats en Veracruz y Boca del Río.",
+      "La solicitud queda por aprobar: el Master Chef la revisa en Aspirantes a Shopper y, al aprobar, se crea la cuenta y le llega su acceso. Quien invitó ve en «Mis invitados» cómo va cada uno.",
+      "Cada MysterFoodie tiene un nombre anónimo (fruta, verdura o tubérculo + apellido famoso, como Lima Hayek). Se descubre tocando 3 veces tu nombre en Perfil… y pasa algo con tu foto.",
+    ],
+  },
+  {
     version: "0.20.0",
     date: "2026-10-20",
     title: "Programa tu visita y escalamiento de solicitudes",

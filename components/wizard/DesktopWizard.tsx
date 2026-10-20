@@ -81,6 +81,9 @@ type WizardDraft = {
   notes?: Record<string, string>;
   step: number;
   savedAt: number;
+  /** Ruta de la visita y total de pasos: los usa Pendientes del Inicio para avisar y llevar de vuelta. */
+  href?: string;
+  totalSteps?: number;
 };
 
 function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName" | "na" | "tagsGood" | "tagsImprove" | "notes">) {
@@ -187,7 +190,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
 
   useEffect(() => {
     if (!draftLoadedRef.current || result) return;
-    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now() };
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now(), href: window.location.pathname, totalSteps: steps.length };
     if (draftHasContent(draft)) {
       saveWizardDraft(draftId, draft);
     } else {

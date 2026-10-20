@@ -142,9 +142,26 @@ async function requestAlerts(db: Db): Promise<HomeAlert[]> {
   return alerts;
 }
 
+// Aspirantes a Shopper que llegaron con un QR y esperan aprobación del Master Chef.
+async function applicantAlerts(db: Db): Promise<HomeAlert[]> {
+  const { data } = await db.from("shopper_applications").select("id, created_at").eq("status", "pendiente").order("created_at", { ascending: true });
+  if (!data || data.length === 0) return [];
+  return [
+    {
+      key: "ad:aspirantes",
+      kind: "pendiente",
+      tone: "warn",
+      emoji: "🙋",
+      title: data.length === 1 ? "1 aspirante a Shopper por aprobar" : `${data.length} aspirantes a Shopper por aprobar`,
+      detail: `La más antigua llegó ${agoLabel(data[0].created_at as string)} · llegaron con un QR`,
+      href: "/admin/aspirantes",
+    },
+  ];
+}
+
 // ----------------------------------------------------------------- admin
 async function adminAlerts(db: Db): Promise<HomeAlert[]> {
-  const alerts: HomeAlert[] = [...(await requestAlerts(db).catch(() => []))];
+  const alerts: HomeAlert[] = [...(await requestAlerts(db).catch(() => [])), ...(await applicantAlerts(db).catch(() => []))];
   const month = currentMonthCdmx();
   const since = new Date(Date.now() - RECENT_DAYS * DAY_MS).toISOString();
 

@@ -14,7 +14,7 @@ export type ShortLinkResult =
 
 export async function createShortLink(
   originalURL: string,
-  opts?: { title?: string }
+  opts?: { title?: string; /** Ruta fija (go.mysterfoodie.com/<path>); si no se manda, Short.io crea una al azar. */ path?: string }
 ): Promise<ShortLinkResult> {
   const apiKey = process.env.SHORTIO_API_KEY;
   const domain = process.env.SHORTIO_DOMAIN || DEFAULT_DOMAIN;
@@ -34,12 +34,18 @@ export async function createShortLink(
         domain,
         originalURL,
         title: opts?.title,
+        ...(opts?.path ? { path: opts.path } : {}),
         allowDuplicates: true,
       }),
     });
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
+      // La ruta fija ya existe (p. ej. se creó antes): si apunta a lo mismo, esa liga sirve.
+      if (opts?.path && (res.status === 409 || /already exists|duplicate/i.test(text))) {
+        const existing = await findShortLink(opts.path, originalURL);
+        if (existing) return { ok: true, shortURL: existing };
+      }
       return { ok: false, error: `Short.io respondio ${res.status}: ${text}` };
     }
 
@@ -51,5 +57,23 @@ export async function createShortLink(
     return { ok: true, shortURL: data.shortURL };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Busca go.mysterfoodie.com/<path> y devuelve su liga solo si apunta a `expectedURL`. */
+async function findShortLink(path: string, expectedURL: string): Promise<string | null> {
+  const apiKey = process.env.SHORTIO_API_KEY;
+  const domain = process.env.SHORTIO_DOMAIN || DEFAULT_DOMAIN;
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(`https://api.short.io/links/expand?domain=${encodeURIComponent(domain)}&path=${encodeURIComponent(path)}`, {
+      headers: { Authorization: apiKey, Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { originalURL?: string; shortURL?: string; secureShortURL?: string };
+    if (data.originalURL?.replace(/\/$/, "") !== expectedURL.replace(/\/$/, "")) return null;
+    return data.secureShortURL || data.shortURL || `https://${domain}/${path}`;
+  } catch {
+    return null;
   }
 }

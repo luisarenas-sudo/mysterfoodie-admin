@@ -15,6 +15,8 @@ import EasterEggBee from "@/components/EasterEggBee";
 import { Group, Row } from "@/components/perfil/ListRow";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { countPendingRequests } from "@/lib/visitRequests";
+import { countPendingApplications } from "@/lib/aspirantes";
+import IdentityCard from "@/components/perfil/IdentityCard";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +74,8 @@ export default async function PerfilPage({
   const { google, error: googleError } = await searchParams;
   const isCliente = profile.role === "cliente";
   const solicitudesPendientes = profile.role === "admin" ? await countPendingRequests(getSupabaseServiceClient()).catch(() => 0) : 0;
+  const aspirantesPendientes = profile.role === "admin" ? await countPendingApplications(getSupabaseServiceClient()).catch(() => 0) : 0;
+  const myAlias = isCliente ? null : await getSupabaseServiceClient().from("profiles").select("alias").eq("id", profile.userId).maybeSingle().then((r) => (r.data?.alias as string | null) ?? null, () => null);
   const visits = isCliente
     ? []
     : profile.role === "admin"
@@ -113,31 +117,16 @@ export default async function PerfilPage({
         </p>
       )}
 
-      {/* Tarjeta de identidad: toda es un botón hacia Editar perfil */}
-      <Link href="/perfil/editar" className="card mf-tap mx-5 mb-6 flex flex-col items-center px-5 pb-5 pt-6 text-center">
-        <div className="relative">
-          <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-24 w-24 text-3xl" />
-          <span
-            className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full text-[16px]"
-            style={{ background: "#F24444", border: "3px solid #fff" }}
-            aria-hidden="true"
-          >
-            📷
-          </span>
-        </div>
-        <div className="mt-3.5 max-w-full truncate text-[20px] font-bold">{displayName}</div>
-        {currentRank && (
-          <div className="mt-2 rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ color: "#D42F2F", background: "rgba(242,68,68,0.1)" }}>
-            {currentRank.emoji} {currentRank.label}
-          </div>
-        )}
-        <div className="mt-2 max-w-full truncate text-[14px]" style={{ color: "rgba(60,60,67,0.75)" }}>
-          {profile.email}
-        </div>
-        <div className="mt-3 text-[12.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
-          Toca para cambiar tu foto y tus datos
-        </div>
-      </Link>
+      {/* Tarjeta de identidad: toda es un botón hacia Editar perfil; tocar 3 veces el nombre revela el nombre anónimo */}
+      <IdentityCard
+        displayName={displayName}
+        avatarUrl={profile.avatarUrl}
+        email={profile.email}
+        rankEmoji={currentRank?.emoji}
+        rankLabel={currentRank?.label}
+        alias={myAlias}
+        canHaveAlias={!isCliente}
+      />
 
       <Group title="Cuenta">
         <Row href="/perfil/editar" icon="📷" iconBg="#F24444" title="Foto y datos" subtitle="Tu foto, nombre y teléfono" />
@@ -256,6 +245,15 @@ export default async function PerfilPage({
       )}
 
       <Group title="Herramientas">
+        {(profile.role === "admin" || profile.role === "sibarita") && (
+          <Row
+            href="/perfil/invitar"
+            icon="📲"
+            iconBg="#007AFF"
+            title="Invitar Shoppers con QR"
+            subtitle="Tu QR fijo: quien lo escanee llena su solicitud"
+          />
+        )}
         {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
           <Row
             href="/finanzas"
@@ -278,6 +276,13 @@ export default async function PerfilPage({
                   ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
                   : "Visitas gratis pedidas en la web"
               }
+            />
+            <Row
+              href="/admin/aspirantes"
+              icon="🙋"
+              iconBg="#34C759"
+              title="Aspirantes a Shopper"
+              subtitle={aspirantesPendientes > 0 ? `${aspirantesPendientes} por aprobar · llegaron con un QR` : "Solicitudes que llegan con un QR"}
             />
             <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
             <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />

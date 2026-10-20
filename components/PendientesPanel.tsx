@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { HomeAlert, AlertTone } from "@/lib/alerts";
 import { friendlyError } from "@/lib/friendlyError";
+import { clearWizardDraft, listWizardDrafts } from "@/lib/wizardDraft";
 
 const TONE: Record<AlertTone, { bg: string; dot: string }> = {
   urgent: { bg: "#FFE5E3", dot: "#FF3B30" },
@@ -13,6 +14,62 @@ const TONE: Record<AlertTone, { bg: string; dot: string }> = {
 };
 
 const VISIBLE_DEFAULT = 3;
+/** Un borrador más viejo que esto ya no avisa (sigue guardado, pero deja de estorbar). */
+const DRAFT_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+
+type PanelAlert = HomeAlert & { draftId?: string };
+
+function ago(ts: number): string {
+  const min = Math.max(1, Math.round((Date.now() - ts) / 60000));
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "ayer" : `hace ${d} días`;
+}
+
+/**
+ * Evaluaciones a medias de este equipo: el wizard guarda un borrador en el navegador y aquí avisamos que hay algo
+ * sin terminar (es el mismo borrador que ofrece «Recuperamos tu progreso de esta visita»).
+ */
+function useDraftAlerts(): [PanelAlert[], (draftId: string) => void] {
+  const [drafts, setDrafts] = useState<PanelAlert[]>([]);
+  const refresh = useCallback(() => {
+    setDrafts(
+      listWizardDrafts()
+        .filter((d) => Date.now() - d.savedAt <= DRAFT_MAX_AGE_MS)
+        .map((d) => ({
+          key: `draft:${d.id}`,
+          draftId: d.id,
+          kind: "pendiente" as const,
+          tone: "warn" as const,
+          emoji: "📝",
+          title: d.name ? `Evaluación sin terminar: ${d.name}` : "Tienes una evaluación sin terminar",
+          detail: `${d.totalSteps ? `Vas en el paso ${d.step} de ${d.totalSteps} · ` : ""}guardada ${ago(d.savedAt)} · toca para retomarla`,
+          href: d.href,
+        }))
+    );
+  }, []);
+  useEffect(() => {
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [refresh]);
+  const discard = useCallback(
+    (draftId: string) => {
+      clearWizardDraft(draftId);
+      refresh();
+    },
+    [refresh]
+  );
+  return [drafts, discard];
+}
 
 /**
  * Pendientes del Inicio: visitas asignadas, cobros, tickets, compras, citas…
@@ -20,13 +77,20 @@ const VISIBLE_DEFAULT = 3;
  * que sigue pendiente reaparece a las 24 h (ver lib/alerts.ts).
  */
 export default function PendientesPanel({ alerts }: { alerts: HomeAlert[] }) {
-  const [items, setItems] = useState(alerts);
+  const [serverItems, setItems] = useState(alerts);
+  const [draftItems, discardDraft] = useDraftAlerts();
+  const items: PanelAlert[] = [...draftItems, ...serverItems];
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function dismiss(alert: HomeAlert) {
+  async function dismiss(alert: PanelAlert) {
     setError(null);
+    // Un borrador no es un aviso del servidor: cerrarlo borra el progreso guardado, así que se confirma.
+    if (alert.draftId) {
+      if (window.confirm("¿Descartar esta evaluación sin terminar? Se pierde el progreso guardado.")) discardDraft(alert.draftId);
+      return;
+    }
     setLeaving((prev) => new Set(prev).add(alert.key));
     // Se espera a que termine la animación de salida para quitarlo de la lista.
     window.setTimeout(() => setItems((prev) => prev.filter((a) => a.key !== alert.key)), 220);
