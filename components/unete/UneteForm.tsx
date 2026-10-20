@@ -333,7 +333,7 @@ export default function UneteForm({ inviterSlug, inviterAlias }: { inviterSlug: 
             <label className="mb-4 flex items-start gap-3">
               <input type="checkbox" className="mt-1 h-5 w-5" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
               <span className="text-[13px] leading-snug">
-                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com), y que, si me aprueban, los bloques que decidí compartir (sin mi nombre, foto, contacto ni documentos; solo rangos y categorías) puedan mostrarse a los negocios como un perfil anónimo con mi nombre anónimo. Entiendo que puedo cambiarlo cuando quiera.
+                Acepto que MysterFoodie use mis datos para evaluar mi solicitud y contactarme (hola@mysterfoodie.com), y que, si me aprueban, los bloques que decidí compartir (sin mi nombre, foto, contacto ni documentos; solo rangos y categorías) puedan mostrarse a los negocios como un perfil anónimo con mi nombre anónimo, y que recibiré una parte de lo que pague el negocio por ellos. Entiendo que puedo apagar cualquier bloque cuando quiera; mi nombre anónimo, en cambio, queda fijo una vez elegido Lee el <a href="https://mysterfoodie.com/privacidad/#perfil-anonimo" target="_blank" rel="noopener" className="underline">Aviso de Privacidad</a> y las <a href="https://mysterfoodie.com/terminos/#perfil-anonimo" target="_blank" rel="noopener" className="underline">Condiciones</a>.
               </span>
             </label>
           </>

@@ -152,7 +152,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
   return { ok: true };
 }
 
-/** Aprueba: crea la cuenta de Shopper (con su nombre anónimo y quién lo invitó) y manda el correo de acceso. */
+/** Aprueba: crea la cuenta de Shopper (con el estilo de nombre que pidió y quién lo invitó) y manda el correo de acceso. */
 export async function approveApplication(db: Db, id: string, reviewerId: string): Promise<{ ok: true; emailStatus: string } | { ok: false; error: string; status: number }> {
   const { data: app } = await db.from("shopper_applications").select("*").eq("id", id).maybeSingle();
   if (!app) return { ok: false, error: "Solicitud no encontrada.", status: 404 };

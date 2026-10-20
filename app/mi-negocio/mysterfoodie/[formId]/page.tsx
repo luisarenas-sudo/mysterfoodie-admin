@@ -127,7 +127,7 @@ export default async function PerfilMysterfoodiePage({
               Pago único con MercadoPago. Cada MysterFoodie decide qué comparte: solo ves lo que él autorizó, siempre de forma anónima.
             </p>
             <p className="mt-2 rounded-xl px-3.5 py-3 text-[12.5px] leading-snug text-stone-600" style={{ background: "#F2F2F7" }}>
-              <strong>Cómo se reparte:</strong> pagas el precio del perfil más un {PLATFORM_FEE_PCT}% de cargo por uso de la plataforma (operación, cobro y resguardo de datos). El {MYSTERFOODIE_SHARE_PCT}% del precio se va al MysterFoodie que compartió su perfil. Más en el <a href="https://mysterfoodie.com/privacidad/#perfil-anonimo" className="underline" target="_blank" rel="noopener">Aviso de Privacidad</a>.
+              <strong>Cómo se reparte:</strong> pagas el precio del perfil más un {PLATFORM_FEE_PCT}% de cargo por uso de la plataforma (operación, cobro y resguardo de datos). El {MYSTERFOODIE_SHARE_PCT}% del precio se va al MysterFoodie que compartió su perfil. Al comprar aceptas no intentar identificar, contactar ni exhibir al MysterFoodie, ni usar su perfil para discriminar ni revenderlo (<a href="https://mysterfoodie.com/terminos/#perfil-anonimo" className="underline" target="_blank" rel="noopener">Condiciones del Servicio</a>). Cómo cuidamos los datos: <a href="https://mysterfoodie.com/privacidad/#perfil-anonimo" className="underline" target="_blank" rel="noopener">Aviso de Privacidad</a>.
             </p>
           </div>
         )}

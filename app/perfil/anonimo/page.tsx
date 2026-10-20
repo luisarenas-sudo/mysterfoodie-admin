@@ -26,7 +26,7 @@ export default async function PerfilAnonimoPage() {
           <div className="heading text-[30px] font-bold">Mi perfil anónimo</div>
           <p className="mt-2 text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
             Los negocios que te visiten pueden comprar un perfil con tu nombre anónimo: gustos, hábitos y, en el nivel Passport, tu estilo de vida
-            y datos demográficos en rangos. Tú decides qué bloques compartes y ganas un porcentaje por cada venta. Nunca ven tu nombre, foto,
+            y datos demográficos en rangos. Tú decides qué bloques compartes y te llevas el 50% del precio de cada venta, repartido entre ellos (el cargo por uso de la plataforma lo paga el negocio aparte). Nunca ven tu nombre, foto,
             contacto ni documentos.
           </p>
           {(pending > 0 || paid > 0) && (

@@ -36,7 +36,7 @@ export default async function GananciasPerfilPage() {
         <div className="px-5 pb-2 pt-5">
           <div className="heading text-[30px] font-bold">Ganancias de perfiles</div>
           <p className="mt-2 text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
-            Lo que gana cada MysterFoodie cuando un negocio compra su perfil anónimo (un porcentaje fijo por cada bloque compartido).
+            Lo que gana cada MysterFoodie cuando un negocio compra su perfil anónimo: el 50% del precio, repartido entre los bloques que comparte. El cargo por uso de la plataforma que paga el negocio no entra aquí.
           </p>
         </div>
         <div className="space-y-3 px-5 pt-3">

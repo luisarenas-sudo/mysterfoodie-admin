@@ -155,7 +155,7 @@ export default function AliasPicker({ nextHref, capped, maxAttempts, rollsUsed, 
         </p>
       </div>
 
-      <div className="mt-4">{styleButtons}</div>
+      {(remaining > 0 || list.length === 0) && <div className="mt-4">{styleButtons}</div>}
 
       {remaining > 0 && (
         <button
@@ -165,7 +165,7 @@ export default function AliasPicker({ nextHref, capped, maxAttempts, rollsUsed, 
           className="mf-tap mt-3 min-h-[50px] w-full rounded-[14px] text-[15px] font-semibold text-white disabled:opacity-50"
           style={{ background: used === 0 ? RED : "rgba(60,60,67,0.85)" }}
         >
-          {used === 0 ? "Descubrir mi nombre" : `Probar otro (${remaining} ${remaining === 1 ? "intento" : "intentos"})`}
+          {!style ? "Elige un estilo para empezar" : used === 0 ? "Descubrir mi nombre" : `Probar otro (${remaining} ${remaining === 1 ? "intento" : "intentos"})`}
         </button>
       )}
 

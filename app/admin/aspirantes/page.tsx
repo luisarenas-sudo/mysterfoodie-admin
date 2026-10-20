@@ -56,7 +56,7 @@ export default async function AspirantesPage() {
         <div className="px-5 pb-3 pt-5">
           <div className="heading text-[30px] font-bold">Aspirantes a Shopper</div>
           <p className="mt-1.5 text-[14px]" style={{ color: "rgba(60,60,67,0.7)" }}>
-            Llegaron con el QR de un Sibarita o Master Chef. Al aprobar se crea su cuenta de Shopper (con su nombre anónimo) y le llega su acceso por correo.
+            Llegaron con el QR de un Sibarita o Master Chef. Al aprobar se crea su cuenta de Shopper y le llega su acceso por correo. Su nombre anónimo lo elige ella o él al entrar (3 intentos y queda fijo).
           </p>
         </div>
         {pending.length === 0 && (
