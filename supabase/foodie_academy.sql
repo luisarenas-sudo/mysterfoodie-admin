@@ -1,4 +1,4 @@
--- Lista de espera de la MysterFoodie Academy (correos que se dejan en mysterfoodie.com).
+-- Lista de espera de la MysterFoodie Uni (correos que se dejan en mysterfoodie.com).
 -- Idempotente. Solo el servidor (service role) la lee y escribe: RLS activo y sin políticas.
 create table if not exists public.academy_waitlist (
   id uuid primary key default gen_random_uuid(),
@@ -6,7 +6,7 @@ create table if not exists public.academy_waitlist (
   source text,                         -- de dónde la dejó: metodologia, nosotros, footer-home...
   consent_at timestamptz not null default now(),
   confirmation_sent_at timestamptz,    -- cuándo se le mandó el correo de confirmación
-  notified_at timestamptz,             -- cuándo se le avisó que abrió la Academy
+  notified_at timestamptz,             -- cuándo se le avisó que abrió la Uni
   ip_hash text,                        -- huella (sha256) de la IP, solo para limitar abusos
   created_at timestamptz not null default now()
 );
@@ -16,4 +16,4 @@ create index if not exists academy_waitlist_ip_idx on public.academy_waitlist (i
 
 alter table public.academy_waitlist enable row level security;
 
-comment on table public.academy_waitlist is 'Interesados en la MysterFoodie Academy (lista de espera). Avisar cuando abra: notified_at is null.';
+comment on table public.academy_waitlist is 'Interesados en la MysterFoodie Uni (lista de espera). Avisar cuando abra: notified_at is null.';

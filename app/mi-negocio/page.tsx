@@ -1,3 +1,5 @@
+import GlosarioCard from "@/components/GlosarioCard";
+import { GLOSARIO_NEGOCIO } from "@/lib/glosario";
 import { requireRole } from "@/lib/auth";
 import { getClientDetail } from "@/lib/dashboard";
 import { getClientPlanView } from "@/lib/plans";
@@ -59,6 +61,7 @@ export default async function MiNegocioPage() {
             Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
             evaluación Mystery Shopper, la verás aquí.
           </p>
+          <GlosarioCard className="mt-8 max-w-xl" keys={GLOSARIO_NEGOCIO} subtitle="Qué es un MysterFoodie y cómo funcionan nuestros planes" />
         </main>
       </>
     );
@@ -87,6 +90,7 @@ export default async function MiNegocioPage() {
         </div>
 
         <ClientScoreboard client={client} />
+        <GlosarioCard className="mt-8 max-w-xl" keys={GLOSARIO_NEGOCIO} subtitle="Qué es un MysterFoodie y cómo funcionan nuestros planes" />
       </main>
     </>
   );

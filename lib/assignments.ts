@@ -1,3 +1,4 @@
+import { GLOSARIO_EQUIPO, type GlosarioKey } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
 import { businessTypePhrase } from "./categories";
 import { sendTemplatedEmail, type SendEmailOutcome } from "./email";
@@ -67,11 +68,24 @@ MysterFoodie`;
       ? renderTemplate(automation.bodyTemplate, templateVars)
       : defaultBody;
 
+  // Primera visita que se le asigna a esta persona: es su primer contacto con el mundo MysterFoodie.
+  let glosario: GlosarioKey[] | undefined;
+  try {
+    const { data: a } = await db.from("visit_assignments").select("assigned_to").eq("id", assignmentId).maybeSingle();
+    if (a?.assigned_to) {
+      const { count } = await db.from("visit_assignments").select("id", { count: "exact", head: true }).eq("assigned_to", a.assigned_to);
+      if ((count ?? 0) <= 1) glosario = GLOSARIO_EQUIPO;
+    }
+  } catch {
+    // sin glosario, el correo sale igual
+  }
+
   const outcome = await sendTemplatedEmail({
     to: foodie.email,
     subject,
     bodyText,
     ctaLabel: "Ver mis visitas asignadas",
+    glosario,
   });
 
   if (outcome.status === "sent") {

@@ -1,3 +1,4 @@
+import { glosarioIfFirstEmail } from "@/lib/firstContact";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
       : defaultIntro;
 
   const emailOutcome = await sendResultEmail({
+    glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
     to: recipientEmail,
     businessName: client.name,
     subject,

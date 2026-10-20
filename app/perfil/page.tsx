@@ -1,3 +1,5 @@
+import GlosarioCard from "@/components/GlosarioCard";
+import { GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "@/lib/glosario";
 import DeleteAccountButton from "@/components/perfil/DeleteAccountButton";
 import { redirect } from "next/navigation";
 import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
@@ -308,6 +310,8 @@ export default async function PerfilPage({
         </div>
       </div>
 
+      <GlosarioCard className="mx-5 mt-4" keys={isCliente ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO} subtitle={isCliente ? "Qué es un MysterFoodie y cómo funcionan nuestros planes" : "Qué significan MysterFoodie, tu rango y la Uni"} />
+
       <div className="mx-5 mt-2.5 text-center">
         <FlancoCredit />
       </div>
@@ -481,6 +485,8 @@ export default async function PerfilPage({
           />
         </div>
       )}
+
+      <GlosarioCard className="mt-6" keys={isCliente ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO} subtitle={isCliente ? "Qué es un MysterFoodie y cómo funcionan nuestros planes" : "Qué significan MysterFoodie, tu rango y la Uni"} />
 
       {isCliente && (
         <p className="mt-6 text-sm text-stone-500">

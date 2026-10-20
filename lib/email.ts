@@ -4,6 +4,7 @@ import type { CategoryScore } from "./scoring";
 import { TOTAL_ITEM_COUNT } from "./categories";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 import { PALABRA_FOODIE_QUOTE } from "./brand";
+import { glosarioEntries, type GlosarioKey } from "./glosario";
 
 export type SendResultEmailParams = {
   to: string;
@@ -15,6 +16,8 @@ export type SendResultEmailParams = {
   subject: string;
   /** Párrafo de introducción ya renderizado (plantilla de Automatizaciones "resultado_visita" o el texto por default). Variables ya sustituidas. */
   introText: string;
+  /** Primer contacto con este negocio: bloque "Nuestro mundo" con lo que significan las palabras de la marca. */
+  glosario?: GlosarioKey[];
 };
 
 export type SendEmailOutcome = {
@@ -118,6 +121,33 @@ export function renderEmailShell(cardHtml: string): string {
   `;
 }
 
+/**
+ * Bloque "Nuestro mundo" para los correos de primer contacto: explica en una línea
+ * cada palabra de la marca (MysterFoodie, rangos, Uni, planes) para que quien nos
+ * lee por primera vez entienda de qué hablamos. Definiciones en lib/glosario.ts.
+ */
+export function renderGlosarioBlock(keys: GlosarioKey[], title = "Nuestro mundo, en 30 segundos"): string {
+  const rows = glosarioEntries(keys)
+    .map(
+      (g) => `
+      <tr>
+        <td width="34" valign="top" style="padding: 9px 0; font-size: 20px; line-height: 1.2;">${g.emoji}</td>
+        <td valign="top" style="padding: 9px 0; border-bottom: 1px solid #eceef2; font-size: 13.5px; line-height: 1.55; color: #4b5563;">
+          <strong style="color: #111827;">${escapeHtml(g.term)}</strong><br />${escapeHtml(g.def)}
+        </td>
+      </tr>`
+    )
+    .join("");
+  if (!rows) return "";
+  return `
+    <div style="margin: 26px 0 0; background-color: #f8f9fb; border: 1px solid #eceef2; border-radius: 18px; padding: 18px 20px 10px;">
+      <p style="margin: 0 0 4px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: ${BRAND_RED}; text-transform: uppercase;">${escapeHtml(title)}</p>
+      <p style="margin: 0 0 6px; font-size: 13.5px; line-height: 1.55; color: #6b7280;">Para que todo suene familiar desde el primer día:</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">${rows}</table>
+    </div>
+  `;
+}
+
 /** Caja gris de "Palabra MysterFoodie" (la garantía de honestidad del estudio). */
 function renderGuaranteeBlock(): string {
   return `
@@ -188,6 +218,7 @@ function renderEmailHtml(params: SendResultEmailParams): string {
 
     ${renderButton(reportUrl, "Ver mi resultado")}
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.</p>
+    ${params.glosario ? renderGlosarioBlock(params.glosario) : ""}
   `);
 }
 
@@ -241,9 +272,11 @@ export type SendTemplatedEmailParams = {
   bodyText: string;
   /** Si se pasa, una línea del texto que sea solo un enlace se muestra como botón rojo con esta etiqueta. */
   ctaLabel?: string;
+  /** Primer contacto: bloque "Nuestro mundo" al final del correo. */
+  glosario?: GlosarioKey[];
 };
 
-function renderPlainEmailHtml(bodyText: string, ctaLabel?: string): string {
+function renderPlainEmailHtml(bodyText: string, ctaLabel?: string, glosario?: GlosarioKey[]): string {
   const urlLine = /^\s*(https?:\/\/\S+)\s*$/;
   const linkify = (escaped: string) =>
     escaped.replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color: ${BRAND_RED}; text-decoration: underline;">$1</a>`);
@@ -266,6 +299,7 @@ function renderPlainEmailHtml(bodyText: string, ctaLabel?: string): string {
     }
   }
   flush();
+  if (glosario?.length) parts.push(renderGlosarioBlock(glosario));
   return renderEmailShell(parts.join(""));
 }
 
@@ -284,7 +318,7 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
       replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
-      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel),
+      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel, params.glosario),
     });
 
     if (result.error) {
@@ -353,6 +387,8 @@ export type SendFullReportEmailParams = {
   planProgress?: { done: number; total: number; monthLabel: string; planName: string };
   /** Demo gratis (sin pago): mismo correo y PDF, pero el PDF lleva marca de agua y el encabezado no agradece una compra. */
   demo?: boolean;
+  /** Bloque "Nuestro mundo" (primer contacto o demo gratis). */
+  glosario?: GlosarioKey[];
 };
 
 function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
@@ -381,6 +417,7 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
 
     ${renderButton(reportUrl, "Ver el reporte en línea")}
     ${whatsappLink ? `<div style="margin-top: 12px;">${renderButton(whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+    ${params.glosario ? renderGlosarioBlock(params.glosario) : ""}
   `);
 }
 
@@ -533,7 +570,13 @@ export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
       No tienes que hacer nada más por ahora.
     </p>
     ${p.whatsappLink ? `<div style="margin-top: 18px;">${renderButton(p.whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+    ${renderGlosarioBlock(["mysterfoodie", ...planGlosarioKey(p.planName)])}
   `);
+}
+
+function planGlosarioKey(planName: string): GlosarioKey[] {
+  const k = planName.trim().toLowerCase().replace(/\s+/g, "_");
+  return k === "starter" || k === "appetizer" || k === "main_course" ? [k] : [];
 }
 
 /** Ticket de servicio del plan contratado (con copia oculta al equipo si hay ADMIN_EMAIL). */

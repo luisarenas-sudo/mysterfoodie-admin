@@ -3,8 +3,8 @@ import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 /**
- * Exporta la lista de espera de la MysterFoodie Academy en CSV (solo Master Chef).
- * Útil el día que abra la Academy: ?pendientes=1 trae solo a quienes aún no se
+ * Exporta la lista de espera de la MysterFoodie Uni en CSV (solo Master Chef).
+ * Útil el día que abra la Uni: ?pendientes=1 trae solo a quienes aún no se
  * les avisa (notified_at vacío).
  */
 export async function GET(req: Request) {

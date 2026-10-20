@@ -1,3 +1,4 @@
+import { GLOSARIO_NEGOCIO } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
 import { BUSINESS_TYPES, businessTypePhrase } from "./categories";
 import { sendTemplatedEmail, type SendEmailOutcome } from "./email";
@@ -237,7 +238,7 @@ async function sendRequestReceivedEmail(p: {
       .split("")
       .join(" ")} (vale ${ACCESS_TTL_DAYS} días).`;
   }
-  return sendTemplatedEmail({ to: p.to, subject, bodyText, ctaLabel: p.acceso ? "Crear mi cuenta" : "Entrar a mi cuenta" });
+  return sendTemplatedEmail({ to: p.to, subject, bodyText, ctaLabel: p.acceso ? "Crear mi cuenta" : "Entrar a mi cuenta", glosario: GLOSARIO_NEGOCIO });
 }
 
 /** Avisa a los admins (Master Chef) que llegó una solicitud nueva. Devuelve "sent" si salió al menos un correo. */
@@ -493,6 +494,7 @@ async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
     subject,
     bodyText,
     ctaLabel: "Ver la tabla comparativa de paquetes",
+    glosario: GLOSARIO_NEGOCIO,
   });
   return out.status;
 }

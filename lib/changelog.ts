@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.19.0",
+    date: "2026-10-20",
+    title: "Nuestro mundo y MysterFoodie Uni",
+    emoji: "🌎",
+    highlights: [
+      "Los primeros contactos explican las palabras de la marca: qué es un MysterFoodie, Shopper, Sibarita, Master Chef, la Uni y los planes Starter, Appetizer y Main course.",
+      "Aparece en los correos (resultado, solicitud, invitaciones, plan, reporte) y en pantalla: reporte público, Mi negocio y Perfil.",
+      "«MysterFoodie Academy» ahora se llama MysterFoodie Uni en la web, la app y los correos.",
+      "En mysterfoodie.com/metodologia el bloque grande de la Uni se cambió por Preguntas frecuentes con desplegables.",
+    ],
+  },
+  {
     version: "0.18.0",
     date: "2026-10-20",
     title: "Enviar GRATIS: reporte demo",
@@ -51,7 +63,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     highlights: [
       "Todas las personas del equipo son MysterFoodies y su rango es su nivel: Shopper (antes Foodie), Sibarita y Master Chef. Así «Foodie» ya no se repite entre la marca y el rango.",
       "Tu Perfil, los correos de invitación y el bienvenido lo dicen claro: «Eres MysterFoodie», «Te invitaron a ser MysterFoodie Shopper».",
-      "Los programas llevan la marca: MysterFoodie Academy y Palabra MysterFoodie.",
+      "Los programas llevan la marca: MysterFoodie Uni y Palabra MysterFoodie.",
       "Para los negocios, quien los visita es simplemente «un MysterFoodie» (correo de sin disponibilidad, plan, formulario de la web).",
     ],
   },
@@ -96,14 +108,14 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: "0.13.0",
     date: "2026-10-09",
-    title: "Solicita una visita GRATIS y Foodie Academy",
+    title: "Solicita una visita GRATIS y MysterFoodie Uni",
     emoji: "🎁",
     highlights: [
       "Nuevo botón «Solicita una visita GRATIS» en mysterfoodie.com: el negocio llena sus datos, se da de alta solo, recibe un correo de confirmación con el acceso para crear su cuenta y a ti te llega un aviso.",
       "Nueva pantalla Solicitudes (Perfil → Solicitudes de visita): asignas cada negocio a un sibarita, a un Foodie o a ti. Quien la recibe tiene 3 días en exclusiva; los días 4 y 5 aparece en «Disponibles para ti» de todos los Foodies, que pueden tomarla.",
       "Si al quinto día nadie hizo la visita, el negocio recibe un correo: por el momento no hay Foodie, con el enlace a la tabla comparativa de paquetes. Los dos correos se editan en Automatizaciones.",
       "Al compartir un enlace de reporte (Instagram, WhatsApp...) se ve una tarjeta con el nombre del negocio, sus estrellas y su veredicto.",
-      "Lista de espera de la Foodie Academy en la web, con correo de confirmación sobre los 52 indicadores, la metodología y los esquemas de ganancias.",
+      "Lista de espera de la MysterFoodie Uni en la web, con correo de confirmación sobre los 52 indicadores, la metodología y los esquemas de ganancias.",
     ],
   },
   {

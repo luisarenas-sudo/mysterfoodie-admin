@@ -4,6 +4,7 @@ import { buildReportPdf } from "./reportPdf";
 import { fullReportSubject, sendFullReportEmail, type SendEmailOutcome } from "./email";
 import { monthLabel } from "./months";
 import { downloadTicket } from "./ticket";
+import { GLOSARIO_NEGOCIO } from "./glosario";
 
 export type UnlockedForm = {
   id: string;
@@ -112,6 +113,8 @@ export async function deliverFullReportEmail(
     pdfFilename: `reporte-completo-${form.short_code}.pdf`,
     planProgress: opts.planProgress,
     demo: opts.demo,
+    // Visita suelta (compra o demo): muchas veces es el primer correo largo que el negocio recibe de nosotros.
+    glosario: opts.planProgress ? undefined : GLOSARIO_NEGOCIO,
   });
 
   // Queda en el registro de correos: se ve en la visita y, si falla, avisa en Pendientes.

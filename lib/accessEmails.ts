@@ -1,4 +1,5 @@
-import { BRAND_RED, escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
+import { BRAND_RED, escapeHtml, renderButton, renderEmailShell, renderGlosarioBlock, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
+import { GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "./glosario";
 import { inviteContentForRole } from "./inviteContent";
 import { ACCESS_TTL_DAYS } from "./accessTokens";
 
@@ -92,6 +93,8 @@ export function renderInviteHtml(p: {
 
     <div style="margin: 24px 0 0;">${renderButton(p.url, "Crear mi contraseña")}</div>
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">También puedes continuar con tu cuenta de Google desde esa pantalla.</p>
+
+    ${renderGlosarioBlock(p.role === "cliente" ? GLOSARIO_NEGOCIO : GLOSARIO_EQUIPO)}
 
     <div style="margin: 24px 0 0; border: 1px dashed #d1d5db; border-radius: 16px; padding: 16px 18px; text-align: center;">
       <p style="margin: 0 0 6px; font-size: 13px; line-height: 1.55; color: #6b7280;">¿El botón no abre? Entra a <strong>${esc(host)}/set-password</strong>, escribe tu correo y este código:</p>
