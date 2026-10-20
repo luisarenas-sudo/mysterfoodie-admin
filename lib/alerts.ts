@@ -250,7 +250,7 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
   // corre supabase/acceso.sql la tabla no existe y simplemente no hay aviso.
   const { data: removals } = await db
     .from("user_removals")
-    .select("id, email, full_name, removed_at, moved")
+    .select("id, email, full_name, removed_at, moved, self_requested, exit_rating, exit_comment")
     .eq("status", "pendiente")
     .order("removed_at", { ascending: false });
   const ownerless = (removals || []).flatMap((r) => ((r.moved as Record<string, string[]> | null)?.["clients.created_by"] ?? []));
@@ -259,13 +259,20 @@ async function adminAlerts(db: Db): Promise<HomeAlert[]> {
     : new Set<string>();
   for (const r of removals || []) {
     const ids = ((r.moved as Record<string, string[]> | null)?.["clients.created_by"] ?? []).filter((id) => ownerlessNow.has(id));
+    const moved = (r.moved as Record<string, string[]> | null) ?? {};
+    const toReassign = (moved["visit_assignments.assigned_to"] ?? []).length;
+    const parts: string[] = [];
+    if (ids.length) parts.push(plural(ids.length, "negocio sin dueño", "negocios sin dueño"));
+    if (r.self_requested && toReassign) parts.push(plural(toReassign, "asignación por reasignar", "asignaciones por reasignar"));
+    if (r.self_requested && r.exit_rating) parts.push(`dejó ${r.exit_rating}/5`);
+    parts.push(`baja ${agoLabel(r.removed_at as string)}`);
     alerts.push({
       key: `ad:baja:${r.id}`,
       kind: "pendiente",
       tone: "warn",
       emoji: "🗂️",
-      title: `Revisa los registros de ${r.full_name || r.email}`,
-      detail: ids.length ? `${plural(ids.length, "negocio sin dueño", "negocios sin dueño")} · baja ${agoLabel(r.removed_at as string)}` : `Baja ${agoLabel(r.removed_at as string)} · falta marcar la revisión`,
+      title: r.self_requested ? `${r.full_name || r.email} eliminó su cuenta` : `Revisa los registros de ${r.full_name || r.email}`,
+      detail: parts.length > 1 ? parts.join(" · ") : `Baja ${agoLabel(r.removed_at as string)} · falta marcar la revisión`,
       href: "/admin/bajas",
     });
   }

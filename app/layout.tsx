@@ -24,21 +24,21 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  title: "MysterFoodie - Evaluación Mystery Shopper",
-  description: "Levantamiento de evaluaciones Mystery Shopper para restaurantes y bares",
+  title: "MysterFoodie - Evaluaciones para restaurantes y bares",
+  description: "Visitas anónimas de MysterFoodies a restaurantes y bares: evaluación real de la experiencia, con un reporte claro para el negocio.",
   // Tarjeta por defecto para cualquier enlace de la app que se pegue en un chat
   // (el reporte público la reemplaza con su propia tarjeta, ver app/r/[shortCode]).
   openGraph: {
     type: "website",
     siteName: "MysterFoodie",
     locale: "es_MX",
-    title: "MysterFoodie · Evaluaciones Mystery Shopper",
+    title: "MysterFoodie · Evaluaciones para restaurantes y bares",
     description: "Palabra MysterFoodie, orgullo sibarita: visitas anónimas, 52 indicadores y un reporte claro para tu restaurante o bar.",
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "MysterFoodie" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MysterFoodie · Evaluaciones Mystery Shopper",
+    title: "MysterFoodie · Evaluaciones para restaurantes y bares",
     description: "Palabra MysterFoodie, orgullo sibarita: visitas anónimas, 52 indicadores y un reporte claro para tu restaurante o bar.",
     images: ["/og.jpg"],
   },

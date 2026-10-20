@@ -153,3 +153,12 @@ export async function sendRemovalEmail(p: { to: string; name?: string | null }):
     `Saludos,\nMysterFoodie`;
   return sendTemplatedEmail({ to: p.to, subject: "Tu acceso a MysterFoodie fue dado de baja", bodyText });
 }
+
+export async function sendSelfRemovalEmail(p: { to: string; name?: string | null }): Promise<SendEmailOutcome> {
+  const bodyText =
+    `Hola${p.name ? ` ${p.name}` : ""},\n\n` +
+    `Tu cuenta de MysterFoodie fue eliminada y ya no podrás iniciar sesión.\n\n` +
+    `Gracias por tu tiempo y por tus comentarios. Si fue un error o quieres volver, escríbenos a hola@mysterfoodie.com y lo vemos juntos.\n\n` +
+    `Saludos,\nMysterFoodie`;
+  return sendTemplatedEmail({ to: p.to, subject: "Tu cuenta de MysterFoodie fue eliminada", bodyText });
+}

@@ -1,3 +1,4 @@
+import DeleteAccountButton from "@/components/perfil/DeleteAccountButton";
 import { redirect } from "next/navigation";
 import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
@@ -78,10 +79,9 @@ export default async function PerfilPage({
     <>
     <div className="md:hidden min-h-[70vh] pb-6" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pb-3.5 pt-5">
-        <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
-          MYSTERFOODIE
+        <div className="heading text-[30px] font-bold leading-tight">
+          Perfil del <span style={{ color: "#F24444" }}>MysterFoodie</span>
         </div>
-        <div className="heading text-[34px] font-bold">Perfil</div>
       </div>
 
       {google === "conectado" && (
@@ -108,16 +108,14 @@ export default async function PerfilPage({
           </span>
         </div>
         <div className="mt-3.5 max-w-full truncate text-[20px] font-bold">{displayName}</div>
-        {displayName !== profile.email && (
-          <div className="max-w-full truncate text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-            {profile.email}
-          </div>
-        )}
         {currentRank && (
-          <div className="mt-2.5 rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ color: "#F24444", background: "rgba(242,68,68,0.1)" }}>
+          <div className="mt-2 rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ color: "#D42F2F", background: "rgba(242,68,68,0.1)" }}>
             {currentRank.emoji} {currentRank.label}
           </div>
         )}
+        <div className="mt-2 max-w-full truncate text-[14px]" style={{ color: "rgba(60,60,67,0.75)" }}>
+          {profile.email}
+        </div>
         <div className="mt-3 text-[12.5px]" style={{ color: "rgba(60,60,67,0.5)" }}>
           Toca para cambiar tu foto y tus datos
         </div>
@@ -298,7 +296,9 @@ export default async function PerfilPage({
         </div>
       )}
 
-      <form action={signOut} className="mx-5 mt-6 mb-8">
+      <DeleteAccountButton variant="mobile" />
+
+      <form action={signOut} className="mx-5 mt-4 mb-8">
         <button type="submit" className="card mf-tap flex min-h-[56px] w-full items-center justify-center text-[16px] font-semibold" style={{ color: "#FF3B30" }}>
           Cerrar sesión
         </button>
@@ -315,17 +315,16 @@ export default async function PerfilPage({
        computadora veía el header y nada más debajo. Esta versión reducida
        cubre lo esencial: identidad y la conexión de Google. */}
     <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
-      <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-      <h1 className="heading mt-2 text-3xl text-ink">Perfil</h1>
+      <h1 className="heading text-3xl text-ink">
+        Perfil del <span className="text-brand-600">MysterFoodie</span>
+      </h1>
 
       <div className="mt-6 flex items-center gap-3.5 card p-[18px]">
         <Avatar displayName={displayName} avatarUrl={profile.avatarUrl} sizeClass="h-14 w-14 text-xl" />
         <div className="min-w-0">
-          <div className="truncate text-base font-bold text-ink">{displayName}</div>
-          <div className="truncate text-sm text-stone-500">
-            {mysterfoodieTitle(profile.role)}
-            {displayName !== profile.email ? ` · ${profile.email}` : ""}
-          </div>
+          <div className="truncate text-lg font-bold text-ink">{displayName}</div>
+          <div className="mt-0.5 text-sm font-semibold text-brand-700">{mysterfoodieTitle(profile.role)}</div>
+          <div className="mt-0.5 truncate text-sm text-stone-600">{profile.email}</div>
         </div>
       </div>
 
@@ -336,6 +335,7 @@ export default async function PerfilPage({
         <Link href="/perfil/seguridad" className="btn-secondary text-sm">
           Contraseña y acceso
         </Link>
+        <DeleteAccountButton />
       </div>
 
       {google === "conectado" && (

@@ -15,6 +15,9 @@ type RemovalRow = {
   removed_at: string;
   moved: Record<string, string[]>;
   status: "pendiente" | "revisada";
+  self_requested: boolean | null;
+  exit_rating: number | null;
+  exit_comment: string | null;
 };
 
 export default async function BajasPage() {
@@ -23,7 +26,7 @@ export default async function BajasPage() {
 
   const { data: removalRows } = await db
     .from("user_removals")
-    .select("id, email, full_name, role, removed_at, moved, status")
+    .select("id, email, full_name, role, removed_at, moved, status, self_requested, exit_rating, exit_comment")
     .order("status", { ascending: false })
     .order("removed_at", { ascending: false });
   const removals = (removalRows || []) as RemovalRow[];
@@ -67,6 +70,9 @@ export default async function BajasPage() {
       roleLabel: ROLE_LABELS[r.role ?? ""] ?? r.role ?? "",
       removedAt: r.removed_at,
       status: r.status,
+      selfRequested: Boolean(r.self_requested),
+      exitRating: r.exit_rating,
+      exitComment: r.exit_comment,
       visits: (r.moved?.["forms.created_by"] ?? []).length,
       assignments: (r.moved?.["visit_assignments.assigned_to"] ?? []).length,
       businesses,
@@ -84,7 +90,7 @@ export default async function BajasPage() {
         </div>
         <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Bajas por revisar</h1>
         <p className="mt-1 text-sm text-stone-500">
-          Cuando eliminas a alguien, sus visitas y asignaciones pasan a ti. Sus negocios quedan sin dueño hasta que decidas:
+          Cuando eliminas a alguien (o alguien elimina su propia cuenta), sus visitas y asignaciones pasan a un Master Chef. Sus negocios quedan sin dueño hasta que decidas:
           asignarlos a alguien o eliminarlos.
         </p>
         <BajaReview items={items} owners={ownerOptions} />

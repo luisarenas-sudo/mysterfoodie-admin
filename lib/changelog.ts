@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.17.0",
+    date: "2026-10-20",
+    title: "Eliminar cuenta con hoja de salida",
+    emoji: "👋",
+    highlights: [
+      "Cualquier cuenta puede eliminarse desde Perfil (tres toques para evitar accidentes) y dejar una calificación y un comentario de salida.",
+      "La baja llega al Master Chef como tarea: ve la hoja de salida y reasigna los negocios y visitas pendientes.",
+      "El Perfil se lee mejor: «Perfil del MysterFoodie», con nombre, cargo y correo en ese orden.",
+      "El título de la pestaña y la descripción para buscadores ya hablan de MysterFoodie.",
+    ],
+  },
+  {
     version: "0.16.0",
     date: "2026-10-20",
     title: "Todos somos MysterFoodies",

@@ -20,6 +20,9 @@ export type BajaItem = {
   roleLabel: string;
   removedAt: string;
   status: "pendiente" | "revisada";
+  selfRequested?: boolean;
+  exitRating?: number | null;
+  exitComment?: string | null;
   visits: number;
   assignments: number;
   businesses: BajaBusiness[];
@@ -130,6 +133,7 @@ function Removal({ item, owners }: { item: BajaItem; owners: BajaOwnerOption[] }
           <h2 className="text-sm font-bold text-ink">{item.who}</h2>
           <p className="text-xs text-stone-500">
             {item.email} · {item.roleLabel} · baja el {date}
+            {item.selfRequested ? " · eliminó su propia cuenta" : ""}
           </p>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.status === "pendiente" ? "bg-amber-100 text-amber-800" : "bg-stone-100 text-stone-600"}`}>
@@ -137,8 +141,21 @@ function Removal({ item, owners }: { item: BajaItem; owners: BajaOwnerOption[] }
         </span>
       </div>
 
+      {item.selfRequested && (item.exitRating || item.exitComment) && (
+        <div className="mt-3 rounded-md bg-stone-50 p-3 text-sm text-stone-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Hoja de salida</p>
+          {item.exitRating ? (
+            <p className="mt-1 font-semibold text-ink">
+              {"★".repeat(item.exitRating)}
+              <span className="text-stone-300">{"★".repeat(5 - item.exitRating)}</span> {item.exitRating}/5
+            </p>
+          ) : null}
+          {item.exitComment ? <p className="mt-1 whitespace-pre-wrap">{item.exitComment}</p> : null}
+        </div>
+      )}
+
       <p className="mt-3 text-sm text-stone-600">
-        Pasaron a ti: <strong>{item.visits}</strong> {item.visits === 1 ? "visita registrada" : "visitas registradas"} y{" "}
+        Pasaron a un Master Chef: <strong>{item.visits}</strong> {item.visits === 1 ? "visita registrada" : "visitas registradas"} y{" "}
         <strong>{item.assignments}</strong> {item.assignments === 1 ? "asignación" : "asignaciones"}.
       </p>
 
