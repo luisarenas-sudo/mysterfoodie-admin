@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.27.0",
+    date: "2026-10-20",
+    title: "Mi perfil anónimo, más simple",
+    emoji: "🪪",
+    highlights: [
+      "Ahora son solo dos tarjetas: Perfil ID y Perfil Passport. Cada una tiene su interruptor, y al encenderlo se abre y te pide lo que falta.",
+      "Las preguntas salen una a la vez y se relacionan: si manejas un auto, lo siguiente es qué tipo (sedán, SUV…); lo contestado queda resumido.",
+      "Se comparte solo lo que ya está completo, y el código postal o los gustos solo se piden si compartes Sector o Gustos.",
+    ],
+  },
+  {
     version: "0.26.0",
     date: "2026-10-20",
     title: "Palabras de la marca, sin desplegables",
