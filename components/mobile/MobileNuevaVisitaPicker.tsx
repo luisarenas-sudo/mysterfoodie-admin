@@ -161,8 +161,16 @@ export default function MobileNuevaVisitaPicker({ clients, pool = [] }: { client
                         </div>
                       </div>
                       {verdict && (
-                        <div className="text-[15px] font-bold" style={{ color: verdict.color }}>
-                          {c.lastScore}
+                        <div className="flex w-[78px] flex-shrink-0 flex-col items-center text-center">
+                          <div className="text-[17px] font-bold leading-none" style={{ color: verdict.color }}>
+                            {c.lastScore}
+                          </div>
+                          <div
+                            className="mt-1 w-full rounded-lg px-[5px] py-[2px] text-center text-[11.5px] font-bold"
+                            style={{ color: verdict.color, background: `${verdict.color}1F` }}
+                          >
+                            {verdict.label}
+                          </div>
                         </div>
                       )}
                       <svg width="16" height="16" viewBox="0 0 24 24" style={{ opacity: 0.28 }}>

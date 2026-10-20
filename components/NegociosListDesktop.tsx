@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import VerdictBadge from "@/components/VerdictBadge";
+import { getVerdict } from "@/lib/verdict";
 import type { ClientSummary } from "@/lib/dashboard";
 
 /**
@@ -55,10 +56,12 @@ export default function NegociosListDesktop({ clients }: { clients: ClientSummar
                 <p className="mt-0.5 text-xs text-stone-400">Añadido por: {client.creatorLabel}</p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-1 text-center">
               {client.lastScore !== null && (
                 <>
-                  <span className="text-2xl font-bold text-ink">{client.lastScore}</span>
+                  <span className="text-2xl font-bold leading-none" style={{ color: getVerdict(client.lastScore).color }}>
+                    {client.lastScore}
+                  </span>
                   <VerdictBadge score={client.lastScore} size="sm" />
                 </>
               )}

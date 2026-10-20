@@ -54,7 +54,7 @@ export default function MobileReportesList({ visits }: { visits: ReportRow[] }) 
                       {formatShortDate(r.createdAt)}
                     </div>
                   </div>
-                  <div className="w-[88px] flex-shrink-0 text-right">
+                  <div className="flex w-[88px] flex-shrink-0 flex-col items-center text-center">
                     <div className="text-[22px] font-bold leading-none" style={{ color: verdict.color }}>
                       {r.overallScore}
                     </div>
