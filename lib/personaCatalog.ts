@@ -135,8 +135,9 @@ export const BLOCKS: BlockDef[] = [
   {
     key: "movilidad", tier: "passport", label: "Movilidad y viajes", desc: "Auto que maneja, pasaporte o visa vigentes (solo sí/no) y su mood viajero (Pueblos Mágicos, EuroTrip, Beach Babe…).", pct: 12.5,
     fields: [
-      { key: "auto", label: "Vehículo que maneja", kind: "one", options: ["No maneja o no tiene", "Moto", "Sedán o compacto", "Crossover", "SUV mediana", "SUV grande", "Pickup o utilitario", "Auto de confort", "Híbrido o eléctrico", "Auto de lujo", "Deportivo", "Exótico"] },
-      { key: "estacionamiento", label: "¿Qué tan importante es el estacionamiento al elegir dónde comer?", kind: "one", options: ["Indispensable", "Me ayuda", "Me da igual"], when: { field: "auto", notAny: ["No maneja o no tiene", "Moto"] } },
+      { key: "vehiculo", label: "¿Qué maneja?", kind: "one", options: ["No maneja o no tiene", "Moto", "Auto", "Pickup o utilitario"] },
+      { key: "auto", label: "¿Qué tipo de auto?", kind: "one", options: ["Sedán o compacto", "Crossover", "SUV mediana", "SUV grande", "Auto de confort", "Híbrido o eléctrico", "Auto de lujo", "Deportivo", "Exótico"], when: { field: "vehiculo", any: ["Auto"] } },
+      { key: "estacionamiento", label: "¿Qué tan importante es el estacionamiento al elegir dónde comer?", kind: "one", options: ["Indispensable", "Me ayuda", "Me da igual"], when: { field: "vehiculo", notAny: ["No maneja o no tiene", "Moto"] } },
       { key: "pasaporte", label: "¿Tiene pasaporte vigente?", kind: "one", options: ["Sí", "No"] },
       { key: "extranjero", label: "¿Has viajado al extranjero en el último año?", kind: "one", options: ["Sí", "No"], when: { field: "pasaporte", any: ["Sí"] } },
       { key: "visa", label: "¿Tiene alguna visa vigente?", kind: "one", options: ["Sí", "No"] },
@@ -194,13 +195,26 @@ export function activeFields(key: BlockKey, persona: Persona): FieldDef[] {
   return b.fields.filter((f) => isFieldActive(b, f, data));
 }
 
+/** Respuestas guardadas antes de separar «¿Qué maneja?» de «¿Qué tipo de auto?»: el valor viejo de `auto` pasa a `vehiculo` (+ `auto` si era un auto). */
+function migrateVehiculo(src: Record<string, unknown>): Record<string, unknown> {
+  if (typeof src.vehiculo === "string" || typeof src.auto !== "string") return src;
+  const old = src.auto;
+  if (["No maneja o no tiene", "Moto", "Pickup o utilitario"].includes(old)) {
+    const { auto: _drop, ...rest } = src;
+    void _drop;
+    return { ...rest, vehiculo: old };
+  }
+  return { ...src, vehiculo: "Auto" };
+}
+
 /** Limpia lo que llega del cliente: solo bloques, preguntas y opciones del catálogo, y sin respuestas de seguimiento que ya no aplican. */
 export function sanitizePersona(raw: unknown): Persona {
   const out: Persona = {};
   if (!raw || typeof raw !== "object") return out;
   for (const b of BLOCKS) {
-    const src = (raw as Record<string, unknown>)[b.key];
+    let src = (raw as Record<string, unknown>)[b.key];
     if (!src || typeof src !== "object") continue;
+    if (b.key === "movilidad") src = migrateVehiculo(src as Record<string, unknown>);
     const block: Answers = {};
     for (const f of b.fields) {
       const v = (src as Record<string, unknown>)[f.key];

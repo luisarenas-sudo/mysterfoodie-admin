@@ -29,9 +29,11 @@ export async function PATCH(req: NextRequest) {
   const persona = sanitizePersona(b.persona);
   const shareBlocks: BlockKey[] = Array.isArray(b.shareBlocks) ? [...new Set((b.shareBlocks as unknown[]).filter(isBlockKey))] : [];
 
-  if (!isValidPostalCode(postalCode)) return NextResponse.json({ error: "Escribe tu código postal (5 dígitos)." }, { status: 400 });
-  if (cuisines.length < MIN_CUISINES) return NextResponse.json({ error: "Elige al menos un tipo de cocina." }, { status: 400 });
-  if (dishes.length < MIN_DISHES) return NextResponse.json({ error: `Elige al menos ${MIN_DISHES} platillos.` }, { status: 400 });
+  // El código postal y los gustos solo son obligatorios si se comparte el bloque que los usa (Sector, Gustos y palabras).
+  if (postalCode && !isValidPostalCode(postalCode)) return NextResponse.json({ error: "El código postal debe tener 5 dígitos." }, { status: 400 });
+  if (shareBlocks.includes("sector") && !isValidPostalCode(postalCode)) return NextResponse.json({ error: "Escribe tu código postal (5 dígitos) para compartir el Sector." }, { status: 400 });
+  if (shareBlocks.includes("gustos") && cuisines.length < MIN_CUISINES) return NextResponse.json({ error: "Elige al menos un tipo de cocina para compartir tus gustos." }, { status: 400 });
+  if (shareBlocks.includes("gustos") && dishes.length < MIN_DISHES) return NextResponse.json({ error: `Elige al menos ${MIN_DISHES} platillos para compartir tus gustos.` }, { status: 400 });
   for (const k of shareBlocks) {
     if (!isBlockComplete(k, persona)) {
       return NextResponse.json({ error: `Para compartir «${BLOCK_BY_KEY[k].label}» contesta todas sus preguntas.` }, { status: 400 });
@@ -41,7 +43,7 @@ export async function PATCH(req: NextRequest) {
   const db = getSupabaseServiceClient();
   const { error } = await db
     .from("profiles")
-    .update({ postal_code: postalCode, food_cuisines: cuisines, food_dishes: dishes, persona, share_blocks: shareBlocks })
+    .update({ postal_code: postalCode || null, food_cuisines: cuisines, food_dishes: dishes, persona, share_blocks: shareBlocks })
     .eq("id", me.userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

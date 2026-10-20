@@ -11,7 +11,8 @@ export const FIELD_UI: Record<string, { ui: FieldUi; emoji: string; hint?: strin
   "estilo_vida.dieta": { ui: "cards", emoji: "🥗" },
   "estilo_vida.intereses": { ui: "bubbles", emoji: "✨", hint: "Revienta las burbujas que te representen" },
   "estilo_vida.salidas": { ui: "bubbles", emoji: "🥂" },
-  "movilidad.auto": { ui: "grid", emoji: "🚗", hint: "¿Cuál es tu nave?" },
+  "movilidad.vehiculo": { ui: "cards", emoji: "🚗" },
+  "movilidad.auto": { ui: "grid", emoji: "🚙", hint: "¿Cuál es tu nave?" },
   "movilidad.pasaporte": { ui: "yesno", emoji: "🛂" },
   "movilidad.visa": { ui: "yesno", emoji: "🌎" },
   "movilidad.moods": { ui: "bubbles", emoji: "🧳", hint: "Elige todos los que has vivido: juntos arman tu tipo de viajero" },
@@ -57,7 +58,7 @@ export const OPTION_EMOJI: Record<string, string> = {
   // salidas
   "Pareja": "💕", "Amigos": "🍻", "Familia": "👪", "Compañeros de trabajo": "🧑‍💼",
   // auto
-  "No maneja o no tiene": "🚶", "Moto": "🏍️", "Sedán o compacto": "🚗", "Crossover": "🚙", "SUV mediana": "🚙", "SUV grande": "🚐",
+  "No maneja o no tiene": "🚶", "Moto": "🏍️", "Auto": "🚗", "Sedán o compacto": "🚗", "Crossover": "🚙", "SUV mediana": "🚙", "SUV grande": "🚐",
   "Pickup o utilitario": "🛻", "Auto de confort": "🛋️", "Híbrido o eléctrico": "⚡", "Auto de lujo": "💎", "Deportivo": "🏎️", "Exótico": "🦄",
   // moods viajeros
   "Pueblos Mágicos": "🪅", "EuroTrip": "🏰", "AsiaFan": "🏯", "Mochilero Mood": "🎒", "TEX MEX": "🌶️", "Foodie Goodie": "🍜",

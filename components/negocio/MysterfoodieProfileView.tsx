@@ -52,8 +52,9 @@ function personaSummary(p: MysterfoodieProfile): string | null {
   const freq = asArr(e?.frecuencia)[0];
   const gasto = asArr(e?.gasto)[0];
   if (freq) parts.push(`come fuera ${freq} veces al mes${gasto ? ` y gasta ${gasto.toLowerCase()} por persona` : ""}`);
+  const vehiculo = asArr(m?.vehiculo)[0];
   const auto = asArr(m?.auto)[0];
-  if (auto && !auto.startsWith("No maneja")) parts.push(`maneja ${auto.toLowerCase()}`);
+  if (vehiculo && !vehiculo.startsWith("No maneja")) parts.push(`maneja ${(vehiculo === "Auto" && auto ? auto : vehiculo).toLowerCase()}`);
   const tv = travelerType(asArr(m?.moods));
   if (tv) parts.push(`${tv.type.toLowerCase()}`);
   return parts.length ? `${parts.join("; ")}.` : null;
