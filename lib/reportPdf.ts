@@ -67,15 +67,20 @@ function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: numb
   // El pie queda dentro del margen inferior: sin esto pdfkit abre una página nueva por cada pie.
   const prevBottomMargin = doc.page.margins.bottom;
   doc.page.margins.bottom = 0;
-  doc
-    .fontSize(8)
-    .fillColor(LIGHT_MUTED)
-    .text("Con el respaldo de Flanco Izquierdo · flancoizquierdo.com", PAGE_MARGIN, bottom, {
-      width: doc.page.width - PAGE_MARGIN * 2 - 60,
-      align: "left",
-      lineBreak: false,
-    });
-  doc.text(`${pageNumber} / ${pageCount}`, doc.page.width - PAGE_MARGIN - 60, bottom, {
+  // Leyenda legal en dos renglones; los nombres y los dominios llevan enlace.
+  const legalW = doc.page.width - PAGE_MARGIN * 2 - 60;
+  const legalY = bottom - 5;
+  const seg = (t: string, link?: string, last = false) =>
+    doc.text(t, { continued: !last, link, underline: !!link, lineBreak: true, width: legalW });
+  doc.fontSize(8).fillColor(LIGHT_MUTED);
+  doc.text("", PAGE_MARGIN, legalY, { continued: true, width: legalW });
+  seg("MysterFoodie", "https://mysterfoodie.com/");
+  seg(" (mysterfoodie.com)", "https://mysterfoodie.com/");
+  seg(" trabaja con experiencia en el sector, personal calificado y una metodología desarrollada con el respaldo de ");
+  seg("Flanco Izquierdo", "https://www.flancoizquierdo.com/");
+  seg(" (www.flancoizquierdo.com)", "https://www.flancoizquierdo.com/");
+  seg(".", undefined, true);
+  doc.text(`${pageNumber} / ${pageCount}`, doc.page.width - PAGE_MARGIN - 60, bottom + 5, {
     width: 60,
     align: "right",
     lineBreak: false,
