@@ -134,11 +134,12 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
   },
   solicitud_sin_foodie: {
     title: "Solicitud sin MysterFoodie disponible (al negocio)",
-    desc: "Se manda cuando pasan 5 días desde que se asignó la solicitud de visita gratis (o desde que llegó, si nunca se asignó) y nadie hizo la visita: avisa que por ahora no hay un MysterFoodie disponible y lo invita a ver la tabla comparativa de paquetes.",
+    desc: "Se manda a los 3 días de una solicitud de visita gratis que nadie asignó (o a los 5 días si estaba asignada y no se hizo), o cuando el Master Chef pulsa «Avisar alta demanda»: avisa que por la alta demanda no se podrá la visita gratis y le ofrece asegurarla ya (día, horario y pago en línea), además de ver los paquetes.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "contacto", desc: "Nombre de la persona de contacto (o \"equipo de <negocio>\")" },
-      { tag: "link_paquetes", desc: "Enlace a la tabla comparativa de paquetes en mysterfoodie.com (línea sola para que salga como botón)" },
+      { tag: "link_paquetes", desc: "Enlace a la tabla comparativa de paquetes en mysterfoodie.com" },
+      { tag: "link_asegurar", desc: "Enlace personal para asegurar la visita: elegir día y horario y pagar en línea (línea sola para que salga como botón). La plantilla solo se usa si incluye este tag; si no, se manda el texto de MysterFoodie." },
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },

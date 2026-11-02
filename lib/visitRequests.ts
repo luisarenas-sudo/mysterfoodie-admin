@@ -1,6 +1,6 @@
 import { GLOSARIO_NEGOCIO } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
-import { BUSINESS_TYPES, businessTypePhrase } from "./categories";
+import { BUSINESS_TYPES, businessTypePhrase, TOTAL_ITEM_COUNT } from "./categories";
 import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
 import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercadopago";
 import { PACKAGES_URL } from "./links";
@@ -21,6 +21,9 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  * Reglas de tiempo (ver supabase/solicitudes_visita.sql):
  *  - Una vez asignada, la persona asignada tiene OPEN_AFTER_DAYS (3) días en exclusiva.
  *  - Del día 4 al 5 la solicitud también aparece a todos los Shoppers, que pueden tomarla.
+ *  - Una solicitud gratis que a los ALTA_DEMANDA_AFTER_DAYS (3) días sigue SIN asignar y sin pago se cierra con el aviso de
+ *    «alta demanda»: no podremos hacer su visita gratis, pero puede asegurarla ya (día, horario y pago en línea) desde
+ *    /asegurar/<id>. Las que sí tienen MysterFoodie asignado siguen su camino normal.
  *  - Al día EXPIRE_AFTER_DAYS (5) sin visita, se le avisa al negocio que por ahora no hay Shopper
  *    y se le invita a ver los paquetes. Una solicitud que nunca se asignó vence igual, 5 días
  *    después de llegar.
@@ -34,6 +37,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  *  - El Master Chef puede, en vez de asignarla, avisar "alta demanda" (sin_foodie + correo con paquetes).
  */
 export const OPEN_AFTER_DAYS = 3;
+export const ALTA_DEMANDA_AFTER_DAYS = 3;
 export const EXPIRE_AFTER_DAYS = 5;
 export { PACKAGES_URL };
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -378,6 +382,43 @@ async function notifyAdmins(p: {
   return sent ? "sent" : "failed";
 }
 
+/**
+ * El negocio (desde el enlace de «alta demanda» o de la página /asegurar) eligió día y horario para asegurar su visita:
+ * la solicitud pasa a «programada» (prioridad, sin vencimiento) y el Master Chef recibe aviso. Si ya estaba cerrada por
+ * alta demanda, se reabre. El pago se hace después en /api/pagar-visita?id=<id>.
+ */
+export async function secureVisitRequest(
+  db: Db,
+  requestId: string,
+  schedulePref: string
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const { data: r } = await db.from("visit_requests").select("id, client_id, status, kind, paid_at").eq("id", requestId).maybeSingle();
+  if (!r) return { ok: false, error: "Solicitud no encontrada", status: 404 };
+  if (r.paid_at) return { ok: false, error: "Esta visita ya está asegurada", status: 409 };
+  if (r.status === "completada") return { ok: false, error: "Esta solicitud ya tiene visita realizada", status: 409 };
+  const { data: client } = await db.from("clients").select("name, type, city, contact_name, phone").eq("id", r.client_id as string).maybeSingle();
+  if (!client) return { ok: false, error: "Negocio no encontrado", status: 404 };
+
+  const patch: Record<string, unknown> = { kind: "programada", schedule_pref: schedulePref, expires_at: null };
+  if (r.status === "sin_foodie") patch.status = "pendiente";
+  const { error } = await db.from("visit_requests").update(patch).eq("id", requestId);
+  if (error) return { ok: false, error: "No se pudo guardar tu solicitud", status: 500 };
+
+  if (r.kind !== "programada") {
+    await notifyAdmins({
+      negocio: client.name as string,
+      ubicacion: [businessTypePhrase((client.type as string | null) ?? "otro"), client.city as string | null].filter(Boolean).join(" · "),
+      contacto: (client.contact_name as string | null) || (client.name as string),
+      baseUrl: baseUrlOf(),
+      isNewClient: false,
+      kind: "programada",
+      schedulePref,
+      phone: (client.phone as string | null) ?? null,
+    }).catch(() => "failed");
+  }
+  return { ok: true };
+}
+
 // ---------------------------------------------------------------------------
 // Pago en línea de la visita programada
 // ---------------------------------------------------------------------------
@@ -649,7 +690,7 @@ export async function declineForHighDemand(
   if (!changed || changed.length === 0) return { ok: false, error: "Esa solicitud ya cambió de estado", status: 409 };
   let email = "ya_enviado";
   if (!r.nofoodie_email_sent_at) {
-    email = await sendNoFoodieEmail(db, r.client_id as string);
+    email = await sendNoFoodieEmail(db, r.client_id as string, requestId);
     if (email === "sent") await db.from("visit_requests").update({ nofoodie_email_sent_at: new Date().toISOString() }).eq("id", requestId);
   }
   return { ok: true, email };
@@ -733,12 +774,34 @@ export async function syncVisitRequests(db: Db): Promise<SyncResult> {
       continue;
     }
 
+    // Gratis sin asignar y sin pago a los 3 días: aviso de «alta demanda» con la oferta de asegurar la visita (solo de 8 a 20 h).
+    const sinAsignar = r.status === "pendiente" && r.kind !== "programada" && !r.assignment_id;
+    if (sinAsignar && Date.now() - new Date(r.created_at as string).getTime() >= ALTA_DEMANDA_AFTER_DAYS * DAY_MS && inNotificationWindow()) {
+      const { data: closed } = await db
+        .from("visit_requests")
+        .update({ status: "sin_foodie", decision: "alta_demanda" })
+        .eq("id", r.id as string)
+        .eq("status", "pendiente")
+        .select("id");
+      if (closed && closed.length > 0) {
+        result.expired += 1;
+        if (!r.nofoodie_email_sent_at) {
+          const outcome = await sendNoFoodieEmail(db, r.client_id as string, r.id as string);
+          if (outcome === "sent") {
+            await db.from("visit_requests").update({ nofoodie_email_sent_at: nowIso }).eq("id", r.id);
+            result.emailed += 1;
+          }
+        }
+      }
+      continue;
+    }
+
     const vencida = r.expires_at && new Date(r.expires_at as string).getTime() <= Date.now();
     if (vencida && (r.status === "pendiente" || r.status === "asignada")) {
       await db.from("visit_requests").update({ status: "sin_foodie" }).eq("id", r.id);
       result.expired += 1;
       if (!r.nofoodie_email_sent_at) {
-        const outcome = await sendNoFoodieEmail(db, r.client_id as string);
+        const outcome = await sendNoFoodieEmail(db, r.client_id as string, r.id as string);
         if (outcome === "sent") {
           await db.from("visit_requests").update({ nofoodie_email_sent_at: nowIso }).eq("id", r.id);
           result.emailed += 1;
@@ -867,7 +930,10 @@ async function escalateUnassigned(db: Db, esc: Escalation, result: SyncResult): 
   );
 }
 
-async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
+/** Liga personal para asegurar la visita (elegir día y horario y pagar en línea). */
+export const secureVisitUrl = (baseUrl: string, requestId: string) => `${baseUrl}/asegurar/${requestId}`;
+
+async function sendNoFoodieEmail(db: Db, clientId: string, requestId: string): Promise<string> {
   const { data: client } = await db
     .from("clients")
     .select("name, email, contact_name")
@@ -876,15 +942,21 @@ async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
   if (!client?.email) return "no_email";
 
   const automation = await getAutomation("solicitud_sin_foodie");
-  const useTemplate = Boolean(automation?.enabled && automation.subjectTemplate && automation.bodyTemplate);
+  // La plantilla editable solo se usa si ya incluye {{link_asegurar}} (si no, tiene el texto viejo sin la oferta de asegurar la visita).
+  const useTemplate = Boolean(automation?.enabled && automation.subjectTemplate && automation.bodyTemplate && automation.bodyTemplate.includes("{{link_asegurar}}"));
   const contacto = (client.contact_name as string | null) || `equipo de ${client.name}`;
-  const vars = { negocio: client.name as string, contacto, link_paquetes: PACKAGES_URL };
+  const linkAsegurar = secureVisitUrl(baseUrlOf(), requestId);
+  const vars = { negocio: client.name as string, contacto, link_paquetes: PACKAGES_URL, link_asegurar: linkAsegurar };
 
   const defaultSubject = `Sobre tu solicitud de visita en MysterFoodie`;
   const defaultBody =
     `Hola ${contacto},\n\n` +
-    `Por el momento y dado el alto volumen de solicitudes, no contamos con un MysterFoodie para tu visita a ${client.name}.\n\n` +
-    `Puedes agendar paquetes de visitas con nosotros aquí, donde también encuentras la tabla comparativa de paquetes:\n${PACKAGES_URL}\n\n` +
+    `Gracias por solicitar la visita a ${client.name}. Por la alta demanda, nuestros MysterFoodies no podrán hacer tu visita gratis por ahora.\n\n` +
+    `Pero puedes tener tu visita ya: eliges el día y el horario, y un MysterFoodie la hace en exclusiva para tu negocio, de forma anónima. ` +
+    `Incluye el reporte completo de ${TOTAL_ITEM_COUNT} indicadores (en PDF y en línea), los comentarios del MysterFoodie y una asesoría gratuita de 20 minutos.\n\n` +
+    `Cuesta $${FULL_REPORT_PRICE_MXN} MXN, pago único, y el consumo de la visita lo acordamos contigo. Si necesitas factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN.\n\n` +
+    `${linkAsegurar}\n\n` +
+    `Si prefieres visitas cada mes, conoce nuestros paquetes: ${PACKAGES_URL}\n\n` +
     `Gracias por tu interés,\nMysterFoodie`;
 
   const subject = useTemplate ? renderTemplate(automation!.subjectTemplate, vars) : defaultSubject;
@@ -893,7 +965,7 @@ async function sendNoFoodieEmail(db: Db, clientId: string): Promise<string> {
     to: client.email as string,
     subject,
     bodyText,
-    ctaLabel: "Ver la tabla comparativa de paquetes",
+    ctaLabel: "Asegurar mi visita",
     glosario: GLOSARIO_NEGOCIO,
   });
   return out.status;

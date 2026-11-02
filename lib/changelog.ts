@@ -32,6 +32,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Con calificación Bueno o Excelente, el reporte tiene el botón «Compartir mi resultado».",
       "En el reporte sin pagar hay un campo «Recibe tu resumen por correo»: guarda el correo del negocio y le manda el resumen.",
       "Quien no compra recibe dos recordatorios por correo (día 2 y día 7), solo con información y ayuda, con enlace para darse de baja.",
+      "Solicitudes de visita gratis: a los 3 días sin MysterFoodie asignado ni pago, el negocio recibe el aviso de alta demanda con un enlace para asegurar su visita (elige día y horario y paga en línea, sin volver a llenar sus datos).",
       "Seguridad: mientras el reporte no está pagado, las calificaciones por indicador y los comentarios ya no viajan al navegador.",
     ],
   },
