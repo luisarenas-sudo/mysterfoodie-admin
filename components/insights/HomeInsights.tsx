@@ -465,6 +465,7 @@ function Funnel({ f }: { f: NonNullable<Data["funnel"]> }) {
   const steps = [
     { label: "Visitas con reporte", n: f.sent, note: "Resultado enviado al negocio" },
     { label: "Abrieron el reporte", n: f.opened, note: "Entraron al enlace" },
+    ...(f.email !== null ? [{ label: "Dejaron su correo", n: f.email, note: "Abrieron el resumen por categoría" }] : []),
     { label: "Tocaron Comprar", n: f.clicked, note: "Llegaron al pago" },
     { label: "Pagaron", n: f.paid, note: "Reporte completo vendido" },
   ];
@@ -474,7 +475,7 @@ function Funnel({ f }: { f: NonNullable<Data["funnel"]> }) {
       {steps.map((s, i) => {
         const pct = Math.round((s.n / top) * 100);
         const prev = i > 0 ? steps[i - 1].n : null;
-        const step = prev && prev > 0 ? Math.round((s.n / prev) * 100) : null;
+        const step = prev && prev > 0 ? Math.min(100, Math.round((s.n / prev) * 100)) : null; // el candado del correo no aplica a quien ya tenía correo o compra directo, por eso se topa en 100
         return (
           <div key={s.label}>
             <div className="flex items-baseline justify-between text-[13.5px]">

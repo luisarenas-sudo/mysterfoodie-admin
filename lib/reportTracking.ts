@@ -103,23 +103,30 @@ export async function markCheckoutClick(db: Db, formId: string): Promise<void> {
   if (error) console.error("No se pudo registrar el toque en Comprar:", error.message);
 }
 
-export type ReportFunnel = { days: number; sent: number; opened: number; clicked: number; paid: number };
+export type ReportFunnel = { days: number; sent: number; opened: number; email: number | null; clicked: number; paid: number };
 
 /** Embudo de los últimos `days` días: visitas con reporte, abiertos, con toque en Comprar y pagados. Null si el SQL de seguimiento aún no se corrió. */
 export async function getReportFunnel(db: Db, days = 30): Promise<ReportFunnel | null> {
   const since = new Date(Date.now() - days * 86400000).toISOString();
-  const { data, error } = await db
-    .from("forms")
-    .select("first_viewed_at, checkout_clicked_at, report_unlocked_at")
+  const base = () => db.from("forms");
+  // «Dejaron correo» vive en otro SQL (seguimiento_recordatorios.sql): si aún no está, el embudo sigue sin ese paso.
+  const withLead = await base()
+    .select("first_viewed_at, checkout_clicked_at, report_unlocked_at, lead_email")
     .is("plan_id", null)
     .gte("created_at", since)
     .limit(2000);
+  const leadOk = !withLead.error;
+  const { data, error } = leadOk
+    ? withLead
+    : await base().select("first_viewed_at, checkout_clicked_at, report_unlocked_at").is("plan_id", null).gte("created_at", since).limit(2000);
   if (error || !data) return null;
+  const rows = data as { first_viewed_at: string | null; checkout_clicked_at: string | null; report_unlocked_at: string | null; lead_email?: string | null }[];
   return {
     days,
-    sent: data.length,
-    opened: data.filter((f) => f.first_viewed_at || f.report_unlocked_at).length,
-    clicked: data.filter((f) => f.checkout_clicked_at || f.report_unlocked_at).length,
-    paid: data.filter((f) => f.report_unlocked_at).length,
+    sent: rows.length,
+    opened: rows.filter((f) => f.first_viewed_at || f.report_unlocked_at).length,
+    email: leadOk ? rows.filter((f) => f.lead_email).length : null,
+    clicked: rows.filter((f) => f.checkout_clicked_at || f.report_unlocked_at).length,
+    paid: rows.filter((f) => f.report_unlocked_at).length,
   };
 }
