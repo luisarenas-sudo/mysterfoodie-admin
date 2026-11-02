@@ -123,7 +123,7 @@ export default function EmailStatusPanel({
       </div>
 
       {showAltEmail ? (
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mf-reveal mt-3 flex items-center gap-2">
           <input
             type="email"
             value={altEmail}

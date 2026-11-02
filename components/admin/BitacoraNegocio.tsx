@@ -80,7 +80,7 @@ export default function BitacoraNegocio({ entries }: { entries: BitacoraEntry[] 
               <List entries={recent} />
               {older.length > 0 && (
                 <details className="mt-3">
-                  <summary className="mf-tap cursor-pointer py-1 text-[13.5px] font-semibold" style={{ color: "#F24444" }}>
+                  <summary className="mf-tap mf-disclosure cursor-pointer py-1 text-[13.5px] font-semibold" style={{ color: "#F24444" }}>
                     Ver {older.length} más antiguos
                   </summary>
                   <div className="mt-2">

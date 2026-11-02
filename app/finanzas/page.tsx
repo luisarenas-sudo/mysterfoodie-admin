@@ -310,7 +310,7 @@ function AdminView({
       <ProfileSalesAdmin sales={profileSales} names={new Map(profileSales.map((s) => [s.mysterfoodieId, s.mysterfoodieName]))} />
 
       <details className="card mt-6 p-4">
-        <summary className="cursor-pointer text-[15px] font-bold">Simulador de reparto</summary>
+        <summary className="mf-disclosure cursor-pointer text-[15px] font-bold">Simulador de reparto</summary>
         <div className="mt-4">
           <FinanzasCalculator />
         </div>

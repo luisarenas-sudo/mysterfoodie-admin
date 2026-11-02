@@ -300,3 +300,92 @@ a,
 @media (prefers-reduced-motion: reduce) {
   .mf-pop, .mf-float, .mf-slide-in, .mf-rise, .mf-confetti { animation: none; }
 }
+
+/* ------------------------------------------------------------------
+   Feedback de acciones: todo lo que se puede tocar responde.
+   - Al presionar: se hunde un poco (usa `scale`, que no choca con los
+     `transform` de cada componente) y se oscurece ligeramente.
+   - En escritorio (hover): se aclara/oscurece suave.
+   - Lo que se despliega (<details> y .mf-reveal) entra con movimiento
+     y el chevron .mf-disclosure gira al abrir.
+   ------------------------------------------------------------------ */
+button,
+[role="button"],
+summary,
+a:where([class*="rounded"], [class*="btn"], [class*="card"], [class*="mf-tap"]) {
+  transition: scale 0.1s ease, filter 0.15s ease, background-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active,
+summary:active,
+a:where([class*="rounded"], [class*="btn"], [class*="card"], [class*="mf-tap"]):active {
+  scale: 0.97;
+  filter: brightness(0.93);
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+@media (hover: hover) {
+  button:not(:disabled):hover,
+  [role="button"]:not([aria-disabled="true"]):hover,
+  summary:hover {
+    filter: brightness(0.97);
+  }
+  button:not(:disabled):active,
+  summary:active {
+    filter: brightness(0.93);
+  }
+}
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(242, 68, 68, 0.55);
+  outline-offset: 2px;
+}
+
+/* Desplegables: el contenido entra con movimiento y el chevron gira. */
+details[open] > :not(summary),
+.mf-reveal {
+  animation: mfFadeIn 0.2s ease-out both;
+}
+summary.mf-disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  list-style: none;
+}
+summary.mf-disclosure::-webkit-details-marker {
+  display: none;
+}
+summary.mf-disclosure::after {
+  content: "";
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(60, 60, 67, 0.4);
+  border-bottom: 2px solid rgba(60, 60, 67, 0.4);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+details[open] > summary.mf-disclosure::after {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  [role="button"],
+  summary,
+  details[open] > :not(summary),
+  .mf-reveal,
+  summary.mf-disclosure::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  button:not(:disabled):active,
+  summary:active {
+    scale: 1;
+  }
+}

@@ -9,6 +9,7 @@ from cron.job b,
           ('ticket-emails',   '0 15 * * *', 'ticket-emails'),    -- 9:00 am CDMX (oferta/aviso del ticket)
           ('perfil-oferta',   '0 16 * * *', 'perfil-oferta'),    -- 10:00 am CDMX (oferta del perfil del MysterFoodie)
           ('recordatorios-reporte', '0 16 * * *', 'recordatorios-reporte'), -- 10:00 am CDMX (recordatorios del reporte: día 2 y día 7 a quien no lo ha comprado)
+          ('perfil-anonimo', '0 17 * * *', 'perfil-anonimo'), -- 11:00 am CDMX (invitación única a perfiles nuevos para llenar su perfil anónimo, niveles ID y Passport)
           ('solicitudes-vencidas', '*/10 * * * *', 'solicitudes-vencidas') -- cada 10 min (solicitudes de visita: avisos a las 2/3/5 h sin asignar, hechas, sin Shopper a los 5 días)
   ) as v(jobname, horario, ruta)
 where b.jobname = 'activar-cuenta-negocio';

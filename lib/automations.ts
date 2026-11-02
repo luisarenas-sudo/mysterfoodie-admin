@@ -62,6 +62,15 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  perfil_anonimo_invitacion: {
+    title: "Perfil anónimo (invitación al equipo)",
+    desc: "Se manda UNA sola vez, 1 día después de crear su cuenta, a los perfiles nuevos (Shopper, Sibarita, Master Chef) que aún no comparten su perfil anónimo: explica los dos niveles (ID y Passport) y cuánto se gana por venta. Espeja la tarea que ven en el Inicio de la app. El cuadro de ganancias se arma solo.",
+    tags: [
+      { tag: "foodie", desc: "Primer nombre de la persona (puede venir vacío)" },
+      { tag: "link_perfil", desc: "Enlace a Mi perfil anónimo (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
   confirmacion_cita_negocio: {
     title: "Asesoría confirmada (al negocio)",
     desc: "Correo que recibe el negocio al agendar su asesoría gratuita desde el reporte.",

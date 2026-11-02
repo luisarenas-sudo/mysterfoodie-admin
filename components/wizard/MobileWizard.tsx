@@ -517,7 +517,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
           )}
 
           <details className="card mt-3 p-4" open={result.email?.status === "failed"}>
-            <summary className="mf-tap cursor-pointer text-[14.5px] font-semibold" style={{ listStyle: "none" }}>
+            <summary className="mf-tap mf-disclosure cursor-pointer text-[14.5px] font-semibold" style={{ listStyle: "none" }}>
               Más opciones
             </summary>
             <div className="mt-3">
