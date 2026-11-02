@@ -1,4 +1,5 @@
 import { renderTemplate } from "./automations";
+import { isLowScore } from "./verdict";
 
 /**
  * Arma el mensaje de DM de Instagram. Si se pasa `customTemplate` (la
@@ -19,6 +20,16 @@ export function buildDmMessage(
 ): string {
   const { businessName, score, reportUrl, waiterName } = params;
   const tipo = params.tipoNegocio?.trim() || "negocio";
+
+  // Nota baja: sin la calificación en el primer mensaje y con enfoque de ayuda (ignora la plantilla editable, que la menciona).
+  if (isLowScore(score)) {
+    const w = waiterName?.trim() ? ` Lo atendió ${waiterName.trim()}.` : "";
+    return (
+      `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
+      `y evaluó de forma independiente la experiencia real.${w} ` +
+      `Les comparto su resultado: trae oportunidades claras y con gusto les ayudo a ver por dónde empezar. Aquí lo pueden ver: ${reportUrl}`
+    );
+  }
 
   if (customTemplate) {
     const waiter = waiterName?.trim() || "";

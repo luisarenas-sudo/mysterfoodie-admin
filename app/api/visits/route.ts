@@ -9,7 +9,8 @@ import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhr
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail } from "@/lib/email";
-import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
+import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO, LOW_RESULTADO_SUBJECT, LOW_RESULTADO_INTRO } from "@/lib/automations";
+import { isLowScore } from "@/lib/verdict";
 import { createShortLink } from "@/lib/shortio";
 
 type Business = {
@@ -365,12 +366,15 @@ export async function POST(req: NextRequest) {
   const [resultadoAutomation, dmAutomation] = await automationsPromise;
   const defaultSubject = renderTemplate(DEFAULT_RESULTADO_SUBJECT, templateVars);
   const defaultIntro = renderTemplate(DEFAULT_RESULTADO_INTRO, templateVars);
-  const resultSubject =
-    resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
+  const lowScore = isLowScore(score);
+  const resultSubject = lowScore
+    ? renderTemplate(LOW_RESULTADO_SUBJECT, templateVars)
+    : resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
       ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)
       : defaultSubject;
-  const resultIntro =
-    resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
+  const resultIntro = lowScore
+    ? renderTemplate(LOW_RESULTADO_INTRO, templateVars)
+    : resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
       ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
       : defaultIntro;
 
@@ -387,6 +391,7 @@ export async function POST(req: NextRequest) {
       businessName: business.name,
       subject: resultSubject,
       introText: resultIntro,
+      hideScore: lowScore,
       score,
       reportUrl,
       categoryScores: catScores,

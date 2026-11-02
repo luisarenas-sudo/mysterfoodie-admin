@@ -1,5 +1,5 @@
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { getVerdict } from "@/lib/verdict";
+import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import {
@@ -23,6 +23,7 @@ import { getShareData, starsText } from "@/lib/reportShare";
 import { isRequestedVisit } from "@/lib/visitRequests";
 import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
 import { buildTeaser } from "@/lib/reportTeaser";
+import ShareResultButton from "@/components/ShareResultButton";
 
 export const dynamic = "force-dynamic";
 
@@ -431,6 +432,17 @@ export default async function ReportPage({
         </div>
       )}
 
+      {isShareableScore(form.overall_score) && (
+        <div className="mt-6 text-center">
+          <ShareResultButton
+            shortCode={shortCode}
+            clientName={client?.name ?? "tu negocio"}
+            score={form.overall_score}
+            className="rounded-md bg-green-50 px-5 py-2.5 text-sm font-semibold text-green-700 hover:bg-green-100"
+          />
+        </div>
+      )}
+
       {!unlocked && teaser && (
         <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">
           <p className="text-2xl" aria-hidden="true">{teaser.emoji}</p>
@@ -469,7 +481,7 @@ export default async function ReportPage({
         </div>
       ) : (
         <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
-          <p className="font-medium text-ink">Este es un resumen por categoría.</p>
+          <p className="font-medium text-ink">{isLowScore(form.overall_score) ? "Este es un resumen por categoría. El reporte completo te muestra por dónde empezar." : "Este es un resumen por categoría."}</p>
           <p className="mt-2 font-medium text-ink">
             El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores
             evaluados dentro de cada categoría y los comentarios del mystery shopper

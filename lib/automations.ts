@@ -40,7 +40,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
   },
   resultado_visita: {
     title: "Resultado de la visita (al negocio)",
-    desc: "Correo que recibe el negocio justo después de guardar una visita. Solo el párrafo de introducción es editable; las estrellas, el veredicto, las categorías y el botón se arman solos.",
+    desc: "Correo que recibe el negocio justo después de guardar una visita. Solo el párrafo de introducción es editable; las estrellas, el veredicto, las categorías y el botón se arman solos. Con calificación baja (menos de 2.5) se usa siempre un texto fijo de ayuda, sin el número, y el correo no muestra la calificación.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (puede venir vacío)" },
@@ -144,7 +144,7 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
   },
   instagram_dm: {
     title: "Mensaje de Instagram (DM, primer contacto)",
-    desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto.",
+    desc: "Texto para copiar y pegar como DM de Instagram al negocio -- el primer contacto con el cliente, generado al terminar de registrar una visita. No es un correo, por eso no tiene asunto. Con calificación baja (menos de 2.5) se usa siempre un mensaje fijo de ayuda, sin el número.",
     tags: [
       { tag: "negocio", desc: "Nombre del negocio" },
       { tag: "tipo_negocio", desc: "Tipo de negocio, ej. \"cafetería\" (si no hay uno claro, \"negocio\")" },
@@ -211,6 +211,15 @@ export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu visita MysterFoodie: {
 export const DEFAULT_RESULTADO_INTRO =
   "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y calificó de forma independiente** " +
   "la experiencia real.{{mesero_linea}} Este es el resultado:";
+
+/**
+ * Notas bajas (menos de 2.5): sin la calificación en el asunto ni en el texto y con enfoque de ayuda. Para estos casos se
+ * usa siempre este texto (no la plantilla editable, que menciona el promedio); el número se ve dentro del reporte.
+ */
+export const LOW_RESULTADO_SUBJECT = "Tu resultado MysterFoodie ya está listo";
+export const LOW_RESULTADO_INTRO =
+  "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y evaluó de forma independiente** " +
+  "la experiencia real.{{mesero_linea}} Les compartimos el resultado: trae oportunidades claras y con gusto les ayudamos a ver por dónde empezar.";
 
 /** Variables que acepta la plantilla "resultado_visita". */
 export function resultadoVars(params: {

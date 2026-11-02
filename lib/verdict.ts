@@ -66,3 +66,11 @@ export const VERDICT_BANDS = [
   { range: "1.5 – 2.4", sample: 2 },
   { range: "0 – 1.4", sample: 1 },
 ].map((b) => ({ range: b.range, label: getVerdict(b.sample).label, color: getVerdict(b.sample).color }));
+
+/** Malo o Muy malo (menos de 2.5): el primer mensaje al negocio no lleva el número y abre con enfoque de ayuda. */
+export const LOW_SCORE_BELOW = 2.5;
+export const isLowScore = (score: number) => score > 0 && score < LOW_SCORE_BELOW;
+
+/** Bueno o Excelente (3.5 o más): se ofrece «Compartir mi resultado». */
+export const SHAREABLE_SCORE_FROM = 3.5;
+export const isShareableScore = (score: number) => score >= SHAREABLE_SCORE_FROM;

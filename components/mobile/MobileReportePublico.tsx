@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { getVerdict } from "@/lib/verdict";
+import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
+import ShareResultButton from "@/components/ShareResultButton";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
@@ -217,6 +218,18 @@ export default function MobileReportePublico({
         </div>
       </div>
 
+      {isShareableScore(overallScore) && (
+        <div className="px-5 pt-4">
+          <ShareResultButton
+            shortCode={shortCode}
+            clientName={clientName}
+            score={overallScore}
+            className="mf-tap block w-full rounded-[14px] py-3.5 text-center text-[15px] font-bold"
+            style={{ background: "rgba(52,199,89,0.12)", color: "#248A3D" }}
+          />
+        </div>
+      )}
+
       {paymentStatus && (
         <div className="px-5 pt-4">
           {paymentStatus === "exitoso" && (
@@ -314,7 +327,7 @@ export default function MobileReportePublico({
       ) : (
         <>
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
-            <div className="mb-1.5 text-[21px] font-bold">Obtén el reporte completo</div>
+            <div className="mb-1.5 text-[21px] font-bold">{isLowScore(overallScore) ? "Mira por dónde empezar" : "Obtén el reporte completo"}</div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
               <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
               tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro MysterFoodie.

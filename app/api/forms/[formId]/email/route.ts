@@ -6,7 +6,8 @@ import { requireRole } from "@/lib/auth";
 import { businessTypePhrase } from "@/lib/categories";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import { sendResultEmail } from "@/lib/email";
-import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO } from "@/lib/automations";
+import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO, LOW_RESULTADO_SUBJECT, LOW_RESULTADO_INTRO } from "@/lib/automations";
+import { isLowScore } from "@/lib/verdict";
 import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 
 /**
@@ -130,12 +131,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   const resultadoAutomation = await getAutomation("resultado_visita");
   const defaultSubject = renderTemplate(DEFAULT_RESULTADO_SUBJECT, templateVars);
   const defaultIntro = renderTemplate(DEFAULT_RESULTADO_INTRO, templateVars);
-  const subject =
-    resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
+  const lowScore = isLowScore(Number(form.overall_score));
+  const subject = lowScore
+    ? renderTemplate(LOW_RESULTADO_SUBJECT, templateVars)
+    : resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
       ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)
       : defaultSubject;
-  const introText =
-    resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
+  const introText = lowScore
+    ? renderTemplate(LOW_RESULTADO_INTRO, templateVars)
+    : resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
       ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
       : defaultIntro;
 
@@ -146,6 +150,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
     businessName: client.name,
     subject,
     introText,
+    hideScore: lowScore,
     score: form.overall_score,
     reportUrl,
     categoryScores: catScores,

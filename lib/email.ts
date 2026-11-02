@@ -21,6 +21,8 @@ export type SendResultEmailParams = {
   glosario?: GlosarioKey[];
   /** La visita se hizo porque el negocio la solicitó: no se ofrece el reporte a $850, sino programar una visita o ver paquetes. */
   requested?: boolean;
+  /** Nota baja: el correo no muestra la calificación ni el desglose por categoría (se ven dentro del reporte). */
+  hideScore?: boolean;
 };
 
 export type SendEmailOutcome = {
@@ -178,16 +180,24 @@ function renderEmailHtml(params: SendResultEmailParams): string {
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="white-space: pre-line; margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">${renderRichText(annotateFirst(introText, params.glosario))}</p>
 
-    ${renderScoreCard(score)}
+    ${
+      params.hideScore
+        ? ""
+        : `${renderScoreCard(score)}
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
       ${renderCategoryRows(categoryScores)}
-    </table>
+    </table>`
+    }
 
     ${renderGuaranteeBlock()}
 
     <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #6b7280;">
-      Este resumen muestra solo las ${rated} categorías generales. El estudio completo evalúa
+      ${
+        params.hideScore
+          ? "Tu calificación y el resumen por categoría te esperan en tu reporte. El estudio completo evalúa"
+          : `Este resumen muestra solo las ${rated} categorías generales. El estudio completo evalúa`
+      }
       <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, etc.),
       desarrollado bajo la metodología técnica de <strong>Flanco Izquierdo</strong>.
     </p>
