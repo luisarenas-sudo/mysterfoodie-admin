@@ -22,7 +22,9 @@ const TEAM_ROLES = ["agente", "sibarita", "admin"];
 export const PERFIL_INVITE_SUBJECT = "Completa tu perfil anónimo y gana más con cada venta";
 export const PERFIL_INVITE_BODY = `Hola {{foodie}},
 
-Los negocios que visites en MysterFoodie pueden comprar un perfil con tu nombre anónimo (sin tu nombre, foto ni datos de contacto), y tú te llevas el ${MYSTERFOODIE_SHARE_PCT}% del precio de cada venta. Tú decides qué compartes, en dos niveles:
+{{parrafo_nombre}}
+
+Los negocios que visites en MysterFoodie pueden comprar tu perfil anónimo y tú te llevas el ${MYSTERFOODIE_SHARE_PCT}% del precio de cada venta. Tú decides qué compartes, en dos niveles:
 
 Nivel ID: tus gustos y palabras, cómo consumes y de qué zona eres. Son 3 secciones y toma unos minutos.
 
@@ -34,6 +36,20 @@ Empieza por el ID y, cuando quieras, sigue con el Passport. Lo puedes editar en 
 
 Saludos,
 MysterFoodie`;
+
+/**
+ * Párrafo sobre el nombre anónimo: por qué existe y, si se puede, cómo cambiarlo. Perfiles nuevos (alias_capped): el nombre
+ * se elige una vez y queda fijo; perfiles que ya existían pueden cambiarlo; sin nombre aún, se invita a descubrir el suyo.
+ */
+export function nombreAnonimoParrafo(alias: string | null, capped: boolean, linkNombre: string): string {
+  const porque =
+    "Es tu nombre anónimo: lo usamos para que, cuando un negocio vea tu perfil, conozca lo que piensas y consumes sin saber quién eres. Nunca aparecen tu nombre real, tu foto ni tus datos de contacto.";
+  if (!alias) {
+    return `Antes de empezar, elige tu nombre anónimo. ${porque} Descubre el tuyo aquí (tienes 3 intentos y después queda fijo): ${linkNombre}`;
+  }
+  if (capped) return `En MysterFoodie te llamamos ${alias}. ${porque} Tu nombre ya quedó fijo para mantener protegida tu identidad.`;
+  return `En MysterFoodie te llamamos ${alias}. ${porque} Si prefieres otro nombre, cámbialo aquí (te lleva a tu Perfil): ${linkNombre}`;
+}
 
 export function perfilInviteCallout(): EmailCallout {
   return {
@@ -81,7 +97,12 @@ export async function sendDuePerfilInvites(db: Db, baseUrl: string): Promise<{ s
       .select("id");
     if (!claimed || claimed.length === 0) continue;
 
-    const vars = { foodie: ((p.full_name as string | null) || "").split(" ")[0], link_perfil: `${baseUrl}/perfil/anonimo` };
+    const alias = ((p.alias as string | null) || "").trim() || null;
+    const vars = {
+      foodie: alias || ((p.full_name as string | null) || "").split(" ")[0],
+      parrafo_nombre: nombreAnonimoParrafo(alias, p.alias_capped === true, `${baseUrl}/perfil/alias`),
+      link_perfil: `${baseUrl}/perfil/anonimo`,
+    };
     const custom = automation?.enabled;
     const outcome = await sendTemplatedEmail({
       to: email,
