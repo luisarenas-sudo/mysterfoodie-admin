@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { sendResultEmailForForm } from "@/lib/resultEmailSend";
 import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
+import { logBusinessEvent } from "@/lib/bitacora";
 
 /**
  * Reenvia el correo de resultado de una evaluacion ya guardada, o lo
@@ -12,8 +13,9 @@ import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
  * una visita.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ formId: string }> }) {
+  let session;
   try {
-    await requireRole("admin", "agente", "sibarita");
+    session = await requireRole("admin", "agente", "sibarita");
   } catch {
     return NextResponse.json(
       { error: "Necesitas iniciar sesión como agente o admin para reenviar el correo" },
@@ -66,6 +68,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
   }
 
   const recipientEmail = overrideTo || client.email || process.env.ADMIN_EMAIL || "";
+  const logResend = () =>
+    logBusinessEvent(db, {
+      clientId: form.client_id as string,
+      kind: "correo_reenvio",
+      title: overrideTo ? "Se envió el correo de resultado a otro correo" : "Se reenvió el correo de resultado",
+      detail: `Para ${recipientEmail}`,
+      actorId: session.userId,
+      refId: form.id as string,
+    });
   if (!recipientEmail) {
     return NextResponse.json(
       { error: "No hay correo destino: el negocio no tiene correo registrado ni hay ADMIN_EMAIL configurado" },
@@ -88,6 +99,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
       },
       { to: recipientEmail, demo: Boolean(form.free_demo) }
     );
+    await logResend();
     return NextResponse.json({ email: outcome, recipientEmail });
   }
 
@@ -100,6 +112,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
     baseUrl
   );
 
+  await logResend();
   return NextResponse.json({
     email: emailOutcome,
     recipientEmail,

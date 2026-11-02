@@ -8,6 +8,7 @@ import { sibaritaEarningsCallout, shopperEarningsCallout } from "./earningsCopy"
 import { getAutomation, renderTemplate } from "./automations";
 import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "./accessTokens";
 import { sendAssignmentEmail } from "./assignments";
+import { logBusinessEvent, personLabel } from "./bitacora";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -493,7 +494,7 @@ export async function assignVisitRequest(
 ): Promise<AssignResult> {
   const { data: request } = await db
     .from("visit_requests")
-    .select("id, client_id, status, assignment_id, kind, schedule_pref")
+    .select("id, client_id, status, assignment_id, assigned_to, kind, schedule_pref")
     .eq("id", p.requestId)
     .maybeSingle();
   if (!request) return { ok: false, error: "Solicitud no encontrada", status: 404 };
@@ -546,6 +547,15 @@ export async function assignVisitRequest(
     if (error || !created) return { ok: false, error: error?.message || "No se pudo crear la asignación", status: 500 };
     assignmentId = created.id as string;
   }
+
+  await logBusinessEvent(db, {
+    clientId: client.id as string,
+    kind: "asignacion",
+    title: `${request.assigned_to && request.assigned_to !== assignee.id ? "Se reasignó" : "Se asignó"} la visita${programada ? " programada" : " gratis"} a ${personLabel((assignee.full_name as string | null) || (assignee.email as string | null), assignee.role as string | null)}`,
+    detail: "Desde la solicitud de la web",
+    actorId: p.assignedBy,
+    refId: assignmentId,
+  });
 
   const now = Date.now();
   const { error: updError } = await db
@@ -617,6 +627,13 @@ export async function takeVisitRequest(
   if (!taken || taken.length === 0) return { ok: false, error: "Alguien más ya tomó esta visita", status: 409 };
 
   await db.from("visit_requests").update({ assigned_to: foodie.id }).eq("id", request.id);
+  await logBusinessEvent(db, {
+    clientId: request.client_id as string,
+    kind: "asignacion",
+    title: `${personLabel((foodie.full_name as string | null) || (foodie.email as string | null), "agente")} tomó la visita gratis de la bolsa de Shoppers`,
+    actorId: foodie.id as string,
+    refId: request.assignment_id as string,
+  });
 
   const { data: client } = await db.from("clients").select("name, type, city").eq("id", request.client_id).maybeSingle();
   const email = await sendAssignmentEmail(db, {

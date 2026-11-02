@@ -191,6 +191,7 @@ export default function MobileNegocioDetail({
   backLabel = "Negocios",
   pendingAssignment = null,
   planSlot = null,
+  bitacoraSlot = null,
   ownerPlan = null,
   extra = null,
 }: {
@@ -214,6 +215,8 @@ export default function MobileNegocioDetail({
   pendingAssignment?: PendingAssignmentForClient | null;
   /** Tarjeta de administración del plan de visitas (solo Master Chef). */
   planSlot?: ReactNode;
+  /** Línea de tiempo del negocio (solo Master Chef). */
+  bitacoraSlot?: ReactNode;
   /** Resumen del plan para el dueño del negocio (/mi-negocio). */
   ownerPlan?: { planName: string; done: number; quota: number; monthLabel: string } | null;
   /** Contenido extra al final (p. ej. perfiles de MysterFoodie comprables en la vista del dueño). */
@@ -363,6 +366,8 @@ export default function MobileNegocioDetail({
         {planSlot}
 
         {!ownerView && <ContactCard client={client} canEdit={canEdit} />}
+
+        {bitacoraSlot && <div className="mx-5 mb-4">{bitacoraSlot}</div>}
 
         {canDelete && (
           <div className="px-5">

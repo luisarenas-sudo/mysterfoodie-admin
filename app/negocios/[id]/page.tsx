@@ -9,6 +9,9 @@ import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 import DeleteButton from "@/components/DeleteButton";
 import BackLink from "@/components/BackLink";
+import BitacoraNegocio from "@/components/admin/BitacoraNegocio";
+import { getBitacora } from "@/lib/bitacora";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +85,9 @@ export default async function NegocioDetailPage({
     );
   }
 
+  // Bitácora (solo Master Chef): línea de tiempo con todo lo que ha pasado con el negocio.
+  const bitacoraSlot = canAssign ? <BitacoraNegocio entries={await getBitacora(getSupabaseServiceClient(), id)} /> : null;
+
   if (client.visits.length === 0) {
     return (
       <>
@@ -93,6 +99,7 @@ export default async function NegocioDetailPage({
           canCreateVisit={canCreateVisit}
           pendingAssignment={pendingAssignment}
           planSlot={planSlot}
+          bitacoraSlot={bitacoraSlot}
         />
         <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
           <BackLink href="/negocios" label="Negocios" />
@@ -114,6 +121,7 @@ export default async function NegocioDetailPage({
             </Link>
           )}
           {planSlot && <div className="mt-6 max-w-xl">{planSlot}</div>}
+          {bitacoraSlot && <div className="mt-6 max-w-2xl">{bitacoraSlot}</div>}
         </main>
       </>
     );
@@ -131,6 +139,7 @@ export default async function NegocioDetailPage({
         canCreateVisit={canCreateVisit}
         pendingAssignment={pendingAssignment}
         planSlot={planSlot}
+        bitacoraSlot={bitacoraSlot}
       />
 
       <main className="mx-auto hidden max-w-5xl px-6 py-10 md:block">
@@ -165,6 +174,8 @@ export default async function NegocioDetailPage({
         {planSlot && <div className="mt-6 max-w-xl">{planSlot}</div>}
 
         <ClientScoreboard client={client} canManageEmail />
+
+        {bitacoraSlot && <div className="mt-8 max-w-2xl">{bitacoraSlot}</div>}
       </main>
     </>
   );

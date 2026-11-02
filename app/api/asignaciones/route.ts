@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { sendAssignmentEmail } from "@/lib/assignments";
+import { logBusinessEvent, personLabel } from "@/lib/bitacora";
 
 type Body = {
   clientId?: string;
@@ -88,6 +89,15 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  await logBusinessEvent(db, {
+    clientId,
+    kind: "asignacion",
+    title: `Se asignó la visita a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
+    detail: note || null,
+    actorId: session.userId,
+    refId: assignment.id as string,
+  });
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const emailOutcome = await sendAssignmentEmail(db, {

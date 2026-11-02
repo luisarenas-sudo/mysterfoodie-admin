@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { sendAssignmentEmail } from "@/lib/assignments";
+import { logBusinessEvent, personLabel } from "@/lib/bitacora";
 
 /**
  * Asignar (o reasignar) a un Shopper una visita ya creada -- por ahora las
@@ -28,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const db = getSupabaseServiceClient();
   const { data: assignment } = await db
     .from("visit_assignments")
-    .select("id, client_id, status, note")
+    .select("id, client_id, status, note, assigned_to")
     .eq("id", id)
     .maybeSingle();
   if (!assignment) return NextResponse.json({ error: "Visita no encontrada" }, { status: 404 });
@@ -46,6 +47,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .update({ assigned_to: assignedTo, assigned_by: session.userId, notified_at: null })
     .eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const prevId = (assignment.assigned_to as string | null) ?? null;
+  let prevName: string | null = null;
+  if (prevId && prevId !== assignedTo) {
+    const { data: prev } = await db.from("profiles").select("full_name, email, role").eq("id", prevId).maybeSingle();
+    prevName = prev ? personLabel((prev.full_name as string | null) || (prev.email as string | null), prev.role as string | null) : null;
+  }
+  await logBusinessEvent(db, {
+    clientId: assignment.client_id as string,
+    kind: "asignacion",
+    title: `${prevId && prevId !== assignedTo ? "Se reasignó" : "Se asignó"} la visita a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
+    detail: prevName ? `Antes: ${prevName}` : null,
+    actorId: session.userId,
+    refId: id,
+  });
 
   const { data: client } = await db.from("clients").select("name, type, city").eq("id", assignment.client_id).maybeSingle();
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;

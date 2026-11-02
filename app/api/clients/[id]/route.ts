@@ -1,3 +1,4 @@
+import { logBusinessEvent } from "@/lib/bitacora";
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -87,6 +88,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  await logBusinessEvent(db, { clientId: id, kind: "datos_editados", title: "Se editaron los datos del negocio", actorId: session.userId });
   return NextResponse.json({ id });
 }
 

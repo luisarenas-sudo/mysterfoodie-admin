@@ -27,6 +27,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "La app registra cuándo un negocio abre su reporte y cuándo toca «Comprar», sin cookies.",
       "El Master Chef recibe un correo cuando abren un reporte que aún no compran (con pausa de 6 h entre avisos) y un pendiente en Inicio.",
       "Nuevo apartado 📈 Stats en tu Perfil (solo Master Chef): embudo del reporte (enviados, abiertos, dejaron correo, tocaron Comprar, pagaron), qué hizo cada reporte, correos y recordatorios, solicitudes por botón y contador de la web, con periodo de 7, 30 o 90 días.",
+      "Bitácora en cada negocio (solo Master Chef): línea de tiempo con fecha, hora y acción (quién lo dio de alta, solicitud, asignaciones y reasignaciones, visita finalizada, correos y recordatorios, aperturas, pagos, plan y asesorías). Incluye el historial anterior y desde hoy registra reasignaciones, visitas tomadas de la bolsa, reenvíos de correo y ediciones.",
       "Contador propio de mysterfoodie.com sin cookies ni IP: visitas, clics en «Solicita una visita», formularios iniciados y enviados, páginas más vistas y de dónde llegan.",
       "El reporte bloqueado muestra un adelanto de SU visita (por ejemplo, «3 indicadores salieron con 2 estrellas o menos») sin decir cuáles.",
       "Con calificación baja (menos de 2.5), el correo y el mensaje de Instagram no llevan el número y abren con enfoque de ayuda; la calificación se ve dentro del reporte.",
