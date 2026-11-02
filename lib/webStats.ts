@@ -10,7 +10,7 @@ export const CHANNELS = ["directo", "instagram", "facebook", "google", "whatsapp
 export type Channel = (typeof CHANNELS)[number];
 
 export const CHANNEL_LABEL: Record<string, string> = {
-  directo: "Directo (escribieron la dirección o abrieron un guardado)",
+  directo: "Directo",
   instagram: "Instagram",
   facebook: "Facebook",
   google: "Google",
