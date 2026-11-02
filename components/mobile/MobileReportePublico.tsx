@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
-import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
+import { foodieTrustText } from "@/lib/brand";
+import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import ShareResultButton from "@/components/ShareResultButton";
 import ReportLeadEmail from "@/components/ReportLeadEmail";
@@ -493,26 +494,7 @@ export default function MobileReportePublico({
         </div>
       )}
 
-      <div className="mx-5 mt-6 rounded-[18px] p-5" style={{ background: "#1C1C1E" }}>
-        <div className="mb-3 flex items-center gap-2.5">
-          <div
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
-            style={{ background: "rgba(242,68,68,0.18)" }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
-              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="heading text-[17px] font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</div>
-        </div>
-        <div className="text-[13.5px] italic leading-relaxed" style={{ color: "rgba(255,255,255,0.85)" }}>
-          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
-        </div>
-        <div className="mt-3 text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-          {foodieTrustText(TOTAL_ITEM_COUNT)}
-        </div>
-      </div>
+      <PalabraFoodieCard className="mx-5 mt-6">{foodieTrustText(TOTAL_ITEM_COUNT)}</PalabraFoodieCard>
 
       <div className="px-6 pb-9 pt-5 text-center">
         <FlancoCredit />

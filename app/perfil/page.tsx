@@ -1,7 +1,8 @@
 import { Pix } from "@/components/ui/Pix";
 import DeleteAccountButton from "@/components/perfil/DeleteAccountButton";
 import { redirect } from "next/navigation";
-import { PALABRA_FOODIE_QUOTE, ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
+import { ROLE_LABELS, mysterfoodieTitle } from "@/lib/brand";
+import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import Link from "next/link";
@@ -253,7 +254,7 @@ export default async function PerfilPage({
           <Row
             href="/perfil/anonimo"
             icon="🕶️"
-            iconBg="#1C1C1E"
+            iconBg="#E5E5EA"
             title="Mi perfil anónimo"
             subtitle="Código postal y gustos que ven los negocios (sin tu nombre)"
           />
@@ -314,29 +315,7 @@ export default async function PerfilPage({
         )}
       </Group>
 
-      <div
-        className="mx-5 mt-5 rounded-[18px] p-5 text-center"
-        style={{ background: "#1C1C1E" }}
-      >
-        <div className="mb-3 flex flex-col items-center gap-2">
-          <div
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
-            style={{ background: "rgba(242,68,68,0.18)" }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              <path d="M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z" fill="#F24444" />
-              <path d="M9 12.5l2 2 4-4.5" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="heading text-[21px] font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</div>
-        </div>
-        <div
-          className="mx-auto text-[14.5px] italic leading-relaxed"
-          style={{ color: "rgba(255,255,255,0.85)", maxWidth: "80%" }}
-        >
-          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
-        </div>
-      </div>
+      <PalabraFoodieCard />
 
 
       <div className="mx-5 mt-2.5 text-center">

@@ -128,17 +128,26 @@ export function renderEmailShell(cardHtml: string): string {
   `;
 }
 
-/** Caja gris de "Palabra MysterFoodie" (la garantía de honestidad del estudio). */
-function renderGuaranteeBlock(): string {
+/**
+ * "Palabra MysterFoodie" (la garantía de honestidad): mismo formato que en Perfil y en el reporte: tarjeta oscura,
+ * centrada, con el escudo arriba, el título en mayúsculas y la frase en cursiva. (Ver components/PalabraFoodieCard.tsx.)
+ */
+export function renderGuaranteeBlock(): string {
+  const baseUrl = emailBaseUrl();
   return `
-    <div style="margin: 24px 0; background-color: #f8f9fb; border: 1px solid #eceef2; border-radius: 16px; padding: 20px 22px; text-align: center;">
-      <p style="margin: 0 0 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.1em; color: #8a8f98; text-transform: uppercase;">
-        Palabra MysterFoodie
-      </p>
-      <p style="margin: 0; font-size: 17px; font-weight: bold; line-height: 1.45; color: #1f2937;">
-        &ldquo;${PALABRA_FOODIE_QUOTE}&rdquo;
-      </p>
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: separate; margin: 24px 0;">
+      <tr>
+        <td align="center" style="background-color: #1c1c1e; border-radius: 18px; padding: 24px 24px 26px; text-align: center;">
+          <img src="${baseUrl}/palabra-escudo.png" width="44" height="44" alt="" style="display: block; margin: 0 auto 10px; width: 44px; height: 44px; border: 0;" />
+          <p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; letter-spacing: 0.06em; color: #ffffff; text-transform: uppercase; text-align: center;">
+            Palabra MysterFoodie
+          </p>
+          <p style="margin: 0 auto; max-width: 400px; font-size: 15px; font-style: italic; line-height: 1.55; color: #d9d9dd; text-align: center;">
+            &ldquo;${PALABRA_FOODIE_QUOTE}&rdquo;
+          </p>
+        </td>
+      </tr>
+    </table>
   `;
 }
 

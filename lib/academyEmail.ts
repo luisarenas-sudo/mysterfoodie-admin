@@ -2,7 +2,7 @@ import { CATEGORIES, TOTAL_ITEM_COUNT } from "./categories";
 import { formatMxn, scenarioByKey, splitForPrice } from "./earningsMatrix";
 import { PLAN_CATALOG } from "./planCatalog";
 import { VERDICT_BANDS } from "./verdict";
-import { BRAND_RED, SUPPORT_EMAIL, escapeHtml, renderButton, renderEmailShell } from "./email";
+import { BRAND_RED, SUPPORT_EMAIL, escapeHtml, renderButton, renderEmailShell, renderGuaranteeBlock } from "./email";
 import { annotateFirst } from "./glosario";
 
 /**
@@ -67,7 +67,8 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
     ${p("Las visitas son <strong>anónimas</strong>: llegas como cualquier cliente, consumes y vives la experiencia completa, de la fachada a la cuenta. Casi todos los indicadores se califican de 1 a 5 (1 es malo, 3 regular y 5 excelente); los de sí/no, como accesibilidad, se convierten a esa misma escala.")}
     ${p("La calificación general es el <strong>promedio de los promedios</strong> de las categorías, no un promedio plano de los indicadores, y se traduce en un veredicto:")}
     <div style="margin: 0 0 6px;">${bandas}</div>
-    ${p("Cada visita termina en un reporte claro para el negocio, con seguimiento personalizado de nuestro equipo. Todo bajo nuestro lema: <em>Palabra MysterFoodie, orgullo sibarita: ponemos la boca en el plato y la firma en la verdad.</em>")}
+    ${p("Cada visita termina en un reporte claro para el negocio, con seguimiento personalizado de nuestro equipo. Todo bajo nuestro lema:")}
+    ${renderGuaranteeBlock()}
 
     ${h("Esquemas de ganancias")}
     ${p("Si completas la certificación y cumples los requisitos, podrías acceder a estos esquemas (se paga por reporte entregado):")}

@@ -14,11 +14,13 @@ import {
 
 const RED = "#F24444";
 const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
+/** Sin centavos cuando es entero ($175, no $175.00). */
+const moneyS = (n: number) => (Number.isInteger(n) ? n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }) : money(n));
 const asArr = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 
-const TIER_UI: Record<TierKey, { pix: string; tone: "red" | "purple"; title: string; desc: string; color: string }> = {
-  id: { pix: "card-id", tone: "red", title: "Perfil ID", desc: "Tus gustos y palabras, cómo consumes y de qué zona eres.", color: RED },
-  passport: { pix: "luggage", tone: "purple", title: "Perfil Passport", desc: "Tu buyer persona: demografía, estilo de vida, movilidad y viajes, y medios.", color: "#5856D6" },
+const TIER_UI: Record<TierKey, { pix: string; tone: "red" | "purple"; title: string; desc: string; color: string; soft: string }> = {
+  id: { pix: "card-id", tone: "red", title: "Perfil ID", desc: "Gustos, consumo y zona", color: RED, soft: "#FFF0EE" },
+  passport: { pix: "luggage", tone: "purple", title: "Perfil Passport", desc: "Tu buyer persona completo", color: "#5856D6", soft: "#EEEEFC" },
 };
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -276,11 +278,14 @@ export default function AnonProfileForm({
 
   return (
     <div>
-      <div className="mb-4 rounded-2xl p-4" style={{ background: "#fff", border: "1.5px solid rgba(60,60,67,0.1)" }}>
-        <div className="text-[13px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>Con lo que compartes hoy ganarías</div>
-        <div key={estimate} className="mf-pop mt-0.5 text-[26px] font-extrabold" style={{ color: RED }}>{money(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
-        <div className="text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>
-          Con los dos niveles completos: hasta {money(MAX_EARNINGS_PER_SALE)} por perfil Passport. Te llevas el {MYSTERFOODIE_SHARE_PCT}% del precio que paga el negocio (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport). El cargo por uso de la plataforma ({PLATFORM_FEE_PCT}%) lo paga el negocio aparte y no se te descuenta. Lo ves todo, mes a mes, en Finanzas.
+      <div className="mb-4 rounded-2xl bg-white p-4" style={{ border: "1.5px solid rgba(60,60,67,0.1)" }}>
+        <div className="text-[13px] font-semibold" style={{ color: "rgba(60,60,67,0.6)" }}>Con lo que compartes hoy ganas</div>
+        <div key={estimate} className="mf-pop mt-0.5 text-[28px] font-extrabold leading-tight" style={{ color: RED }}>{moneyS(estimate)} <span className="text-[13px] font-semibold text-stone-500">por perfil vendido</span></div>
+        <div className="mt-1 text-[12.5px] leading-snug" style={{ color: "rgba(60,60,67,0.7)" }}>
+          Completando los dos niveles: hasta <b>{moneyS(MAX_EARNINGS_PER_SALE)}</b> por venta.
+        </div>
+        <div className="mt-2 border-t pt-2 text-[11.5px] leading-snug" style={{ borderColor: "rgba(60,60,67,0.1)", color: "rgba(60,60,67,0.55)" }}>
+          Te llevas el {MYSTERFOODIE_SHARE_PCT}% del precio que paga el negocio (${TIER_INCREMENT.id} el ID y ${TIER_INCREMENT.passport} el Passport). El cargo por uso de la plataforma ({PLATFORM_FEE_PCT}%) lo paga el negocio aparte. Lo ves mes a mes en Finanzas.
         </div>
       </div>
 
@@ -292,36 +297,50 @@ export default function AnonProfileForm({
         const listos = blocks.filter((b) => ready(b.key)).length;
         const locked = t === "passport" && visits < MIN_VISITS_PASSPORT;
         const tierMax = earningsForBlocks(blocks.map((b) => b.key));
-        const status = !on
-          ? "No lo compartes"
-          : listos === blocks.length
-            ? `Compartes las ${blocks.length} secciones`
-            : `Compartes ${listos} de ${blocks.length} secciones · faltan ${blocks.length - listos}`;
         return (
           <div key={t} className="mb-3.5 rounded-2xl bg-white p-4" style={{ border: on ? `1.5px solid ${ui.color}` : "1.5px solid rgba(60,60,67,0.1)" }}>
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
               <button type="button" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [t]: !o[t] }))} className="min-w-0 flex-1 text-left">
-                <div className="text-[11px] font-bold uppercase tracking-wide" style={{ color: ui.color }}>
-                  Nivel {t === "passport" ? "Passport" : "ID"} · ganas hasta {money(tierMax)} {t === "passport" ? "más " : ""}por venta
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-[14px]" style={{ background: ui.soft }}>
+                    <PixelBadge name={ui.pix} size={32} tone={ui.tone} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="heading block text-[20px] leading-tight">{ui.title}</span>
+                    <span className="block text-[12.5px] leading-snug text-stone-500">{ui.desc}</span>
+                  </span>
                 </div>
-                <div className="heading flex items-center gap-2 text-[20px]"><PixelBadge name={ui.pix} size={30} tone={ui.tone} />{ui.title}</div>
-                <div className="text-[13px] text-stone-500">{ui.desc}</div>
-                <div className="mt-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold" style={{ color: on ? (listos === blocks.length ? "#1E8E4E" : "#9A6A00") : "rgba(60,60,67,0.5)" }}>
-                  {status}
-                  <Chevron open={isOpen} />
+                <div className="mt-3 flex items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="text-[26px] font-extrabold leading-none" style={{ color: ui.color }}>{t === "passport" ? "+" : ""}{moneyS(tierMax)}</span>
+                  <span className="text-[13px] font-semibold text-stone-500">{t === "passport" ? "más por venta" : "por venta"}</span>
+                </div>
+                <div className="mt-2.5 h-2 overflow-hidden rounded-full" style={{ background: "#ECECF1" }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.round((listos / blocks.length) * 100)}%`, background: listos === blocks.length ? "#34C759" : ui.color }} />
+                </div>
+                <div className="mt-1.5 flex items-center justify-between gap-2 text-[12.5px] font-semibold">
+                  <span style={{ color: listos === blocks.length ? "#1E8E4E" : "rgba(60,60,67,0.7)" }}>
+                    {listos === blocks.length ? "✓ " : ""}{listos} de {blocks.length} secciones listas
+                  </span>
+                  <span className="flex flex-shrink-0 items-center gap-1" style={{ color: ui.color }}>
+                    {isOpen ? "Ocultar" : listos === blocks.length ? "Revisar" : "Completar"}
+                    <Chevron open={isOpen} />
+                  </span>
                 </div>
               </button>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={on}
-                aria-label={`Compartir ${ui.title}`}
-                onClick={() => toggleTier(t)}
-                className="relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors"
-                style={{ background: on ? "#34C759" : "rgba(120,120,128,0.32)" }}
-              >
-                <span className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all" style={{ left: on ? 22 : 2 }} />
-              </button>
+              <div className="flex flex-shrink-0 flex-col items-center gap-1 pt-1">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={on}
+                  aria-label={`Compartir ${ui.title}`}
+                  onClick={() => toggleTier(t)}
+                  className="relative h-7 w-12 shrink-0 rounded-full transition-colors"
+                  style={{ background: on ? "#34C759" : "rgba(120,120,128,0.32)" }}
+                >
+                  <span className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all" style={{ left: on ? 22 : 2 }} />
+                </button>
+                <span className="text-[10.5px] font-semibold" style={{ color: on ? "#1E8E4E" : "rgba(60,60,67,0.5)" }}>{on ? "Compartes" : "Apagado"}</span>
+              </div>
             </div>
 
             {isOpen && (
@@ -350,7 +369,7 @@ export default function AnonProfileForm({
                         <PixelBadge name={BLOCK_PIX[b.key]} size={34} tone={t === "passport" ? "purpleSoft" : "redSoft"} />
                         <span className="min-w-0 flex-1">
                           <span className="block text-[15px] font-bold">{b.label}</span>
-                          <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>+{money((b.pct / 100) * TIER_INCREMENT[b.tier])} por venta</span>
+                          <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>+{moneyS((b.pct / 100) * TIER_INCREMENT[b.tier])} por venta</span>
                         </span>
                         <span className="rounded-full px-2.5 py-1 text-[11.5px] font-bold" style={st.ok ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "#F2F2F7", color: "rgba(60,60,67,0.7)" }}>{st.text}</span>
                         <Chevron open={isSec} />

@@ -4,6 +4,7 @@ import { getPendingAssignmentsFor } from "./dashboard";
 import { formatMxn } from "./earningsMatrix";
 import { getOpenPoolFor, businessHoursSince } from "./visitRequests";
 import { sibaritaEarningsShort, shopperEarningsShort } from "./earningsCopy";
+import { BLOCKS_OF_TIER, earningsForBlocks, isBlockKey } from "./personaCatalog";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -436,10 +437,61 @@ async function sibaritaAlerts(db: Db, userId: string): Promise<HomeAlert[]> {
 }
 
 /** Avisos de Pendientes para quien abre el Inicio, ya sin los que cerró (ver reglas arriba). */
+// ------------------------------------------------- tarea: perfil anónimo
+/**
+ * Tarea del Inicio para llenar el perfil anónimo (el que compran los negocios y con el que gana cada venta):
+ *  - Nivel ID: a partir del día 1 de tener cuenta, mientras no comparta las 3 secciones.
+ *  - Nivel Passport: 2 días después de completar el ID (o, si no hay fecha, de crear su cuenta), mientras falte.
+ * "Hasta $X" es lo que le falta por ganar por venta con las secciones que aún no comparte.
+ */
+async function profileTaskAlerts(db: Db, userId: string): Promise<HomeAlert[]> {
+  const { data } = await db.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (!data || !data.created_at) return [];
+  const shared = ((data.share_blocks as unknown[]) ?? []).filter(isBlockKey);
+  const idBlocks = BLOCKS_OF_TIER("id");
+  const passBlocks = BLOCKS_OF_TIER("passport");
+  const missingId = idBlocks.filter((b) => !shared.includes(b.key));
+  const missingPass = passBlocks.filter((b) => !shared.includes(b.key));
+  const created = new Date(data.created_at as string).getTime();
+
+  if (missingId.length > 0) {
+    if (Date.now() - created < DAY_MS) return [];
+    const up = earningsForBlocks(missingId.map((b) => b.key));
+    return [
+      {
+        key: "ap:perfil-id",
+        kind: "pendiente",
+        tone: "info",
+        emoji: "🕶️",
+        title: `Llena tu perfil ID y gana hasta ${formatMxn(up)} por venta`,
+        detail: `Te falta: ${missingId.map((b) => b.label).join(", ")}. Son 2 minutos.`,
+        href: "/perfil/anonimo",
+      },
+    ];
+  }
+  if (missingPass.length > 0) {
+    const since = data.anon_id_done_at ? new Date(data.anon_id_done_at as string).getTime() : created;
+    if (Date.now() - since < 2 * DAY_MS) return [];
+    const up = earningsForBlocks(missingPass.map((b) => b.key));
+    return [
+      {
+        key: "ap:perfil-passport",
+        kind: "pendiente",
+        tone: "info",
+        emoji: "🧳",
+        title: `Sube a Passport y gana hasta ${formatMxn(up)} más por venta`,
+        detail: `Te falta: ${missingPass.map((b) => b.label).join(", ")}.`,
+        href: "/perfil/anonimo",
+      },
+    ];
+  }
+  return [];
+}
+
 export async function getHomeAlerts(profile: { userId: string; role: string }): Promise<HomeAlert[]> {
   const db = getSupabaseServiceClient();
 
-  const [raw, dismissed] = await Promise.all([
+  const [raw, tasks, dismissed] = await Promise.all([
     profile.role === "agente"
       ? Promise.all([foodieAlerts(profile.userId), poolAlerts(db, profile.userId, "agente")]).then(([a, b]) => [...a, ...b])
       : profile.role === "admin"
@@ -447,11 +499,13 @@ export async function getHomeAlerts(profile: { userId: string; role: string }): 
         : profile.role === "sibarita"
           ? sibaritaAlerts(db, profile.userId)
           : Promise.resolve([] as HomeAlert[]),
+    // Un fallo al armar la tarea nunca debe tumbar los pendientes.
+    ["agente", "sibarita", "admin"].includes(profile.role) ? profileTaskAlerts(db, profile.userId).catch((): HomeAlert[] => []) : Promise.resolve([] as HomeAlert[]),
     db.from("alert_dismissals").select("alert_key, dismissed_at").eq("user_id", profile.userId),
   ]);
 
   const closedAt = new Map((dismissed.data || []).map((d) => [d.alert_key as string, new Date(d.dismissed_at as string).getTime()]));
-  return raw
+  return [...raw, ...tasks]
     .filter((a) => {
       const t = closedAt.get(a.key);
       if (t === undefined) return true;

@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { CUISINES, DISHES, MIN_CUISINES, MIN_DISHES } from "@/lib/foodCatalog";
 import { isValidPostalCode } from "@/lib/zonas";
-import { BLOCK_BY_KEY, isBlockComplete, isBlockKey, sanitizePersona, type BlockKey } from "@/lib/personaCatalog";
+import { BLOCKS_OF_TIER, BLOCK_BY_KEY, isBlockComplete, isBlockKey, sanitizePersona, type BlockKey } from "@/lib/personaCatalog";
 
 /**
  * Datos que alimentan el perfil anónimo de quien inicia sesión y qué bloques comparte (y por lo tanto cuánto puede ganar).
@@ -46,5 +46,10 @@ export async function PATCH(req: NextRequest) {
     .update({ postal_code: postalCode || null, food_cuisines: cuisines, food_dishes: dishes, persona, share_blocks: shareBlocks })
     .eq("id", me.userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Primera vez que comparte todo el nivel ID: de aquí corre el recordatorio de Passport (Inicio). Si el SQL aún no se corrió, se ignora.
+  if (BLOCKS_OF_TIER("id").every((b) => shareBlocks.includes(b.key))) {
+    await db.from("profiles").update({ anon_id_done_at: new Date().toISOString() }).eq("id", me.userId).is("anon_id_done_at", null);
+  }
   return NextResponse.json({ ok: true });
 }

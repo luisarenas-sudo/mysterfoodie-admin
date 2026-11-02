@@ -4,7 +4,7 @@ import path from "path";
 import { getVerdict, VERDICT_BANDS } from "./verdict";
 import type { CategoryScore, Ratings, Flags } from "./scoring";
 import { TOTAL_ITEM_COUNT, CATEGORIES, BUSINESS_TYPES, groupCategoryItems, type CategoryItem } from "./categories";
-import { FOODIE_PROFILE } from "./brand";
+import { FOODIE_PROFILE, PALABRA_FOODIE_QUOTE } from "./brand";
 
 export type ReportPdfParams = {
   businessName: string;
@@ -60,6 +60,37 @@ function formatDate(date: Date): string {
     year: "numeric",
     timeZone: "America/Mexico_City",
   }).format(date);
+}
+
+/**
+ * "Palabra MysterFoodie": tarjeta oscura centrada (escudo, título y frase), igual que en Perfil, el reporte en línea y los correos.
+ * Devuelve la Y donde termina.
+ */
+function drawPalabraFoodie(doc: PDFKit.PDFDocument, x: number, y: number, width: number): number {
+  const quote = `\u201C${PALABRA_FOODIE_QUOTE}\u201D`;
+  const pad = 22;
+  const textW = width * 0.78;
+  doc.font("Helvetica-Oblique").fontSize(11);
+  const quoteH = doc.heightOfString(quote, { width: textW, lineGap: 3 });
+  const iconD = 34;
+  const height = pad + iconD + 10 + 14 + 8 + quoteH + pad;
+
+  doc.save().roundedRect(x, y, width, height, 14).fill("#1C1C1E").restore();
+  const cx = x + width / 2;
+  const cy = y + pad + iconD / 2;
+  doc.save().fillOpacity(0.18).circle(cx, cy, iconD / 2).fill("#F24444").restore();
+  // Escudo (mismo trazo que el icono de la app, viewBox 24x24)
+  const k = 18 / 24;
+  doc.save().translate(cx - 12 * k, cy - 12 * k).scale(k);
+  doc.path("M12 2l7 3v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V5l7-3z").fill("#F24444");
+  doc.path("M9 12.5l2 2 4-4.5").lineWidth(1.8).lineCap("round").lineJoin("round").strokeColor("#FFFFFF").stroke();
+  doc.restore();
+
+  const titleY = y + pad + iconD + 10;
+  doc.font("Helvetica-Bold").fontSize(11.5).fillColor("#FFFFFF").text("PALABRA MYSTERFOODIE", x, titleY, { width, align: "center", characterSpacing: 1.2, lineBreak: false });
+  doc.font("Helvetica-Oblique").fontSize(11).fillColor("#D9D9DD").text(quote, x + (width - textW) / 2, titleY + 14 + 8, { width: textW, align: "center", lineGap: 3 });
+  doc.font("Helvetica");
+  return y + height;
 }
 
 function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: number) {
@@ -519,7 +550,10 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
         .fillColor(RED)
         .text("flancoizquierdo.com", PAGE_MARGIN, textY, { link: "https://flancoizquierdo.com/", underline: true });
 
-      textY = doc.y + 24;
+      textY = doc.y + 22;
+      textY = drawPalabraFoodie(doc, PAGE_MARGIN, textY, contentWidth);
+
+      textY += 18;
       doc
         .fontSize(9)
         .fillColor(LIGHT_MUTED)

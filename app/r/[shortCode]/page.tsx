@@ -1,6 +1,7 @@
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
-import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
+import { foodieTrustText } from "@/lib/brand";
+import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import {
   CATEGORIES,
@@ -552,15 +553,7 @@ export default async function ReportPage({
       )}
 
 
-      <div className="mt-6 rounded-xl p-6" style={{ background: "#1C1C1E" }}>
-        <h3 className="heading text-lg font-bold uppercase tracking-wide text-white">Palabra MysterFoodie</h3>
-        <p className="mt-2 text-sm italic leading-relaxed text-white/85">
-          &ldquo;{PALABRA_FOODIE_QUOTE}&rdquo;
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-white/55">
-          {foodieTrustText(TOTAL_ITEM_COUNT)}
-        </p>
-      </div>
+      <PalabraFoodieCard className="mt-6">{foodieTrustText(TOTAL_ITEM_COUNT)}</PalabraFoodieCard>
 
       <p className="mt-6 text-center">
         <FlancoCredit className="text-xs" color="#a8a29e" />
