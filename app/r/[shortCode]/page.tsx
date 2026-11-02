@@ -22,6 +22,7 @@ import type { Metadata } from "next";
 import { getShareData, starsText } from "@/lib/reportShare";
 import { isRequestedVisit } from "@/lib/visitRequests";
 import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
+import { buildTeaser } from "@/lib/reportTeaser";
 
 export const dynamic = "force-dynamic";
 
@@ -291,6 +292,8 @@ export default async function ReportPage({
   const requested = unlocked
     ? false
     : await isRequestedVisit(getSupabaseServiceClient(), { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false);
+  // Adelanto concreto del candado (solo texto; las calificaciones por indicador no viajan al navegador sin pagar).
+  const teaser = unlocked ? null : buildTeaser(ratings);
   const mercadopagoConfigured = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const whatsappFallbackLink = contactWhatsapp
@@ -336,11 +339,12 @@ export default async function ReportPage({
         mercadopagoConfigured={mercadopagoConfigured}
         whatsappFallbackLink={whatsappFallbackLink}
         paymentStatus={paymentStatus}
-        ratings={ratings}
-        flags={flags}
-        menuType={form.menu_type}
-        comments={form.comments}
+        ratings={unlocked ? ratings : {}}
+        flags={unlocked ? flags : {}}
+        menuType={unlocked ? form.menu_type : null}
+        comments={unlocked ? form.comments : null}
         hasTicket={Boolean(form.ticket_photo_path)}
+        teaser={teaser}
       />
 
     <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
@@ -427,6 +431,14 @@ export default async function ReportPage({
         </div>
       )}
 
+      {!unlocked && teaser && (
+        <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">
+          <p className="text-2xl" aria-hidden="true">{teaser.emoji}</p>
+          <p className="mt-1 font-semibold text-ink">{teaser.title}</p>
+          <p className="mt-1 text-sm text-stone-500">{teaser.detail}</p>
+        </div>
+      )}
+
       {unlocked ? (
         <FullReportDetail
           ratings={ratings}
@@ -437,7 +449,7 @@ export default async function ReportPage({
           averages={Object.fromEntries(visibleCategories.map((c) => [c.key, c.average]))}
         />
       ) : requested ? (
-        <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
+        <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
           <p className="font-medium text-ink">Este es el resumen de tu visita gratis.</p>
           <p className="mt-2 text-sm text-stone-600">
             Si quieres el detalle de los {TOTAL_ITEM_COUNT} indicadores, los comentarios de nuestro MysterFoodie y el ticket de consumo, programa una visita con
@@ -456,7 +468,7 @@ export default async function ReportPage({
           </p>
         </div>
       ) : (
-        <div className="mt-8 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
+        <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
           <p className="font-medium text-ink">Este es un resumen por categoría.</p>
           <p className="mt-2 font-medium text-ink">
             El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores

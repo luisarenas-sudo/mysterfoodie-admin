@@ -151,9 +151,12 @@ export default function MobileReportePublico({
   menuType,
   comments,
   hasTicket = false,
+  teaser = null,
 }: {
   /** La visita tiene foto del ticket de consumo. */
   hasTicket?: boolean;
+  /** Adelanto concreto de la visita (solo texto) mientras el reporte está bloqueado. */
+  teaser?: { emoji: string; title: string; detail: string } | null;
   shortCode: string;
   /** Link a /agendar/[shortCode] solo cuando hay calendario y el reporte ya está desbloqueado; null = no se ofrece. */
   agendaHref?: string | null;
@@ -277,6 +280,13 @@ export default function MobileReportePublico({
               nuestro MysterFoodie{hasTicket ? " y el ticket de consumo" : ""}, programa una visita con reporte completo.
             </div>
           </div>
+          {teaser && (
+            <div className="card mx-5 mt-4 p-[18px] text-center">
+              <div className="text-[26px]" aria-hidden="true">{teaser.emoji}</div>
+              <div className="mt-1 text-[16px] font-bold leading-snug">{teaser.title}</div>
+              <div className="mt-1 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>{teaser.detail}</div>
+            </div>
+          )}
           <div className="card mx-5 mt-4 p-[22px] text-center">
             <div className="flex items-baseline justify-center gap-1">
               <div className="text-[15px]" style={{ color: "rgba(60,60,67,0.5)" }}>$</div>
@@ -321,6 +331,13 @@ export default function MobileReportePublico({
             </div>
           </div>
 
+          {teaser && (
+            <div className="card mx-5 mt-4 p-[18px] text-center">
+              <div className="text-[26px]" aria-hidden="true">{teaser.emoji}</div>
+              <div className="mt-1 text-[16px] font-bold leading-snug">{teaser.title}</div>
+              <div className="mt-1 text-[13.5px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>{teaser.detail}</div>
+            </div>
+          )}
           <div className="card mx-5 mt-4 p-[22px]">
             <div className="mb-4 flex items-baseline justify-center gap-1">
               <div className="text-[15px]" style={{ color: "rgba(60,60,67,0.5)" }}>$</div>

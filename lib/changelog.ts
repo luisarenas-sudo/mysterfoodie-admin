@@ -27,6 +27,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       "La app registra cuándo un negocio abre su reporte y cuándo toca «Comprar», sin cookies.",
       "El Master Chef recibe un correo cuando abren un reporte que aún no compran (con pausa de 6 h entre avisos) y un pendiente en Inicio.",
       "Nuevo «Embudo del reporte» en Estadísticas: enviados, abiertos, tocaron Comprar y pagaron.",
+      "El reporte bloqueado muestra un adelanto de SU visita (por ejemplo, «3 indicadores salieron con 2 estrellas o menos») sin decir cuáles.",
+      "Seguridad: mientras el reporte no está pagado, las calificaciones por indicador y los comentarios ya no viajan al navegador.",
     ],
   },
   {
