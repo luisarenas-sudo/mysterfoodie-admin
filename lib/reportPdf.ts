@@ -44,12 +44,13 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   accesibilidad: "Sillas altas para niños, rampas, baño para sillas de ruedas y menú en braille.",
 };
 
-function logoBuffer(): Buffer | null {
-  try {
-    return fs.readFileSync(path.join(process.cwd(), "public", "logo-wordmark.png"));
-  } catch {
-    return null;
+/** Ruta del logo (versión ligera de 420 px). Se pasa como ruta, no como Buffer, para que pdfkit lo incruste una sola vez aunque salga en todas las páginas. */
+function logoBuffer(): string | null {
+  for (const name of ["logo-wordmark-pdf.png", "logo-wordmark.png"]) {
+    const file = path.join(process.cwd(), "public", name);
+    if (fs.existsSync(file)) return file;
   }
+  return null;
 }
 
 function formatDate(date: Date): string {
@@ -99,7 +100,7 @@ function drawWatermark(doc: PDFKit.PDFDocument) {
   doc.page.margins.bottom = prevBottomMargin;
 }
 
-function drawHeader(doc: PDFKit.PDFDocument, logo: Buffer | null) {
+function drawHeader(doc: PDFKit.PDFDocument, logo: string | null) {
   if (logo) {
     try {
       doc.image(logo, PAGE_MARGIN, 40, { width: 88 });
@@ -126,6 +127,27 @@ function drawStars(doc: PDFKit.PDFDocument, x: number, y: number, value: number)
       .path(STAR_PATH)
       .fill(n <= value ? RED : "#E7E5E4")
       .restore();
+  }
+}
+
+/** Estrella centrada en (cx, cy) de lado `size`, girada `rot` grados; `fraction` (0 a 1) la rellena de izquierda a derecha (calificaciones con decimales). */
+function drawStarAt(doc: PDFKit.PDFDocument, cx: number, cy: number, size: number, fraction: number, rot: number, fillColor: string) {
+  doc.save().translate(cx, cy).rotate(rot).scale(size / 24).translate(-12, -12);
+  doc.path(STAR_PATH).fill("#E7E5E4");
+  if (fraction > 0) {
+    doc.save().rect(0, 0, 24 * Math.min(1, fraction), 24).clip();
+    doc.path(STAR_PATH).fill(fillColor);
+    doc.restore();
+  }
+  doc.restore();
+}
+
+/** Cinco estrellas en arco alrededor de la calificación (cada una girada hacia afuera), rellenas según el puntaje. */
+function drawStarArc(doc: PDFKit.PDFDocument, cx: number, cy: number, radius: number, size: number, score: number, color: string) {
+  for (let i = 0; i < 5; i++) {
+    const theta = 210 + i * 30; // 270° es arriba (eje y hacia abajo)
+    const rad = (theta * Math.PI) / 180;
+    drawStarAt(doc, cx + radius * Math.cos(rad), cy + radius * Math.sin(rad), size, Math.max(0, Math.min(1, score - i)), theta - 270, color);
   }
 }
 
@@ -176,12 +198,21 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
       doc.addPage();
       drawHeader(doc, logo);
 
+      // Referencia del reporte, arriba a la derecha (da aire de expediente)
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(8)
+        .fillColor(LIGHT_MUTED)
+        .text(`REPORTE N.º ${shortCode.toUpperCase()}`, PAGE_MARGIN, 48, { width: contentWidth, align: "right", characterSpacing: 1.2, lineBreak: false });
+      doc.font("Helvetica");
+
       doc
         .fontSize(10)
         .fillColor(RED)
         .text("REPORTE MYSTERY SHOPPER", PAGE_MARGIN, 150, { characterSpacing: 1.2 });
 
-      doc.fontSize(26).fillColor(INK).text(businessName, PAGE_MARGIN, 168, { width: contentWidth });
+      doc.font("Helvetica-Bold").fontSize(businessName.length > 38 ? 24 : 30).fillColor(INK).text(businessName, PAGE_MARGIN, 168, { width: contentWidth });
+      doc.font("Helvetica");
 
       const subtitleParts = [clientType, city].filter(Boolean).join(" · ");
       doc
@@ -193,49 +224,99 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
           doc.y + 4
         );
 
-      // Tarjeta de calificación general
-      const cardTop = doc.y + 30;
-      const cardHeight = 150;
+      // Tarjeta de calificación general: estrellas en arco alrededor de la calificación + veredicto
+      const cardTop = doc.y + 28;
+      const cardHeight = 204;
       doc
         .roundedRect(PAGE_MARGIN, cardTop, contentWidth, cardHeight, 14)
         .fillOpacity(1)
         .fillAndStroke("#FAFAF9", "#E7E5E4");
 
+      const halfW = contentWidth / 2;
+      const scoreCx = PAGE_MARGIN + halfW / 2;
+      const scoreCy = cardTop + 128;
+      drawStarArc(doc, scoreCx, scoreCy, 90, 38, overallScore, RED);
       doc
+        .font("Helvetica-Bold")
         .fillColor(RED)
         .fontSize(54)
-        .text(String(overallScore), PAGE_MARGIN, cardTop + 28, { width: contentWidth / 2, align: "center" });
+        .text(String(overallScore), PAGE_MARGIN, scoreCy - 30, { width: halfW, align: "center", lineBreak: false });
+      doc.font("Helvetica");
       doc
         .fillColor(LIGHT_MUTED)
         .fontSize(12)
-        .text("de 5.0", PAGE_MARGIN, cardTop + 90, { width: contentWidth / 2, align: "center" });
+        .text("de 5.0", PAGE_MARGIN, scoreCy + 32, { width: halfW, align: "center", lineBreak: false });
 
-      const badgeX = PAGE_MARGIN + contentWidth / 2 + 20;
-      const badgeWidth = contentWidth / 2 - 40;
+      // Divisor vertical entre calificación y veredicto
       doc
-        .roundedRect(badgeX, cardTop + 40, badgeWidth, 30, 15)
+        .moveTo(PAGE_MARGIN + halfW, cardTop + 32)
+        .lineTo(PAGE_MARGIN + halfW, cardTop + cardHeight - 32)
+        .lineWidth(0.6)
+        .strokeColor("#E7E5E4")
+        .stroke();
+
+      const badgeX = PAGE_MARGIN + halfW + 24;
+      const badgeWidth = halfW - 48;
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(8)
+        .fillColor(LIGHT_MUTED)
+        .text("VEREDICTO", badgeX, cardTop + 50, { width: badgeWidth, align: "center", characterSpacing: 1.4, lineBreak: false });
+      doc
+        .roundedRect(badgeX, cardTop + 70, badgeWidth, 32, 16)
         .fillOpacity(0.14)
         .fillColor(verdict.color)
         .fill();
       doc
         .fillOpacity(1)
         .fillColor(verdict.color)
-        .fontSize(13)
-        .text(verdict.label, badgeX, cardTop + 49, { width: badgeWidth, align: "center" });
+        .fontSize(14)
+        .text(verdict.label, badgeX, cardTop + 80, { width: badgeWidth, align: "center", lineBreak: false });
+      doc.font("Helvetica");
       doc
         .fillColor(MUTED)
         .fontSize(10)
-        .text(verdict.summary, badgeX, cardTop + 86, { width: badgeWidth, align: "center" });
+        .text(verdict.summary, badgeX, cardTop + 116, { width: badgeWidth, align: "center", lineGap: 2 });
 
+      // Tres datos de la evaluación
+      const statsTop = cardTop + cardHeight + 18;
+      const statGap = 12;
+      const statW = (contentWidth - statGap * 2) / 3;
+      const stats: [string, string][] = [
+        [String(TOTAL_ITEM_COUNT), "indicadores evaluados"],
+        [String(CATEGORIES.length), "categorías de análisis"],
+        ["1", "visita anónima, cuenta pagada"],
+      ];
+      stats.forEach(([big, label], i) => {
+        const x = PAGE_MARGIN + i * (statW + statGap);
+        doc.roundedRect(x, statsTop, statW, 64, 12).fillOpacity(1).fillAndStroke("#FFFFFF", "#E7E5E4");
+        doc.font("Helvetica-Bold").fontSize(22).fillColor(INK).text(big, x, statsTop + 11, { width: statW, align: "center", lineBreak: false });
+        doc.font("Helvetica").fontSize(9).fillColor(MUTED).text(label, x + 8, statsTop + 41, { width: statW - 16, align: "center", lineBreak: false });
+      });
+
+      // Caja MysterFoodie: quién hizo la evaluación
+      const noteText = `Evaluación anónima realizada por un MysterFoodie: visitó el negocio como cliente real, pagó su cuenta (propina incluida) y calificó ${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías.`;
+      const noteTop = statsTop + 64 + 18;
+      const noteInnerW = contentWidth - 40;
+      doc.fontSize(10.5);
+      const noteH = doc.heightOfString(noteText, { width: noteInnerW, lineGap: 3 });
+      const noteBoxH = noteH + 52;
+      doc.roundedRect(PAGE_MARGIN, noteTop, contentWidth, noteBoxH, 14).fillOpacity(1).fillAndStroke("#FAFAF9", "#E7E5E4");
+      doc.roundedRect(PAGE_MARGIN, noteTop + 16, 4, noteBoxH - 32, 2).fillColor(RED).fill();
       doc
-        .fillColor(MUTED)
-        .fontSize(10.5)
-        .text(
-          `Evaluación anónima realizada por un MysterFoodie: visitó el negocio como cliente real, pagó su cuenta (propina incluida) y calificó ${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías.`,
-          PAGE_MARGIN,
-          cardTop + cardHeight + 26,
-          { width: contentWidth, align: "left", lineGap: 3 }
-        );
+        .font("Helvetica-Bold")
+        .fontSize(9)
+        .fillColor(RED)
+        .text("MYSTERFOODIE", PAGE_MARGIN + 20, noteTop + 16, { characterSpacing: 2, lineBreak: false });
+      doc.font("Helvetica").fontSize(10.5).fillColor(MUTED).text(noteText, PAGE_MARGIN + 20, noteTop + 34, { width: noteInnerW, lineGap: 3 });
+
+      // Pie de portada: para quién se preparó el estudio
+      const coverBottom = doc.page.height - 112;
+      doc.moveTo(PAGE_MARGIN, coverBottom).lineTo(PAGE_MARGIN + contentWidth, coverBottom).lineWidth(0.6).strokeColor("#E7E5E4").stroke();
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(LIGHT_MUTED).text("PREPARADO PARA", PAGE_MARGIN, coverBottom + 14, { characterSpacing: 1.4, lineBreak: false });
+      doc.font("Helvetica").fontSize(12).fillColor(INK).text(businessName, PAGE_MARGIN, coverBottom + 28, { width: contentWidth * 0.62, lineBreak: false, ellipsis: true });
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(LIGHT_MUTED).text("DOCUMENTO CONFIDENCIAL", PAGE_MARGIN, coverBottom + 14, { width: contentWidth, align: "right", characterSpacing: 1.4, lineBreak: false });
+      doc.font("Helvetica").fontSize(9).fillColor(MUTED).text("Uso exclusivo del negocio evaluado", PAGE_MARGIN, coverBottom + 29, { width: contentWidth, align: "right", lineBreak: false });
 
       // ---------- Página 2: desglose por categoría ----------
       doc.addPage();
@@ -268,6 +349,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
         doc.roundedRect(PAGE_MARGIN, barY, barMaxWidth, 7, 3.5).fillColor("#E7E5E4").fill();
         const filledWidth = Math.max(6, (cat.average / 5) * barMaxWidth);
         doc.roundedRect(PAGE_MARGIN, barY, filledWidth, 7, 3.5).fillColor(color).fill();
+        for (let n = 0; n < 5; n++) drawStarAt(doc, PAGE_MARGIN + barMaxWidth + 24 + n * 14, barY + 3.5, 12, Math.max(0, Math.min(1, cat.average - n)), 0, color);
 
         doc
           .fontSize(9.5)
