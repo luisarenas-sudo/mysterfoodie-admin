@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import { isRequestedVisit } from "@/lib/visitRequests";
+import { markCheckoutClick } from "@/lib/reportTracking";
 
 /**
  * Punto de entrada del boton "Comprar reporte completo" en /r/[shortCode].
@@ -48,6 +49,9 @@ export async function GET(req: NextRequest) {
   if (await isRequestedVisit(db, { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false)) {
     return NextResponse.redirect(reportUrl);
   }
+
+  // Seguimiento: el negocio tocó "Comprar" (aunque luego no complete el pago).
+  await markCheckoutClick(db, form.id as string);
 
   const { data: client } = await db
     .from("clients")

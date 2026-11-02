@@ -3,6 +3,7 @@ import { CATEGORIES } from "./categories";
 import { getVerdict } from "./verdict";
 import { avatarColorFor, initialsFor } from "./ring";
 import { ROLE_LABELS } from "./brand";
+import { getReportFunnel, type ReportFunnel } from "./reportTracking";
 
 /**
  * Estadísticas del tablero de Inicio. Admin ve toda la red; Sibarita y Shopper, sus propias visitas. Las palabras
@@ -33,6 +34,8 @@ export type HomeInsights = {
   improve: { tag: string; count: number }[];
   newBusinesses: { id: string; nombre: string; fecha: string; initial: string; avatarColor: string; creatorLabel: string | null }[];
   newBusinessesMonth: number | null;
+  /** Solo admin: embudo de reportes de los últimos 30 días (null si aún no se corre el SQL de seguimiento). */
+  funnel: ReportFunnel | null;
   leaderboard: { id: string; name: string; initial: string; avatarColor: string; count: number; avg: number | null }[];
 };
 
@@ -312,6 +315,7 @@ export async function getHomeInsights(me: { userId: string; role: InsightRole })
     improve: pool.improve,
     newBusinesses,
     newBusinessesMonth: me.role === "agente" ? null : nbCur,
+    funnel: isAdmin ? await getReportFunnel(db, 30).catch(() => null) : null,
     leaderboard,
   };
 }

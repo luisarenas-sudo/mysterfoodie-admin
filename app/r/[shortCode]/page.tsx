@@ -11,6 +11,7 @@ import {
 import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "@/lib/mercadopago";
 import { isCalendarConnected } from "@/lib/googleCalendar";
 import AutoRefreshAfterPayment from "@/components/AutoRefreshAfterPayment";
+import ReportViewBeacon from "@/components/ReportViewBeacon";
 import ActivityRing from "@/components/mobile/ActivityRing";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import FlancoCredit from "@/components/FlancoCredit";
@@ -321,6 +322,7 @@ export default async function ReportPage({
   return (
     <>
       <AutoRefreshAfterPayment active={!unlocked && (paymentStatus === "exitoso" || paymentStatus === "pendiente")} />
+      <ReportViewBeacon shortCode={shortCode} skip={unlocked || Boolean(paymentStatus)} />
       <MobileReportePublico
         shortCode={shortCode}
         agendaHref={agendaHref}

@@ -159,9 +159,39 @@ async function applicantAlerts(db: Db): Promise<HomeAlert[]> {
   ];
 }
 
+// Negocios que abrieron su reporte y no lo compran (seguimiento del reporte público): los que tocaron «Comprar» van primero.
+async function reportViewAlerts(db: Db): Promise<HomeAlert[]> {
+  const since = new Date(Date.now() - 3 * DAY_MS).toISOString();
+  const { data, error } = await db
+    .from("forms")
+    .select("id, client_id, view_count, last_viewed_at, checkout_clicked_at")
+    .is("plan_id", null)
+    .is("report_unlocked_at", null)
+    .gte("last_viewed_at", since)
+    .order("last_viewed_at", { ascending: false })
+    .limit(20);
+  if (error || !data || data.length === 0) return []; // sin el SQL de seguimiento no hay avisos
+  const { data: clients } = await db.from("clients").select("id, name").in("id", [...new Set(data.map((f) => f.client_id as string))]);
+  const nameOf = new Map((clients || []).map((c) => [c.id as string, c.name as string]));
+  const rows = [...data].sort((a, b) => Number(Boolean(b.checkout_clicked_at)) - Number(Boolean(a.checkout_clicked_at))).slice(0, 5);
+  return rows.map((f) => {
+    const hot = Boolean(f.checkout_clicked_at);
+    const n = (f.view_count as number) ?? 1;
+    return {
+      key: `ad:abrio:${f.id}`,
+      kind: "pendiente" as const,
+      tone: hot ? ("warn" as const) : ("info" as const),
+      emoji: hot ? "🔥" : "👀",
+      title: hot ? `${nameOf.get(f.client_id as string) ?? "Negocio"} tocó Comprar y no pagó` : `${nameOf.get(f.client_id as string) ?? "Negocio"} abrió su reporte`,
+      detail: `${n === 1 ? "La abrió 1 vez" : `La abrió ${n} veces`} · última ${agoLabel(f.last_viewed_at as string)} · aún no compra`,
+      href: `/negocios/${f.client_id}`,
+    };
+  });
+}
+
 // ----------------------------------------------------------------- admin
 async function adminAlerts(db: Db): Promise<HomeAlert[]> {
-  const alerts: HomeAlert[] = [...(await requestAlerts(db).catch(() => [])), ...(await applicantAlerts(db).catch(() => []))];
+  const alerts: HomeAlert[] = [...(await requestAlerts(db).catch(() => [])), ...(await applicantAlerts(db).catch(() => [])), ...(await reportViewAlerts(db).catch(() => []))];
   const month = currentMonthCdmx();
   const since = new Date(Date.now() - RECENT_DAYS * DAY_MS).toISOString();
 

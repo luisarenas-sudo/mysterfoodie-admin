@@ -460,6 +460,47 @@ function Leaderboard({ list }: { list: Data["leaderboard"] }) {
 }
 
 // ------------------------------------------------------------------ conjunto
+// ------------------------------------------------------- embudo del reporte
+function Funnel({ f }: { f: NonNullable<Data["funnel"]> }) {
+  const steps = [
+    { label: "Visitas con reporte", n: f.sent, note: "Resultado enviado al negocio" },
+    { label: "Abrieron el reporte", n: f.opened, note: "Entraron al enlace" },
+    { label: "Tocaron Comprar", n: f.clicked, note: "Llegaron al pago" },
+    { label: "Pagaron", n: f.paid, note: "Reporte completo vendido" },
+  ];
+  const top = Math.max(f.sent, 1);
+  return (
+    <div className="space-y-3">
+      {steps.map((s, i) => {
+        const pct = Math.round((s.n / top) * 100);
+        const prev = i > 0 ? steps[i - 1].n : null;
+        const step = prev && prev > 0 ? Math.round((s.n / prev) * 100) : null;
+        return (
+          <div key={s.label}>
+            <div className="flex items-baseline justify-between text-[13.5px]">
+              <span className="font-semibold">{s.label}</span>
+              <span>
+                <span className="font-bold">{s.n}</span>
+                {step !== null && (
+                  <span className="ml-1.5 text-[12px]" style={{ color: INK_SOFT }}>
+                    {step}% del paso anterior
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="mt-1 h-2.5 overflow-hidden rounded-full" style={{ background: GRID }}>
+              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: i === steps.length - 1 ? UP : "#F24444" }} />
+            </div>
+            <div className="mt-0.5 text-[11.5px]" style={{ color: INK_SOFT }}>
+              {s.note}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function HomeInsights({ data, role, variant = "desktop" }: { data: Data; role: "admin" | "sibarita" | "agente"; variant?: "desktop" | "mobile" }) {
   const desktop = variant === "desktop";
   const showBusinesses = role !== "agente" && desktop;
@@ -487,6 +528,11 @@ export default function HomeInsights({ data, role, variant = "desktop" }: { data
             {role !== "agente" && (
               <Panel title="Para dar seguimiento" sub="Negocios cuya última calificación cambió respecto a la visita anterior">
                 <Movers d={data.movers} />
+              </Panel>
+            )}
+            {role === "admin" && data.funnel && (
+              <Panel title="Embudo del reporte" sub={`Visitas de los últimos ${data.funnel.days} días: del resultado enviado al pago`}>
+                <Funnel f={data.funnel} />
               </Panel>
             )}
             <Panel title="Visitas por semana" sub="Últimas 8 semanas">

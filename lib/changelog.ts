@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.29.0",
+    date: "2026-11-02",
+    title: "Seguimiento del reporte",
+    emoji: "👀",
+    highlights: [
+      "La app registra cuándo un negocio abre su reporte y cuándo toca «Comprar», sin cookies.",
+      "El Master Chef recibe un correo cuando abren un reporte que aún no compran (con pausa de 6 h entre avisos) y un pendiente en Inicio.",
+      "Nuevo «Embudo del reporte» en Estadísticas: enviados, abiertos, tocaron Comprar y pagaron.",
+    ],
+  },
+  {
     version: "0.28.3",
     date: "2026-10-20",
     title: "Pago de visita sin IVA agregado",
