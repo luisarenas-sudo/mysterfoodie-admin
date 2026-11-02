@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { sendResultEmailForForm } from "@/lib/resultEmailSend";
+import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "@/lib/accessTokens";
 
 /**
  * «Recibe tu resumen por correo» en el reporte público (aún sin pagar): guarda el correo del negocio (si su ficha no tenía
@@ -45,12 +46,33 @@ export async function POST(req: NextRequest) {
   if (!client.email) await db.from("clients").update({ email }).eq("id", form.client_id as string);
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+
+  // Primer contacto completo: si ese correo aún no tiene cuenta, se crea la del negocio y el correo trae el acceso.
+  let acceso: { link: string; code: string; baseUrl: string; ttlDays: number } | null = null;
+  try {
+    const { data: profile } = await db.from("profiles").select("id").ilike("email", email).maybeSingle();
+    if (!profile) {
+      const { data: createdUser, error: userError } = await db.auth.admin.createUser({ email, email_confirm: true });
+      if (createdUser?.user && !userError) {
+        await db.from("profiles").upsert({ id: createdUser.user.id, email, full_name: client.name as string, role: "cliente", client_id: form.client_id as string });
+        const { token, code } = await issueAccessToken(db, { userId: createdUser.user.id, email, purpose: "invite" });
+        acceso = { link: accessUrl(baseUrl, token), code, baseUrl, ttlDays: ACCESS_TTL_DAYS };
+        await db.from("clients").update({ account_invited_at: new Date().toISOString() }).eq("id", form.client_id as string);
+      } else {
+        console.error("reporte: createUser", userError?.message);
+      }
+    }
+  } catch (err) {
+    console.error("reporte: cuenta del negocio", err instanceof Error ? err.message : err);
+  }
+
   const outcome = await sendResultEmailForForm(
     db,
     { id: form.id as string, client_id: form.client_id as string, overall_score: form.overall_score as number, short_code: form.short_code as string, report_url: form.report_url as string | null, waiter_name: form.waiter_name as string | null, created_at: form.created_at as string },
     { name: client.name as string, type: client.type as string | null },
     email,
-    baseUrl
+    baseUrl,
+    acceso
   );
   if (outcome.status === "failed") return NextResponse.json({ error: "No pudimos enviarlo. Intenta de nuevo en unos minutos." }, { status: 502 });
   return NextResponse.json({ ok: true });

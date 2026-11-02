@@ -23,6 +23,8 @@ export type SendResultEmailParams = {
   requested?: boolean;
   /** Nota baja: el correo no muestra la calificación ni el desglose por categoría (se ven dentro del reporte). */
   hideScore?: boolean;
+  /** Primer contacto por el camino del DM: se les creó su cuenta; el correo trae el enlace para crear su contraseña. */
+  acceso?: { link: string; code: string; baseUrl: string; ttlDays: number } | null;
 };
 
 export type SendEmailOutcome = {
@@ -203,6 +205,11 @@ function renderEmailHtml(params: SendResultEmailParams): string {
     </p>
 
     ${renderButton(reportUrl, "Ver mi resultado")}
+    ${
+      params.acceso
+        ? `<p style="margin: 22px 0 0; font-size: 13.5px; line-height: 1.65; color: #6b7280;">Ya generamos tu cuenta de MysterFoodie para que veas tus visitas y reportes en un solo lugar. <a href="${escapeHtml(params.acceso.link)}" style="color: ${BRAND_RED}; text-decoration: underline;">Crea tu contraseña aquí</a> (o continúa con Google desde la misma pantalla). Si el enlace no abre, entra a ${escapeHtml(params.acceso.baseUrl)}/set-password, escribe tu correo y este código de 6 dígitos: ${escapeHtml(params.acceso.code.split("").join(" "))} (vale ${params.acceso.ttlDays} días).</p>`
+        : ""
+    }
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">${
       params.requested
         ? `Si quieres el estudio completo de ${TOTAL_ITEM_COUNT} indicadores, ahí mismo puedes programar tu visita ($${FULL_REPORT_PRICE_MXN} MXN + el consumo de la visita; si necesitas factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN) o conocer nuestros paquetes.`

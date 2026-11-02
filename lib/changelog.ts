@@ -30,7 +30,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "El reporte bloqueado muestra un adelanto de SU visita (por ejemplo, «3 indicadores salieron con 2 estrellas o menos») sin decir cuáles.",
       "Con calificación baja (menos de 2.5), el correo y el mensaje de Instagram no llevan el número y abren con enfoque de ayuda; la calificación se ve dentro del reporte.",
       "Con calificación Bueno o Excelente, el reporte tiene el botón «Compartir mi resultado».",
-      "En el reporte sin pagar hay un campo «Recibe tu resumen por correo»: guarda el correo del negocio y le manda el resumen.",
+      "Si el negocio no tiene correo, el reporte muestra gratis la calificación y el veredicto, y pide el correo para abrir el resumen por categoría. Al dejarlo se guarda, se crea su cuenta y le llega el resumen con el acceso (primer contacto completo).",
       "Quien no compra recibe dos recordatorios por correo (día 2 y día 7), solo con información y ayuda, con enlace para darse de baja.",
       "Solicitudes de visita gratis: a los 3 días sin MysterFoodie asignado ni pago, el negocio recibe el aviso de alta demanda con un enlace para asegurar su visita (elige día y horario y paga en línea, sin volver a llenar sus datos).",
       "Seguridad: mientras el reporte no está pagado, las calificaciones por indicador y los comentarios ya no viajan al navegador.",

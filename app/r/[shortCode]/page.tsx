@@ -340,7 +340,7 @@ export default async function ReportPage({
         agendaIncluded={agendaIncluded}
         clientName={client?.name ?? "tu negocio"}
         overallScore={form.overall_score}
-        categories={visibleCategories}
+        categories={askEmail ? [] : visibleCategories}
         unlocked={unlocked}
         requested={requested}
         price={FULL_REPORT_PRICE_MXN}
@@ -352,7 +352,7 @@ export default async function ReportPage({
         menuType={unlocked ? form.menu_type : null}
         comments={unlocked ? form.comments : null}
         hasTicket={Boolean(form.ticket_photo_path)}
-        teaser={teaser}
+        teaser={askEmail ? null : teaser}
         askEmail={askEmail}
       />
 
@@ -414,7 +414,24 @@ export default async function ReportPage({
         <p className="mx-auto mt-3 max-w-sm text-sm text-stone-500">{verdict.summary}</p>
       </div>
 
-      {visibleCategories.length > 0 && (
+      {askEmail && (
+        <div className="mt-6">
+          <ReportLeadEmail shortCode={shortCode} gate />
+          <div aria-hidden="true" className="pointer-events-none mt-4 grid select-none grid-cols-2 gap-3" style={{ filter: "blur(7px)", opacity: 0.6 }}>
+            {["Fachada", "Ambiente", "Atención", "Alimentos y bebidas"].map((label) => (
+              <div key={label} className="card flex items-center gap-4 p-4">
+                <div className="h-[60px] w-[60px] flex-shrink-0 rounded-full border-[7px] border-stone-300" />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</p>
+                  <p className="text-2xl font-bold leading-tight text-stone-400">0.0</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!askEmail && visibleCategories.length > 0 && (
         <div className="mt-6 grid grid-cols-2 gap-3">
           {visibleCategories.map((c, i) => {
             const isLastOdd = visibleCategories.length % 2 === 1 && i === visibleCategories.length - 1;
@@ -451,9 +468,7 @@ export default async function ReportPage({
         </div>
       )}
 
-      {!unlocked && askEmail && <ReportLeadEmail shortCode={shortCode} />}
-
-      {!unlocked && teaser && (
+      {!unlocked && !askEmail && teaser && (
         <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">
           <p className="text-2xl" aria-hidden="true">{teaser.emoji}</p>
           <p className="mt-1 font-semibold text-ink">{teaser.title}</p>

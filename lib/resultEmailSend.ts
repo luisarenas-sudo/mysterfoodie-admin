@@ -18,7 +18,8 @@ export async function sendResultEmailForForm(
   form: { id: string; client_id: string; overall_score: number; short_code: string; report_url: string | null; waiter_name: string | null; created_at: string },
   client: { name: string; type: string | null },
   to: string,
-  baseUrl: string
+  baseUrl: string,
+  acceso?: { link: string; code: string; baseUrl: string; ttlDays: number } | null
 ): Promise<SendEmailOutcome> {
   const [{ data: ratingRows }, { data: flagRows }] = await Promise.all([
     db.from("form_ratings").select("category_key, score").eq("form_id", form.id),
@@ -58,6 +59,7 @@ export async function sendResultEmailForForm(
     subject,
     introText,
     hideScore: lowScore,
+    acceso: acceso ?? null,
     score: form.overall_score,
     reportUrl,
     categoryScores: catScores,

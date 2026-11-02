@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 /**
  * «Recibe tu resumen por correo» en el reporte público, antes del pago: una acción de poco compromiso que nos da un correo
  * para mandarle el resumen y, después, dos recordatorios. Variante `mobile` con el estilo de la app.
  */
-export default function ReportLeadEmail({ shortCode, mobile = false }: { shortCode: string; mobile?: boolean }) {
+export default function ReportLeadEmail({ shortCode, mobile = false, gate = false }: { shortCode: string; mobile?: boolean; gate?: boolean }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -24,6 +26,8 @@ export default function ReportLeadEmail({ shortCode, mobile = false }: { shortCo
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (res.ok) {
         setState("done");
+        // En modo candado, al dejar el correo se abre el resumen por categoría.
+        if (gate) window.setTimeout(() => router.refresh(), 900);
       } else {
         setMessage(data.error || "No pudimos enviarlo. Intenta de nuevo.");
         setState("error");
@@ -49,9 +53,9 @@ export default function ReportLeadEmail({ shortCode, mobile = false }: { shortCo
 
   return (
     <form onSubmit={submit} className={wrap}>
-      <p className={mobile ? "text-center text-[15px] font-bold" : "text-center font-semibold text-ink"}>📩 Recibe tu resumen por correo</p>
+      <p className={mobile ? "text-center text-[15px] font-bold" : "text-center font-semibold text-ink"}>{gate ? "📩 Ve tu resumen por categoría" : "📩 Recibe tu resumen por correo"}</p>
       <p className={mobile ? "mt-0.5 text-center text-[13px]" : "mt-0.5 text-center text-sm text-stone-500"} style={mobile ? { color: "rgba(60,60,67,0.6)" } : undefined}>
-        Para verlo con calma o compartirlo con tu equipo.
+        {gate ? "Déjanos tu correo: abrimos tu resumen al instante y te lo enviamos para verlo con calma." : "Para verlo con calma o compartirlo con tu equipo."}
       </p>
       <div className={mobile ? "mt-3 rounded-xl px-3.5" : "mt-3"} style={mobile ? { background: "#F2F2F7" } : undefined}>
         <input
@@ -78,7 +82,7 @@ export default function ReportLeadEmail({ shortCode, mobile = false }: { shortCo
         className={mobile ? "mf-tap mt-3 block w-full rounded-[14px] py-3 text-center text-[15px] font-bold disabled:opacity-60" : "mt-3 w-full rounded-md border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-60"}
         style={mobile ? { background: "rgba(242,68,68,0.1)", color: "#F24444" } : undefined}
       >
-        {state === "sending" ? "Enviando…" : "Enviármelo"}
+        {state === "sending" ? "Enviando…" : gate ? "Ver mi resumen" : "Enviármelo"}
       </button>
     </form>
   );

@@ -259,6 +259,23 @@ export default function MobileReportePublico({
         </div>
       )}
 
+      {askEmail && (
+        <div className="mt-4">
+          <ReportLeadEmail shortCode={shortCode} mobile gate />
+          <div aria-hidden="true" className="pointer-events-none mx-5 mt-4 grid select-none grid-cols-2 gap-3" style={{ filter: "blur(7px)", opacity: 0.6 }}>
+            {["Fachada", "Ambiente", "Atención", "Alimentos y bebidas"].map((label) => (
+              <div key={label} className="card flex items-center gap-3 p-3.5">
+                <div className="h-[48px] w-[48px] flex-shrink-0 rounded-full border-[6px]" style={{ borderColor: "rgba(60,60,67,0.18)" }} />
+                <div className="min-w-0">
+                  <div className="truncate text-[11px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>{label}</div>
+                  <div className="text-[20px] font-bold leading-tight" style={{ color: "rgba(60,60,67,0.35)" }}>0.0</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {categories.length > 0 && (
         <div className="px-5 pt-4">
           <div className="grid grid-cols-2 gap-3">
@@ -322,7 +339,6 @@ export default function MobileReportePublico({
               o conoce nuestros paquetes
             </a>
           </div>
-          {askEmail && <ReportLeadEmail shortCode={shortCode} mobile />}
           <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
               Nuestros MysterFoodies visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
@@ -453,7 +469,6 @@ export default function MobileReportePublico({
             </a>
           )}
 
-          {askEmail && <ReportLeadEmail shortCode={shortCode} mobile />}
           <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
               El costo de este reporte retribuye a nuestros MysterFoodies, quienes visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
