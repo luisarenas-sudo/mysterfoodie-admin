@@ -367,7 +367,7 @@ export default function MobileNegocioDetail({
 
         {!ownerView && <ContactCard client={client} canEdit={canEdit} />}
 
-        {bitacoraSlot && <div className="mx-5 mb-4">{bitacoraSlot}</div>}
+        {bitacoraSlot && <div className="mx-5 mb-4 mt-4">{bitacoraSlot}</div>}
 
         {canDelete && (
           <div className="px-5">

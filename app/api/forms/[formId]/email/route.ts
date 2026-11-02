@@ -72,8 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
     logBusinessEvent(db, {
       clientId: form.client_id as string,
       kind: "correo_reenvio",
-      title: overrideTo ? "Se envió el correo de resultado a otro correo" : "Se reenvió el correo de resultado",
-      detail: `Para ${recipientEmail}`,
+      title: overrideTo ? "Correo de resultado enviado a otro correo" : "Correo de resultado reenviado",
       actorId: session.userId,
       refId: form.id as string,
     });

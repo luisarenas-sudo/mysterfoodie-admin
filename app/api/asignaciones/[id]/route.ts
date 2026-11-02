@@ -57,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await logBusinessEvent(db, {
     clientId: assignment.client_id as string,
     kind: "asignacion",
-    title: `${prevId && prevId !== assignedTo ? "Se reasignó" : "Se asignó"} la visita a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
+    title: `Visita ${prevId && prevId !== assignedTo ? "reasignada" : "asignada"} a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
     detail: prevName ? `Antes: ${prevName}` : null,
     actorId: session.userId,
     refId: id,

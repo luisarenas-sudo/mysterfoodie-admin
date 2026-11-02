@@ -551,8 +551,7 @@ export async function assignVisitRequest(
   await logBusinessEvent(db, {
     clientId: client.id as string,
     kind: "asignacion",
-    title: `${request.assigned_to && request.assigned_to !== assignee.id ? "Se reasignó" : "Se asignó"} la visita${programada ? " programada" : " gratis"} a ${personLabel((assignee.full_name as string | null) || (assignee.email as string | null), assignee.role as string | null)}`,
-    detail: "Desde la solicitud de la web",
+    title: `Visita ${request.assigned_to && request.assigned_to !== assignee.id ? "reasignada" : "asignada"} a ${personLabel((assignee.full_name as string | null) || (assignee.email as string | null), assignee.role as string | null)}`,
     actorId: p.assignedBy,
     refId: assignmentId,
   });
@@ -630,7 +629,7 @@ export async function takeVisitRequest(
   await logBusinessEvent(db, {
     clientId: request.client_id as string,
     kind: "asignacion",
-    title: `${personLabel((foodie.full_name as string | null) || (foodie.email as string | null), "agente")} tomó la visita gratis de la bolsa de Shoppers`,
+    title: `${personLabel((foodie.full_name as string | null) || (foodie.email as string | null), "agente")} tomó la visita de la bolsa`,
     actorId: foodie.id as string,
     refId: request.assignment_id as string,
   });

@@ -72,7 +72,7 @@ const s = (v: unknown): string | null => (typeof v === "string" && v ? v : null)
 
 const money = (n: unknown) => Number(n ?? 0).toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
 const SOURCE_LABEL: Record<string, string> = {
-  nav: "menú", inicio: "botón del Inicio", servicios: "página de Servicios", footer: "pie de página", pagina: "página de la solicitud", nosotros: "página de Nosotros", otra: "la web",
+  nav: "el menú", inicio: "el Inicio", servicios: "Servicios", footer: "el pie de página", pagina: "la página de solicitud", nosotros: "Nosotros", otra: "la web",
 };
 
 export async function getBitacora(db: Db, clientId: string): Promise<BitacoraEntry[]> {
@@ -129,33 +129,33 @@ export async function getBitacora(db: Db, clientId: string): Promise<BitacoraEnt
   if (c) {
     const web = c.source === "web";
     const by = who(c.created_by);
-    add(c.created_at, "negocio", "🏪", web ? "Se dio de alta solo desde mysterfoodie.com" : by ? `Se añadió a MysterFoodie por ${by}` : "Se añadió a MysterFoodie", web ? "Pidió su visita gratis en la web" : undefined);
-    add(c.account_invited_at, "negocio", "🔑", "Se le invitó a crear su cuenta");
+    add(c.created_at, "negocio", "🏪", web ? "Se dio de alta desde la web" : "Se añadió a MysterFoodie", web ? undefined : by ? `Por ${by}` : undefined);
+    add(c.account_invited_at, "negocio", "🔑", "Invitación a crear su cuenta");
   }
 
   // ---- Solicitudes de visita (web)
   for (const r of requests) {
     const programada = r.kind === "programada";
-    add(r.created_at, "visita", "🎁", programada ? "Pidió una visita programada en la web" : "Pidió su visita GRATIS en la web", `Desde: ${SOURCE_LABEL[(s(r.source) || "otra")] ?? "la web"}${s(r.schedule_pref) ? ` · pidió ${r.schedule_pref}` : ""}`);
-    add(r.confirmation_sent_at, "correo", "✉️", "Correo: «tu solicitud fue recibida»");
-    add(r.admin_notified_at, "correo", "🔔", "Aviso enviado al Master Chef");
+    add(r.created_at, "visita", "🎁", programada ? "Pidió una visita programada" : "Pidió su visita gratis", `Desde ${SOURCE_LABEL[(s(r.source) || "otra")] ?? "la web"}`);
+    add(r.confirmation_sent_at, "correo", "✉️", "Correo: solicitud recibida");
+    add(r.admin_notified_at, "correo", "🔔", "Aviso al Master Chef");
     add(r.paid_at, "pago", "💳", `Pagó su visita asegurada${r.payment_amount ? ` (${money(r.payment_amount)})` : ""}`);
-    add(r.nofoodie_email_sent_at, "correo", "✉️", "Correo: por alta demanda no hubo MysterFoodie (con opción de asegurar su visita)");
-    add(r.completed_at, "visita", "✅", "La solicitud de visita se completó");
+    add(r.nofoodie_email_sent_at, "correo", "✉️", "Correo: alta demanda, puede asegurar su visita");
+    add(r.completed_at, "visita", "✅", "Solicitud completada");
   }
 
   // ---- Asignaciones. Las que tienen entradas en business_log se muestran desde ahí (con quién y cuándo reales).
   const logged = new Set(logs.filter((l) => l.kind === "asignacion").map((l) => s(l.ref_id)).filter(Boolean));
   for (const a of assignments) {
     if (logged.has(a.id as string)) {
-      add(a.notified_at, "correo", "✉️", `Correo al Shopper: nueva visita asignada${who(a.assigned_to) ? ` (${who(a.assigned_to)})` : ""}`);
+      add(a.notified_at, "correo", "✉️", "Correo al Shopper: visita asignada", who(a.assigned_to));
       continue;
     }
     const to = who(a.assigned_to);
     const by = who(a.assigned_by);
-    if (a.plan_id && !to) add(a.created_at, "plan", "📅", "Se programó una visita del plan", s(a.plan_month) ? `Mes ${a.plan_month}` : undefined);
-    else add(a.created_at, "visita", "🧭", `Se asignó visita${to ? ` a ${to}` : ""}${by ? ` por ${by}` : ""}`);
-    add(a.notified_at, "correo", "✉️", `Correo al Shopper: nueva visita asignada${to ? ` (${to})` : ""}`);
+    if (a.plan_id && !to) add(a.created_at, "plan", "📅", "Visita del plan programada", s(a.plan_month) ? `Mes ${a.plan_month}` : undefined);
+    else add(a.created_at, "visita", "🧭", "Visita asignada", [to, by ? `por ${by}` : null].filter(Boolean).join(" · ") || undefined);
+    add(a.notified_at, "correo", "✉️", "Correo al Shopper: visita asignada", to);
   }
 
   // ---- Visitas y todo lo que pasó con su reporte
@@ -163,44 +163,43 @@ export async function getBitacora(db: Db, clientId: string): Promise<BitacoraEnt
     const n = Number(f.overall_score ?? 0).toFixed(1);
     const who2 = who(f.created_by) || s(f.shopper_name);
     const plan = Boolean(f.plan_id);
-    add(f.created_at, "visita", "✅", `Se finalizó la visita${plan ? " del plan" : ""}`, `Calificación ${n}${who2 ? ` · por ${who2}` : ""}`);
-    add(f.ticket_uploaded_at, "visita", "🧾", "Se subió el ticket de la visita");
-    add(f.ticket_email_sent_at, "correo", "✉️", "Correo: ticket de la visita");
-    add(f.followup_sent_at, "correo", "✉️", "Correo de seguimiento automático");
+    add(f.created_at, "visita", "✅", `Visita finalizada · ${n}`, who2 ? `Por ${who2}` : undefined);
+    add(f.ticket_uploaded_at, "visita", "🧾", "Ticket subido");
+    add(f.ticket_email_sent_at, "correo", "✉️", "Correo: ticket");
+    add(f.followup_sent_at, "correo", "✉️", "Correo de seguimiento");
     add(f.profile_offer_sent_at, "correo", "✉️", "Correo: oferta del perfil anónimo");
     if (!plan) {
-      add(f.first_viewed_at, "reporte", "👀", "Abrió su reporte por primera vez");
-      if (Number(f.view_count ?? 0) > 1) add(f.last_viewed_at, "reporte", "👀", `Volvió a abrir su reporte (${f.view_count} aperturas en total)`);
-      add(f.lead_email_at, "reporte", "📬", "Dejó su correo para ver el resumen por categoría", s(f.lead_email));
-      add(f.checkout_clicked_at, "reporte", "🛒", "Tocó «Comprar» el reporte completo");
-      add(f.remind1_sent_at, "correo", "⏰", "Recordatorio 1 enviado (día 2)");
-      add(f.remind2_sent_at, "correo", "⏰", "Recordatorio 2 enviado (día 7)");
-      add(f.followup_optout_at, "correo", "🚫", "Se dio de baja de los recordatorios");
+      add(f.first_viewed_at, "reporte", "👀", "Abrió su reporte");
+      if (Number(f.view_count ?? 0) > 1) add(f.last_viewed_at, "reporte", "👀", "Volvió a abrir su reporte", `${f.view_count} aperturas en total`);
+      add(f.lead_email_at, "reporte", "📬", "Dejó su correo para ver el resumen");
+      add(f.checkout_clicked_at, "reporte", "🛒", "Tocó «Comprar»");
+      add(f.remind1_sent_at, "correo", "⏰", "Recordatorio 1 (día 2)");
+      add(f.remind2_sent_at, "correo", "⏰", "Recordatorio 2 (día 7)");
+      add(f.followup_optout_at, "correo", "🚫", "Se dio de baja de recordatorios");
     }
-    add(f.report_unlocked_at, "pago", "💰", plan ? "Reporte completo entregado" : "Pagó el reporte completo");
+    add(f.report_unlocked_at, "pago", "💰", plan ? "Reporte completo entregado" : "Pagó el reporte");
   }
   for (const e of emails) {
     const failed = e.status === "failed";
-    add(e.sent_at, "correo", failed ? "⚠️" : "✉️", failed ? `Falló el correo «${e.subject}»` : `Correo enviado: «${e.subject}»`, `Para ${e.recipient_email}`, failed);
+    add(e.sent_at, "correo", failed ? "⚠️" : "✉️", failed ? `Correo con error: ${e.subject}` : `Correo: ${e.subject}`, undefined, failed);
   }
 
   // ---- Planes, cobros, asesorías, perfiles
   for (const p of plans) {
     const by = who(p.created_by);
-    add(p.created_at, "plan", "📅", `Se contrató el plan ${p.plan_name ?? ""}`.trim(), `${p.visits_per_month} visitas al mes${by ? ` · registrado por ${by}` : ""}`);
+    add(p.created_at, "plan", "📅", `Plan ${p.plan_name ?? ""} contratado`.replace("  ", " "), `${p.visits_per_month} visitas al mes${by ? ` · ${by}` : ""}`);
     add(p.ticket_sent_at, "correo", "✉️", "Correo: acuerdo del plan");
-    if (p.status && p.status !== "activo") add(p.created_at, "plan", "⏸️", `El plan está ${p.status}`);
   }
-  for (const m of periods) add(m.paid_at, "pago", "💰", `Cobro del plan de ${m.month} registrado`, money(m.amount));
-  for (const b of bookings) add(b.created_at, "plan", "🗓️", "Agendó una asesoría", s(b.slot_start) ? `Para el ${new Date(b.slot_start as string).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: "America/Mexico_City" })}` : undefined);
-  for (const p of purchases) if (p.paid_at) add(p.paid_at, "pago", "💳", `Compró el perfil de ${who(p.mysterfoodie_id) ?? "un MysterFoodie"}`, money(p.amount));
+  for (const m of periods) add(m.paid_at, "pago", "💰", `Cobro del plan · ${m.month}`, money(m.amount));
+  for (const b of bookings) add(b.created_at, "plan", "🗓️", "Agendó una asesoría", s(b.slot_start) ? new Date(b.slot_start as string).toLocaleString("es-MX", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Mexico_City" }) : undefined);
+  for (const p of purchases) if (p.paid_at) add(p.paid_at, "pago", "💳", "Compró un perfil anónimo", money(p.amount));
 
   // ---- Acciones registradas en la bitácora
   for (const l of logs) {
     const actor = l.actor_name || l.actor_role ? personLabel(s(l.actor_name), s(l.actor_role)) : null;
     const emoji = l.kind === "asignacion" ? "🧭" : l.kind === "correo_reenvio" ? "📨" : l.kind === "datos_editados" ? "✏️" : "📝";
     const group: BitacoraGroup = l.kind === "correo_reenvio" ? "correo" : l.kind === "asignacion" ? "visita" : "negocio";
-    add(l.created_at, group, emoji, `${l.title}${actor ? ` · ${actor}` : ""}`, s(l.detail));
+    add(l.created_at, group, emoji, String(l.title), [s(l.detail), actor ? `Por ${actor}` : null].filter(Boolean).join(" · "));
   }
 
   return out.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());

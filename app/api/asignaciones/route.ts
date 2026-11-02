@@ -93,8 +93,7 @@ export async function POST(req: NextRequest) {
   await logBusinessEvent(db, {
     clientId,
     kind: "asignacion",
-    title: `Se asignó la visita a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
-    detail: note || null,
+    title: `Visita asignada a ${personLabel(foodie.full_name || foodie.email, "agente")}`,
     actorId: session.userId,
     refId: assignment.id as string,
   });

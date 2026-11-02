@@ -88,7 +88,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  await logBusinessEvent(db, { clientId: id, kind: "datos_editados", title: "Se editaron los datos del negocio", actorId: session.userId });
+  await logBusinessEvent(db, { clientId: id, kind: "datos_editados", title: "Datos del negocio editados", actorId: session.userId });
   return NextResponse.json({ id });
 }
 
