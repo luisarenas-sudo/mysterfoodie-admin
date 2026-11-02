@@ -5,6 +5,7 @@ import { getHomeSummary, getReyNegocio, getPendingAssignmentsFor } from "@/lib/d
 import { getHomeAlerts, type HomeAlert } from "@/lib/alerts";
 import PendientesPanel from "@/components/PendientesPanel";
 import MobileHome from "@/components/mobile/MobileHome";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 import HomeInsights from "@/components/insights/HomeInsights";
 import { getHomeInsights, type HomeInsights as InsightsData } from "@/lib/homeInsights";
 import Link from "next/link";
@@ -58,15 +59,17 @@ export default async function Page() {
 
   return (
     <>
-      <MobileHome
-        displayName={displayName}
-        avatarUrl={profile?.avatarUrl ?? null}
-        stats={stats}
-        rey={rey}
-        pendingAssignments={pending ? pending.length : null}
-        alerts={alerts}
-        insights={insights && insightRole ? <HomeInsights data={insights} role={insightRole} variant="mobile" /> : null}
-      />
+      <PullToRefresh>
+        <MobileHome
+          displayName={displayName}
+          avatarUrl={profile?.avatarUrl ?? null}
+          stats={stats}
+          rey={rey}
+          pendingAssignments={pending ? pending.length : null}
+          alerts={alerts}
+          insights={insights && insightRole ? <HomeInsights data={insights} role={insightRole} variant="mobile" /> : null}
+        />
+      </PullToRefresh>
       <div className="hidden md:block">
         {profile?.role === "agente" ? (
           <main className="mx-auto max-w-xl px-6 py-14 text-center">
