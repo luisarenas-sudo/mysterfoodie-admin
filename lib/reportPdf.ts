@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { getVerdict, VERDICT_BANDS } from "./verdict";
 import type { CategoryScore, Ratings, Flags } from "./scoring";
-import { TOTAL_ITEM_COUNT, CATEGORIES, groupCategoryItems, type CategoryItem } from "./categories";
+import { TOTAL_ITEM_COUNT, CATEGORIES, BUSINESS_TYPES, groupCategoryItems, type CategoryItem } from "./categories";
 import { FOODIE_PROFILE } from "./brand";
 
 export type ReportPdfParams = {
@@ -214,7 +214,10 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
       doc.font("Helvetica-Bold").fontSize(businessName.length > 38 ? 24 : 30).fillColor(INK).text(businessName, PAGE_MARGIN, 168, { width: contentWidth });
       doc.font("Helvetica");
 
-      const subtitleParts = [clientType, city].filter(Boolean).join(" · ");
+      // Tipo de negocio y ciudad siempre inician con mayúscula (restaurante -> Restaurante, bar -> Bar, cafetería -> Cafetería).
+      const capitalize = (t: string) => t.trim().charAt(0).toLocaleUpperCase("es-MX") + t.trim().slice(1);
+      const typeLabel = BUSINESS_TYPES.find((b) => b.value === (clientType ?? "").toLowerCase())?.label ?? clientType;
+      const subtitleParts = [typeLabel, city].filter((v): v is string => !!v && !!v.trim()).map(capitalize).join(" · ");
       doc
         .fontSize(11)
         .fillColor(MUTED)
