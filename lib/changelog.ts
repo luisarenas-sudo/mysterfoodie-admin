@@ -30,6 +30,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       "El reporte bloqueado muestra un adelanto de SU visita (por ejemplo, «3 indicadores salieron con 2 estrellas o menos») sin decir cuáles.",
       "Con calificación baja (menos de 2.5), el correo y el mensaje de Instagram no llevan el número y abren con enfoque de ayuda; la calificación se ve dentro del reporte.",
       "Con calificación Bueno o Excelente, el reporte tiene el botón «Compartir mi resultado».",
+      "En el reporte sin pagar hay un campo «Recibe tu resumen por correo»: guarda el correo del negocio y le manda el resumen.",
+      "Quien no compra recibe dos recordatorios por correo (día 2 y día 7), solo con información y ayuda, con enlace para darse de baja.",
       "Seguridad: mientras el reporte no está pagado, las calificaciones por indicador y los comentarios ya no viajan al navegador.",
     ],
   },

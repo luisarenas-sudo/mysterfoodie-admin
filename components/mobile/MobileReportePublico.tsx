@@ -6,6 +6,7 @@ import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { PALABRA_FOODIE_QUOTE, foodieTrustText } from "@/lib/brand";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import ShareResultButton from "@/components/ShareResultButton";
+import ReportLeadEmail from "@/components/ReportLeadEmail";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
@@ -153,11 +154,14 @@ export default function MobileReportePublico({
   comments,
   hasTicket = false,
   teaser = null,
+  askEmail = false,
 }: {
   /** La visita tiene foto del ticket de consumo. */
   hasTicket?: boolean;
   /** Adelanto concreto de la visita (solo texto) mientras el reporte está bloqueado. */
   teaser?: { emoji: string; title: string; detail: string } | null;
+  /** Pedir el correo del negocio («Recibe tu resumen por correo») mientras el reporte está bloqueado. */
+  askEmail?: boolean;
   shortCode: string;
   /** Link a /agendar/[shortCode] solo cuando hay calendario y el reporte ya está desbloqueado; null = no se ofrece. */
   agendaHref?: string | null;
@@ -318,6 +322,7 @@ export default function MobileReportePublico({
               o conoce nuestros paquetes
             </a>
           </div>
+          {askEmail && <ReportLeadEmail shortCode={shortCode} mobile />}
           <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
               Nuestros MysterFoodies visitan el negocio de forma anónima y pagan su cuenta con propina incluida.
@@ -448,6 +453,7 @@ export default function MobileReportePublico({
             </a>
           )}
 
+          {askEmail && <ReportLeadEmail shortCode={shortCode} mobile />}
           <div className="px-6 pb-2 pt-7 text-center">
             <div className="text-[12px] leading-snug" style={{ color: "rgba(60,60,67,0.45)" }}>
               El costo de este reporte retribuye a nuestros MysterFoodies, quienes visitan el negocio de forma anónima y pagan su cuenta con propina incluida.

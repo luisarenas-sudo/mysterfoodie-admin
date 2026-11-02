@@ -24,6 +24,7 @@ import { isRequestedVisit } from "@/lib/visitRequests";
 import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
 import { buildTeaser } from "@/lib/reportTeaser";
 import ShareResultButton from "@/components/ShareResultButton";
+import ReportLeadEmail from "@/components/ReportLeadEmail";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ async function loadReport(shortCode: string) {
   // estas 3 consultas no dependen entre sí, así que se lanzan junto en vez
   // de esperarlas una por una para que cargue más rápido.
   const [{ data: client }, { data: ratingRows }, { data: flagRows }] = await Promise.all([
-    db.from("clients").select("name, type, city").eq("id", form.client_id).maybeSingle(),
+    db.from("clients").select("name, type, city, email").eq("id", form.client_id).maybeSingle(),
     db.from("form_ratings").select("category_key, score").eq("form_id", form.id),
     db.from("form_flags").select("flag_key, flag_value").eq("form_id", form.id),
   ]);
@@ -295,6 +296,12 @@ export default async function ReportPage({
     : await isRequestedVisit(getSupabaseServiceClient(), { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false);
   // Adelanto concreto del candado (solo texto; las calificaciones por indicador no viajan al navegador sin pagar).
   const teaser = unlocked ? null : buildTeaser(ratings);
+  // «Recibe tu resumen por correo»: solo si aún no tenemos un correo del negocio (consulta aparte: si el SQL de seguimiento no está, no rompe la página).
+  let askEmail = false;
+  if (!unlocked && !client?.email) {
+    const { data: lead, error: leadError } = await getSupabaseServiceClient().from("forms").select("lead_email").eq("id", form.id).maybeSingle();
+    askEmail = !leadError && !lead?.lead_email;
+  }
   const mercadopagoConfigured = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
   const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;
   const whatsappFallbackLink = contactWhatsapp
@@ -346,6 +353,7 @@ export default async function ReportPage({
         comments={unlocked ? form.comments : null}
         hasTicket={Boolean(form.ticket_photo_path)}
         teaser={teaser}
+        askEmail={askEmail}
       />
 
     <main className="mx-auto hidden max-w-xl px-6 py-14 md:block">
@@ -442,6 +450,8 @@ export default async function ReportPage({
           />
         </div>
       )}
+
+      {!unlocked && askEmail && <ReportLeadEmail shortCode={shortCode} />}
 
       {!unlocked && teaser && (
         <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">

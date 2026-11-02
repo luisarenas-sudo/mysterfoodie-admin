@@ -1,13 +1,7 @@
-import { glosarioIfFirstEmail } from "@/lib/firstContact";
-import { isRequestedVisit } from "@/lib/visitRequests";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
-import { businessTypePhrase } from "@/lib/categories";
-import { categoryScores, type Ratings } from "@/lib/scoring";
-import { sendResultEmail } from "@/lib/email";
-import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO, LOW_RESULTADO_SUBJECT, LOW_RESULTADO_INTRO } from "@/lib/automations";
-import { isLowScore } from "@/lib/verdict";
+import { sendResultEmailForForm } from "@/lib/resultEmailSend";
 import { deliverPlanReportEmail } from "@/lib/fullReportDelivery";
 
 /**
@@ -97,73 +91,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ for
     return NextResponse.json({ email: outcome, recipientEmail });
   }
 
-  const { data: ratingRows } = await db
-    .from("form_ratings")
-    .select("category_key, score")
-    .eq("form_id", form.id);
-
-  const ratings: Ratings = {};
-  for (const row of ratingRows || []) {
-    ratings[row.category_key] = row.score;
-  }
-
-  const { data: flagRows } = await db
-    .from("form_flags")
-    .select("flag_key, flag_value")
-    .eq("form_id", form.id);
-
-  const flags: Record<string, boolean> = {};
-  for (const row of flagRows || []) {
-    flags[row.flag_key] = row.flag_value;
-  }
-
-  const catScores = categoryScores(ratings, flags);
-
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-  const reportUrl = form.report_url || `${baseUrl}/r/${form.short_code}`;
-
-  const templateVars = resultadoVars({
-    negocio: client.name,
-    tipoNegocio: businessTypePhrase(client.type) || "negocio",
-    mesero: form.waiter_name,
-    promedio: form.overall_score,
-  });
-  const resultadoAutomation = await getAutomation("resultado_visita");
-  const defaultSubject = renderTemplate(DEFAULT_RESULTADO_SUBJECT, templateVars);
-  const defaultIntro = renderTemplate(DEFAULT_RESULTADO_INTRO, templateVars);
-  const lowScore = isLowScore(Number(form.overall_score));
-  const subject = lowScore
-    ? renderTemplate(LOW_RESULTADO_SUBJECT, templateVars)
-    : resultadoAutomation?.enabled && resultadoAutomation.subjectTemplate
-      ? renderTemplate(resultadoAutomation.subjectTemplate, templateVars)
-      : defaultSubject;
-  const introText = lowScore
-    ? renderTemplate(LOW_RESULTADO_INTRO, templateVars)
-    : resultadoAutomation?.enabled && resultadoAutomation.bodyTemplate
-      ? renderTemplate(resultadoAutomation.bodyTemplate, templateVars)
-      : defaultIntro;
-
-  const emailOutcome = await sendResultEmail({
-    glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
-    requested: await isRequestedVisit(db, { id: form.id, client_id: form.client_id, created_at: form.created_at }).catch(() => false),
-    to: recipientEmail,
-    businessName: client.name,
-    subject,
-    introText,
-    hideScore: lowScore,
-    score: form.overall_score,
-    reportUrl,
-    categoryScores: catScores,
-  });
-
-  await db.from("email_confirmations").insert({
-    form_id: form.id,
-    recipient_email: recipientEmail,
-    subject,
-    status: emailOutcome.status,
-    provider_id: emailOutcome.providerId || null,
-    error: emailOutcome.error || null,
-  });
+  const emailOutcome = await sendResultEmailForForm(
+    db,
+    { id: form.id, client_id: form.client_id, overall_score: form.overall_score, short_code: form.short_code, report_url: form.report_url, waiter_name: form.waiter_name, created_at: form.created_at },
+    { name: client.name, type: client.type },
+    recipientEmail,
+    baseUrl
+  );
 
   return NextResponse.json({
     email: emailOutcome,
