@@ -1,3 +1,4 @@
+import { getVipStatus } from "@/lib/salesJourney";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { foodieTrustText } from "@/lib/brand";
@@ -290,6 +291,8 @@ export default async function ReportPage({
 
   const { form, client, catScores, ratings, flags } = data;
   const verdict = getVerdict(form.overall_score);
+  // Negocio VIP (plan o paquete contratado): insignia discreta junto al nombre.
+  const vip = (await getVipStatus(getSupabaseServiceClient(), form.client_id).catch(() => ({ vip: false }))).vip;
   const unlocked = Boolean(form.report_unlocked_at);
   // Visita hecha porque el negocio la solicitó: no se vende el reporte a $850; se invita a programar una visita o ver paquetes.
   const requested = unlocked
@@ -340,6 +343,7 @@ export default async function ReportPage({
         agendaHref={agendaHref}
         agendaIncluded={agendaIncluded}
         clientName={client?.name ?? "tu negocio"}
+        vip={vip}
         overallScore={form.overall_score}
         categories={askEmail ? [] : visibleCategories}
         unlocked={unlocked}
@@ -371,6 +375,7 @@ export default async function ReportPage({
           <h1 className="heading text-3xl leading-tight text-ink">
             Resultado de la evaluación de {client?.name ?? "tu negocio"}
           </h1>
+          {vip && <p className="mt-1"><span className="candy-vip">⭐ Negocio VIP</span></p>}
           <p className="mt-1 text-sm text-stone-500">
             Visita realizada el {new Date(form.created_at).toLocaleDateString("es-MX")}
           </p>

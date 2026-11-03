@@ -5,6 +5,10 @@ import ClientScoreboard from "@/components/ClientScoreboard";
 import MobileNegocioDetail from "@/components/mobile/MobileNegocioDetail";
 import MysterfoodieProfilesCard from "@/components/negocio/MysterfoodieProfilesCard";
 import { listBuyableProfiles } from "@/lib/profilePurchases";
+import { getSalesJourney } from "@/lib/salesJourney";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import SalesJourneyBar from "@/components/negocio/SalesJourneyBar";
+import VipCard from "@/components/negocio/VipCard";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +49,13 @@ export default async function MiNegocioPage() {
       : null;
 
   const buyable = await listBuyableProfiles(profile.clientId);
+  const journey = await getSalesJourney(getSupabaseServiceClient(), profile.clientId);
+  const journeySlot = (
+    <>
+      {journey.vip && <VipCard clientName={client.name} since={journey.vipSince} planNames={journey.planNames} />}
+      <SalesJourneyBar journey={journey} variant="owner" />
+    </>
+  );
 
   if (client.visits.length === 0) {
     return (
@@ -54,6 +65,7 @@ export default async function MiNegocioPage() {
           canCreateVisit={false}
           ownerView
           ownerPlan={ownerPlan}
+          journeySlot={journeySlot}
           backHref={null}
           backLabel="Mi negocio"
         />
@@ -63,6 +75,7 @@ export default async function MiNegocioPage() {
             Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
             evaluación Mystery Shopper, la verás aquí.
           </p>
+          <div className="mt-6 max-w-3xl space-y-4">{journeySlot}</div>
         </main>
       </>
     );
@@ -75,6 +88,7 @@ export default async function MiNegocioPage() {
         canCreateVisit={false}
           ownerView
           ownerPlan={ownerPlan}
+          journeySlot={journeySlot}
         backHref={null}
         backLabel="Mi negocio"
         extra={<MysterfoodieProfilesCard profiles={buyable} className="mt-4" />}
@@ -90,6 +104,8 @@ export default async function MiNegocioPage() {
             </p>
           </div>
         </div>
+
+        <div className="mt-6 max-w-3xl space-y-4">{journeySlot}</div>
 
         <ClientScoreboard client={client} />
         <MysterfoodieProfilesCard profiles={buyable} className="mt-8" />

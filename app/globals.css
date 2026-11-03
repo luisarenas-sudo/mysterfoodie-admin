@@ -465,3 +465,25 @@ details[open] > summary.mf-disclosure::after {
 @media (prefers-reduced-motion: no-preference) { .exp-polaroid { transition: transform .25s ease; } .exp-polaroid:hover { transform: rotate(-1deg) translateY(-3px); } }
 .exp-h3 { margin: 0 0 4px; font: 800 13px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
 .exp-passport .exp-grid .exp-sec { padding-top: 0; }
+
+/* ===== Barra «caramelo» del proceso de venta (SalesJourneyBar): rayas diagonales con los colores de MysterFoodie ===== */
+.candy { --stripe-a: #F24444; --stripe-b: #FFFFFF; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.candy-track { position: relative; height: 16px; border-radius: 999px; background: #ECECF0; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(60,60,67,0.08); }
+.candy-fill { position: absolute; inset: 0 auto 0 0; width: var(--w, 0%); border-radius: 999px; transition: width .6s ease;
+  background-color: var(--stripe-a);
+  background-image: linear-gradient(135deg, var(--stripe-a) 25%, var(--stripe-b) 25% 50%, var(--stripe-a) 50% 75%, var(--stripe-b) 75%);
+  background-size: 22px 22px; }
+.candy-fill.done { background-image: linear-gradient(135deg, var(--stripe-a) 25%, #FF8E86 25% 50%, var(--stripe-a) 50% 75%, #FF8E86 75%); }
+.candy-fill.current { animation: candy-move 1.1s linear infinite; }
+.candy-is-vip { --stripe-a: #F24444; --stripe-b: #1C1C1E; }
+.candy-is-vip .candy-fill.done { background-image: linear-gradient(135deg, #F24444 25%, #1C1C1E 25% 50%, #F24444 50% 75%, #1C1C1E 75%); animation: candy-move 2.4s linear infinite; }
+@keyframes candy-move { to { background-position: 22px 0; } }
+.candy-label { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 11.5px; font-weight: 700; color: rgba(60,60,67,0.5); min-width: 0; }
+.candy-label.done { color: #1C1C1E; }
+.candy-label.current { color: #F24444; }
+.candy-n { display: inline-grid; place-items: center; flex: 0 0 auto; width: 17px; height: 17px; border-radius: 50%; font-size: 10px; font-weight: 800; background: #ECECF0; color: rgba(60,60,67,0.6); }
+.candy-label.done .candy-n { background: #1C1C1E; color: #fff; }
+.candy-label.current .candy-n { background: #F24444; color: #fff; }
+.candy-vip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: #1C1C1E; color: #fff; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; }
+@media (max-width: 380px) { .candy-label { font-size: 10.5px; } }
+@media (prefers-reduced-motion: reduce) { .candy-fill, .candy-fill.current, .candy-is-vip .candy-fill.done { animation: none; transition: none; } }

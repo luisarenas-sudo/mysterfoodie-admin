@@ -191,6 +191,7 @@ export default function MobileNegocioDetail({
   backLabel = "Negocios",
   pendingAssignment = null,
   planSlot = null,
+  journeySlot = null,
   bitacoraSlot = null,
   ownerPlan = null,
   extra = null,
@@ -215,6 +216,8 @@ export default function MobileNegocioDetail({
   pendingAssignment?: PendingAssignmentForClient | null;
   /** Tarjeta de administración del plan de visitas (solo Master Chef). */
   planSlot?: ReactNode;
+  /** Barra del proceso de venta (y tarjeta VIP en la vista del dueño). */
+  journeySlot?: ReactNode;
   /** Línea de tiempo del negocio (solo Master Chef). */
   bitacoraSlot?: ReactNode;
   /** Resumen del plan para el dueño del negocio (/mi-negocio). */
@@ -339,6 +342,8 @@ export default function MobileNegocioDetail({
             )}
           </div>
         )}
+
+        {journeySlot && <div className="mx-5 mt-4 space-y-4">{journeySlot}</div>}
 
         {ownerPlan && (
           <div className="card mx-5 mt-4 p-4">

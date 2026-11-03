@@ -99,6 +99,16 @@ export const AUTOMATION_CATALOG: Record<string, AutomationCatalogEntry> = {
     ],
     enabledLabel: { on: "Personalizado", off: "Texto original" },
   },
+  vip_bienvenida: {
+    title: "Negocio VIP (agradecimiento)",
+    desc: "Se manda UNA sola vez, 1 día después de que el negocio contrata un plan o paquete de visitas (solo contrataciones de los últimos 14 días): lo celebra como negocio VIP y agradece su confianza en la metodología, el equipo de MysterFoodies y Flanco Izquierdo®. Si la desactivas se usa el texto original.",
+    tags: [
+      { tag: "negocio", desc: "Nombre del negocio" },
+      { tag: "plan", desc: "Nombre del plan o paquete contratado, ej. \"Starter\"" },
+      { tag: "link_mi_negocio", desc: "Enlace a Mi negocio (línea sola para que salga como botón)" },
+    ],
+    enabledLabel: { on: "Personalizado", off: "Texto original" },
+  },
   ticket_oferta: {
     title: "Ticket de consumo subido (oferta del reporte)",
     desc: "Se manda 3 días después de que el Shopper sube la foto del ticket de consumo a una visita, a los negocios que aún no tienen el reporte completo: les ofrece el reporte con indicadores y ticket. Sale una sola vez por visita.",

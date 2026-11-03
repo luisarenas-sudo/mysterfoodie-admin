@@ -139,6 +139,7 @@ function FullDetail({
 export default function MobileReportePublico({
   shortCode,
   clientName,
+  vip = false,
   overallScore,
   categories,
   unlocked,
@@ -169,6 +170,8 @@ export default function MobileReportePublico({
   /** Reporte bloqueado con calendario conectado: se menciona que la asesoría se incluye al comprarlo. */
   agendaIncluded?: boolean;
   clientName: string;
+  /** Negocio VIP (plan o paquete de visitas contratado). */
+  vip?: boolean;
   overallScore: number;
   categories: { key: string; label: string; average: number; count: number }[];
   unlocked: boolean;
@@ -206,6 +209,7 @@ export default function MobileReportePublico({
           Reporte de visita anónima
         </div>
         <div className="heading text-[26px] font-bold leading-tight">{clientName}</div>
+        {vip && <div className="mt-1.5"><span className="candy-vip">⭐ NEGOCIO VIP</span></div>}
 
         <div className="flex flex-col items-center pb-1 pt-[18px]">
           <ActivityRing value={overallScore} max={5} size={126} strokeWidth={11} color={verdict.color}>
