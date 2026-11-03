@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.30.0",
+    date: "2026-11-03",
+    title: "Vista del negocio y expediente",
+    emoji: "🗂️",
+    highlights: [
+      "En Mi perfil anónimo hay un botón «Vista del negocio»: ves tu perfil tal como lo ve quien compra el nivel 🪪 ID o el 👑 Passport.",
+      "El perfil anónimo que ven los negocios ahora es un expediente: carpeta con foto de silueta, secciones con más aire y un estilo distinto para cada nivel.",
+      "El nivel 👑 Passport se destaca y va primero; el 🪪 ID lleva su propia identificación.",
+      "Los botones responden al tocarlos y las secciones desplegables se animan.",
+      "En escritorio, Perfil e Inicio ya traen las mismas herramientas que en el celular.",
+    ],
+  },
+  {
     version: "0.29.0",
     date: "2026-11-02",
     title: "Seguimiento del reporte",

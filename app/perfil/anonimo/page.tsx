@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
@@ -29,6 +30,20 @@ export default async function PerfilAnonimoPage() {
             y datos demográficos en rangos. Tú decides si compartes el nivel 🪪 ID, el 👑 Passport o los dos, y te llevas el 50% del precio de cada venta, repartido entre sus secciones (el cargo por uso de la plataforma lo paga el negocio aparte). Nunca ven tu nombre, foto,
             contacto ni documentos.
           </p>
+          <Link
+            href="/perfil/anonimo/vista-negocio"
+            className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3.5"
+            style={{ boxShadow: "inset 0 0 0 1.5px #E3E3E8" }}
+          >
+            <span className="flex items-center gap-3">
+              <span aria-hidden="true" className="text-[22px]">👁️</span>
+              <span>
+                <span className="block text-[15px] font-bold">Vista del negocio</span>
+                <span className="block text-[12.5px]" style={{ color: "rgba(60,60,67,0.7)" }}>Mira tu perfil como lo ve quien compra ID o Passport</span>
+              </span>
+            </span>
+            <span aria-hidden="true" className="text-[20px]" style={{ color: "rgba(60,60,67,0.4)" }}>›</span>
+          </Link>
           {(pending > 0 || paid > 0) && (
             <div className="mt-3 flex gap-2.5">
               <div className="flex-1 rounded-2xl bg-white p-3"><div className="text-[11.5px] font-semibold text-stone-500">Por cobrar</div><div className="text-[20px] font-extrabold">{money(pending)}</div></div>
