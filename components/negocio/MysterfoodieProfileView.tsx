@@ -1,6 +1,6 @@
 import { Pix } from "@/components/ui/Pix";
 import type { MysterfoodieProfile } from "@/lib/mysterfoodieProfile";
-import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, travelerType, type BlockKey } from "@/lib/personaCatalog";
+import { BLOCK_BY_KEY, BLOCKS_OF_TIER, TIERS, TIER_EMOJI, travelerType, type BlockKey } from "@/lib/personaCatalog";
 import { BLOCK_PIX, optionIcon } from "@/lib/personaUi";
 import { PixelBadge, PixelIcon } from "@/components/ui/PixelBadge";
 import { businessIcon, cuisineIcon, dishIcon, slotIcon, tagIcon } from "@/lib/iconos";
@@ -107,9 +107,16 @@ export default function MysterfoodieProfileView({ profile: p }: { profile: Myste
   return (
     <div className="space-y-3.5">
       <div className="card p-5">
-        <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>
-          {p.rankLabel} · perfil {TIERS[p.tier].label}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-bold"
+            style={p.tier === "passport" ? { background: "#EEEEFC", color: "#5856D6" } : { background: "#FFF0EE", color: "#F24444" }}
+          >
+            <Pix e={TIER_EMOJI[p.tier]} size={16} />
+            Perfil {TIERS[p.tier].label}
+          </span>
+          <span className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>{p.rankLabel}</span>
+        </div>
         <div className="mt-1 flex items-center gap-3">
           <PixelBadge name="sunglasses" size={44} tone="dark" />
           <h1 className="heading text-3xl text-ink">{p.alias}</h1>

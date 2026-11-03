@@ -18,9 +18,9 @@ const money = (n: number) => n.toLocaleString("es-MX", { style: "currency", curr
 const moneyS = (n: number) => (Number.isInteger(n) ? n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }) : money(n));
 const asArr = (v: string | string[] | undefined): string[] => (Array.isArray(v) ? v : v ? [v] : []);
 
-const TIER_UI: Record<TierKey, { pix: string; tone: "red" | "purple"; title: string; desc: string; color: string; soft: string }> = {
-  id: { pix: "card-id", tone: "red", title: "Perfil ID", desc: "Gustos, consumo y zona", color: RED, soft: "#FFF0EE" },
-  passport: { pix: "luggage", tone: "purple", title: "Perfil Passport", desc: "Tu buyer persona completo", color: "#5856D6", soft: "#EEEEFC" },
+const TIER_UI: Record<TierKey, { emoji: string; pix: string; tone: "red" | "purple"; title: string; desc: string; color: string; soft: string }> = {
+  id: { emoji: "🪪", pix: "card-id", tone: "red", title: "Perfil ID", desc: "Gustos, consumo y zona", color: RED, soft: "#FFF0EE" },
+  passport: { emoji: "👑", pix: "luggage", tone: "purple", title: "Perfil Passport", desc: "Tu buyer persona completo", color: "#5856D6", soft: "#EEEEFC" },
 };
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -303,7 +303,7 @@ export default function AnonProfileForm({
               <button type="button" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [t]: !o[t] }))} className="min-w-0 flex-1 text-left">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-[14px]" style={{ background: ui.soft }}>
-                    <PixelBadge name={ui.pix} size={32} tone={ui.tone} />
+                    <Pix e={ui.emoji} size={32} />
                   </span>
                   <span className="min-w-0">
                     <span className="heading block text-[20px] leading-tight">{ui.title}</span>

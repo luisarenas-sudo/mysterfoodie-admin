@@ -26,9 +26,9 @@ export const PERFIL_INVITE_BODY = `Hola {{foodie}},
 
 Los negocios que visites en MysterFoodie pueden comprar tu perfil anónimo y tú te llevas el ${MYSTERFOODIE_SHARE_PCT}% del precio de cada venta. Tú decides qué compartes, en dos niveles:
 
-Nivel ID: tus gustos y palabras, cómo consumes y de qué zona eres. Son 3 secciones y toma unos minutos.
+🪪 Nivel ID: tus gustos y palabras, cómo consumes y de qué zona eres. Son 3 secciones y toma unos minutos.
 
-Nivel Passport: tu buyer persona completo (demografía, estilo de vida, movilidad y viajes, y medios). Se entrega a partir de tu visita ${MIN_VISITS_PASSPORT}, pero puedes dejar tus respuestas listas desde ahora.
+👑 Nivel Passport: tu buyer persona completo (demografía, estilo de vida, movilidad y viajes, y medios). Se entrega a partir de tu visita ${MIN_VISITS_PASSPORT}, pero puedes dejar tus respuestas listas desde ahora.
 
 Empieza por el ID y, cuando quieras, sigue con el Passport. Lo puedes editar en cualquier momento desde tu perfil:
 
@@ -55,8 +55,8 @@ export function perfilInviteCallout(): EmailCallout {
   return {
     title: "💰 Lo que puedes ganar por cada perfil vendido",
     lines: [
-      `Nivel ID: hasta ${formatMxn(MAX_EARNINGS_ID)}.`,
-      `Nivel Passport: hasta ${formatMxn(MAX_EARNINGS_PER_SALE - MAX_EARNINGS_ID)} más (${formatMxn(MAX_EARNINGS_PER_SALE)} con los dos niveles).`,
+      `🪪 Nivel ID: hasta ${formatMxn(MAX_EARNINGS_ID)}.`,
+      `👑 Nivel Passport: hasta ${formatMxn(MAX_EARNINGS_PER_SALE - MAX_EARNINGS_ID)} más (${formatMxn(MAX_EARNINGS_PER_SALE)} con los dos niveles).`,
       `Te llevas el ${MYSTERFOODIE_SHARE_PCT}% del precio que paga el negocio; el cargo por uso de la plataforma lo paga el negocio aparte.`,
     ],
   };

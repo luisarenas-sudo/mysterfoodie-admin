@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { buildMysterfoodieProfile, getProfileOffer } from "@/lib/mysterfoodieProfile";
-import { BLOCKS_OF_TIER, MYSTERFOODIE_SHARE_PCT, PERFIL_PITCH, PERFIL_PITCH_TITLE, PLATFORM_FEE_PCT, TIERS, platformFee, priceWithFee, type TierKey } from "@/lib/personaCatalog";
+import { BLOCKS_OF_TIER, MYSTERFOODIE_SHARE_PCT, PERFIL_PITCH, PERFIL_PITCH_TITLE, PLATFORM_FEE_PCT, TIERS, platformFee, priceWithFee, TIER_EMOJI, type TierKey } from "@/lib/personaCatalog";
 import { getOwnedTiers, highestTier, priceFor } from "@/lib/profilePurchases";
 import MysterfoodieProfileView from "@/components/negocio/MysterfoodieProfileView";
 import { PixelBadge } from "@/components/ui/PixelBadge";
+import { Pix } from "@/components/ui/Pix";
 import { BLOCK_PIX } from "@/lib/personaUi";
 
 export const dynamic = "force-dynamic";
@@ -62,9 +63,14 @@ export default async function PerfilMysterfoodiePage({
   );
 
   const tierCard = (tier: TierKey, available: boolean, price: number, note?: string) => (
-    <div className="rounded-2xl p-4" style={{ border: "1.5px solid rgba(60,60,67,0.12)" }}>
+    <div className="rounded-2xl p-4" style={{ border: tier === "passport" ? "2px solid #5856D6" : "1.5px solid rgba(60,60,67,0.12)", background: tier === "passport" ? "#FAFAFF" : undefined }}>
+      {tier === "passport" && (
+        <p className="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11.5px] font-bold" style={{ background: "#EEEEFC", color: "#5856D6" }}>
+          <Pix e="👑" size={13} /> Recomendado · el perfil más completo
+        </p>
+      )}
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="heading flex items-center gap-2 text-[22px]"><PixelBadge name={tier === "passport" ? "luggage" : "card-id"} size={34} tone={tier === "passport" ? "purple" : "red"} />{TIERS[tier].label}</h2>
+        <h2 className="heading flex items-center gap-2 text-[22px]"><Pix e={TIER_EMOJI[tier]} size={30} />{TIERS[tier].label}</h2>
         <div className="text-[18px] font-extrabold" style={{ color: "#F24444" }}>
           ${price} <span className="text-[12px] font-semibold text-stone-500">MXN + IVA</span>
         </div>
@@ -77,7 +83,7 @@ export default async function PerfilMysterfoodiePage({
         {BLOCKS_OF_TIER(tier === "passport" ? "passport" : "id").map((b) => (
           <li key={b.key} className="flex items-start gap-2"><PixelBadge name={BLOCK_PIX[b.key]} size={22} tone={tier === "passport" ? "purpleSoft" : "redSoft"} className="mt-0.5" /><span><strong>{b.label}:</strong> {b.desc}</span></li>
         ))}
-        {tier === "passport" && <li className="flex items-center gap-2"><PixelBadge name="card-id" size={22} tone="redSoft" />Incluye todo el nivel ID.</li>}
+        {tier === "passport" && <li className="flex items-center gap-2"><Pix e={TIER_EMOJI.id} size={22} />Incluye todo el nivel ID.</li>}
       </ul>
       {note && <p className="mt-2 text-[12.5px] text-stone-500">{note}</p>}
       <div className="mt-3">
@@ -122,8 +128,8 @@ export default async function PerfilMysterfoodiePage({
             <h2 className={best ? "heading text-[22px]" : "heading mt-4 text-[20px]"}>{PERFIL_PITCH_TITLE}</h2>
             <p className="mt-1 text-[14.5px] text-stone-600">{PERFIL_PITCH}</p>
             <div className="mt-4 space-y-3">
-              {!best && tierCard("id", offer.idAvailable, priceFor("id", owned))}
               {tierCard("passport", offer.passportAvailable, priceFor("passport", owned), owned.has("id") ? "Ya pagaste el nivel ID: la mejora solo cobra la diferencia." : undefined)}
+              {!best && tierCard("id", offer.idAvailable, priceFor("id", owned))}
             </div>
             <p className="mt-3 text-center text-[12px] text-stone-400">
               Pago único con MercadoPago. Cada MysterFoodie decide qué comparte: solo ves lo que él autorizó, siempre de forma anónima.

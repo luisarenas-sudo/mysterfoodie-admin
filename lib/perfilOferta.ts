@@ -17,8 +17,8 @@ export const PERFIL_OFERTA_DEFAULT = {
     "Hola equipo de {{negocio}},\n\n" +
     "Destapa el perfil de tu MysterFoodie: conoce más sobre su estilo de vida, el tipo de restaurantes que frecuenta y sus generalidades demográficas. " +
     "El buyer persona completo de quien los visitó el {{fecha_visita}}, sin perder su anonimato.\n\n" +
-    "Nivel ID ({{precio_id}}): sus gustos, las palabras que más usa en sus reseñas, con cuántas personas sale, cuánto consume y el sector que representa.\n" +
-    "Nivel Passport ({{precio_passport}}): además, su estilo de vida, demografía, movilidad y los medios que usa.\n\n" +
+    "👑 Nivel Passport ({{precio_passport}}), el más completo y el que recomendamos: el buyer persona entero, con su estilo de vida, demografía, movilidad y los medios que usa, además de todo el nivel ID.\n" +
+    "🪪 Nivel ID ({{precio_id}}): sus gustos, las palabras que más usa en sus reseñas, con cuántas personas sale, cuánto consume y el sector que representa.\n\n" +
     "Es un pago único y la información siempre es anónima: sin nombre, foto ni datos de contacto.\n\n" +
     "{{link_perfil}}\n\nSaludos,\nMysterFoodie",
 };

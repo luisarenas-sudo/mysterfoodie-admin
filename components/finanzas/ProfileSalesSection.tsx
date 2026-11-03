@@ -6,7 +6,7 @@ import type { ProfileSale } from "@/lib/profileSales";
 const MUTED = "rgba(60,60,67,0.6)";
 const when = (iso: string) =>
   new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Mexico_City" }).format(new Date(iso));
-const tierLabel = (t: ProfileSale["tier"]) => (t === "passport" ? "Perfil Passport" : t === "id" ? "Perfil ID" : "Perfil anónimo");
+const tierLabel = (t: ProfileSale["tier"]) => (t === "passport" ? "👑 Perfil Passport" : t === "id" ? "🪪 Perfil ID" : "Perfil anónimo");
 
 /** Detalle mensual de las ventas del perfil anónimo de un MysterFoodie: precio, cargo por uso de la plataforma y su parte, bloque por bloque. */
 export function ProfileSalesPersonal({ sales }: { sales: ProfileSale[] }) {

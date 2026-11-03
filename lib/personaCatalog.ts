@@ -18,6 +18,10 @@ export const TIERS: Record<TierKey, { label: string; price: number; tagline: str
   passport: { label: "Passport", price: 700, tagline: "El buyer persona completo: estilo de vida, demografía, movilidad y medios" },
 };
 
+/** Distintivo de cada nivel en toda la app y los correos: Passport lleva corona (es el más completo) e ID, una identificación. */
+export const TIER_EMOJI: Record<TierKey, string> = { id: "🪪", passport: "👑" };
+export const tierTag = (t: TierKey): string => `${TIER_EMOJI[t]} ${TIERS[t].label}`;
+
 /** Parte del precio que se lleva el MysterFoodie (50 %), repartida entre los bloques que comparte. */
 export const MYSTERFOODIE_SHARE_PCT = 50;
 
