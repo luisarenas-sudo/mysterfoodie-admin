@@ -1,14 +1,14 @@
 import { glosarioIfFirstEmail } from "@/lib/firstContact";
 import { isRequestedVisit } from "@/lib/visitRequests";
-import { deliverFullReportEmail, deliverPlanReportEmail } from "@/lib/fullReportDelivery";
-import { NextRequest, NextResponse } from "next/server";
+import { deliverFullReportEmail, getPlanProgress } from "@/lib/fullReportDelivery";
+import { NextRequest, NextResponse, after } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
 import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhrase } from "@/lib/categories";
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
-import { sendResultEmail } from "@/lib/email";
+import { sendResultEmail, fullReportSubject } from "@/lib/email";
 import { getAutomation, renderTemplate, resultadoVars, DEFAULT_RESULTADO_SUBJECT, DEFAULT_RESULTADO_INTRO, LOW_RESULTADO_SUBJECT, LOW_RESULTADO_INTRO } from "@/lib/automations";
 import { isLowScore } from "@/lib/verdict";
 import { createShortLink } from "@/lib/shortio";
@@ -245,6 +245,19 @@ export async function POST(req: NextRequest) {
   const catScores = categoryScores(body.ratings, body.flags || {});
   const shortCode = nanoid(8);
 
+  // El link corto (Short.io) solo necesita el código y la calificación: se pide ya,
+  // mientras se guarda la visita, en vez de esperarlo después.
+  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const internalReportUrl = `${baseUrl}/r/${shortCode}`;
+  // El link que se comparte con el negocio siempre es el de go.mysterfoodie.com
+  // (via Short.io), igual que en el sitio anterior. Si Short.io falla o no esta
+  // configurado (falta SHORTIO_API_KEY), se usa el link interno como respaldo
+  // para que el flujo nunca se rompa.
+  let reportUrl = internalReportUrl;
+  const shortLinkPromise = createShortLink(internalReportUrl, {
+    title: `${business.name} - ${score}/5`,
+  }).catch(() => ({ ok: false as const, error: "Short.io no respondió" }));
+
   const menuTipo = SELECT_ITEMS.length > 0 ? body.selects?.[SELECT_ITEMS[0].key] || null : null;
 
   const { data: form, error: formError } = await db
@@ -306,68 +319,23 @@ export async function POST(req: NextRequest) {
       : Promise.resolve(),
     ratingRows.length > 0 ? db.from("form_ratings").insert(ratingRows) : Promise.resolve(),
     flagRows.length > 0 ? db.from("form_flags").insert(flagRows) : Promise.resolve(),
+    shortLinkPromise.then(async (shortLink) => {
+      if (shortLink.ok) reportUrl = shortLink.shortURL;
+      await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
+    }),
   ]);
 
-  const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
-  const internalReportUrl = `${baseUrl}/r/${shortCode}`;
-
-  // El link que se comparte con el negocio siempre es el de go.mysterfoodie.com
-  // (via Short.io), igual que en el sitio anterior. Si Short.io falla o no
-  // esta configurado (falta SHORTIO_API_KEY), se usa el link interno como
-  // respaldo para que el flujo nunca se rompa.
-  let reportUrl = internalReportUrl;
-  const shortLink = await createShortLink(internalReportUrl, {
-    title: `${business.name} - ${score}/5`,
-  });
-  if (shortLink.ok) {
-    reportUrl = shortLink.shortURL;
-  }
-
-  await db.from("forms").update({ report_url: reportUrl }).eq("id", form.id);
-
-  let planReport: Awaited<ReturnType<typeof deliverPlanReportEmail>> | null = null;
-  if (planId) {
-    try {
-      planReport = await deliverPlanReportEmail(db, {
-        id: form.id,
-        overall_score: score,
-        client_id: clientId,
-        report_url: reportUrl,
-        short_code: shortCode,
-        created_at: new Date().toISOString(),
-      });
-    } catch (err) {
-      // El reporte ya quedó guardado y abierto; un fallo de correo no debe tirar la visita.
-      console.error("No se pudo mandar el reporte de la visita del plan:", err);
-    }
-  }
-
-  let demoReport: Awaited<ReturnType<typeof deliverFullReportEmail>> | null = null;
-  if (freeDemo) {
-    // Pago simulado: queda como un pago aprobado de $0 (no cuenta como venta en Ganancias).
-    await db.from("report_payments").insert({
-      form_id: form.id,
-      mercadopago_payment_id: `GRATIS-${shortCode}`,
-      status: "approved",
-      amount: 0,
-    });
-    try {
-      demoReport = await deliverFullReportEmail(
-        db,
-        {
-          id: form.id,
-          overall_score: score,
-          client_id: clientId,
-          report_url: reportUrl,
-          short_code: shortCode,
-          created_at: new Date().toISOString(),
-        },
-        { recipientEmail: business.email || process.env.ADMIN_EMAIL || null, demo: true, receipt: { free: true, paymentId: `GRATIS-${shortCode}`, amountPaid: 0 } }
-      );
-    } catch (err) {
-      console.error("No se pudo mandar el reporte demo gratis:", err);
-    }
-  }
+  // Visita de plan: el avance del mes se calcula ya (la pantalla lo muestra); el correo
+  // del reporte sale en segundo plano, igual que los demás.
+  const planProgress = planId ? await getPlanProgress(db, form.id) : null;
+  const bgForm = {
+    id: form.id,
+    overall_score: score,
+    client_id: clientId,
+    report_url: reportUrl,
+    short_code: shortCode,
+    created_at: new Date().toISOString(),
+  };
 
   const waiterName = body.waiterName?.trim() || null;
   const templateVars = resultadoVars({
@@ -394,29 +362,80 @@ export async function POST(req: NextRequest) {
   // En un plan no se manda el resumen "gancho" de venta: el negocio ya pagó y
   // recibe el reporte completo con PDF (más abajo).
   const recipientEmail = planId || freeDemo ? "" : business.email || process.env.ADMIN_EMAIL || "";
-  let emailOutcome: Awaited<ReturnType<typeof sendResultEmail>> | null = null;
 
-  if (recipientEmail) {
-    emailOutcome = await sendResultEmail({
-      glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
-      requested: await isRequestedVisit(db, { id: form.id, client_id: clientId, created_at: new Date().toISOString() }).catch(() => false),
-      to: recipientEmail,
-      businessName: business.name,
-      subject: resultSubject,
-      introText: resultIntro,
-      hideScore: lowScore,
-      score,
-      reportUrl,
-      categoryScores: catScores,
-    });
-
-    await db.from("email_confirmations").insert({
+  // Los correos (reporte con PDF, comprobante, resultado) salen DESPUÉS de responder:
+  // guardar la visita ya no espera a generar el PDF ni a Resend. Cada correo queda en
+  // email_confirmations; si falla (o truena el PDF) queda como "failed" y avisa en Pendientes.
+  if (freeDemo) {
+    // Pago simulado: queda como un pago aprobado de $0 (no cuenta como venta en Ganancias).
+    await db.from("report_payments").insert({
       form_id: form.id,
-      recipient_email: recipientEmail,
-      subject: resultSubject,
-      status: emailOutcome.status,
-      provider_id: emailOutcome.providerId || null,
-      error: emailOutcome.error || null,
+      mercadopago_payment_id: `GRATIS-${shortCode}`,
+      status: "approved",
+      amount: 0,
+    });
+  }
+  const demoRecipient = business.email || process.env.ADMIN_EMAIL || null;
+  const queued = planId ? (business.email ? 1 : 0) : freeDemo ? (demoRecipient ? 2 : 0) : recipientEmail ? 1 : 0;
+  if (queued > 0) {
+    after(async () => {
+      const logFailure = async (to: string, subject: string, err: unknown) => {
+        console.error("No se pudo mandar el correo de la visita:", err);
+        try {
+          await db.from("email_confirmations").insert({
+            form_id: form.id,
+            recipient_email: to,
+            subject,
+            status: "failed",
+            error: err instanceof Error ? err.message : String(err),
+          });
+        } catch {
+          // el registro es de cortesía: si tampoco se puede, ya quedó en la bitácora del servidor
+        }
+      };
+
+      if (planId) {
+        try {
+          await deliverFullReportEmail(db, bgForm, { planProgress: planProgress ?? undefined });
+        } catch (err) {
+          await logFailure(business.email || "", fullReportSubject(business.name, planProgress ?? undefined), err);
+        }
+      } else if (freeDemo) {
+        try {
+          await deliverFullReportEmail(db, bgForm, {
+            recipientEmail: demoRecipient,
+            demo: true,
+            receipt: { free: true, paymentId: `GRATIS-${shortCode}`, amountPaid: 0 },
+          });
+        } catch (err) {
+          await logFailure(demoRecipient || "", fullReportSubject(business.name), err);
+        }
+      } else {
+        try {
+          const outcome = await sendResultEmail({
+            glosario: await glosarioIfFirstEmail(db, recipientEmail, form.id),
+            requested: await isRequestedVisit(db, { id: form.id, client_id: clientId, created_at: bgForm.created_at }).catch(() => false),
+            to: recipientEmail,
+            businessName: business.name,
+            subject: resultSubject,
+            introText: resultIntro,
+            hideScore: lowScore,
+            score,
+            reportUrl,
+            categoryScores: catScores,
+          });
+          await db.from("email_confirmations").insert({
+            form_id: form.id,
+            recipient_email: recipientEmail,
+            subject: resultSubject,
+            status: outcome.status,
+            provider_id: outcome.providerId || null,
+            error: outcome.error || null,
+          });
+        } catch (err) {
+          await logFailure(recipientEmail, resultSubject, err);
+        }
+      }
     });
   }
 
@@ -443,9 +462,15 @@ export async function POST(req: NextRequest) {
     reportUrl,
     overallScore: score,
     categoryScores: catScores,
-    email: planReport ? planReport.outcome : demoReport ?? emailOutcome,
+    // "queued": el correo sale en segundo plano; la pantalla consulta su estado.
+    email:
+      queued > 0
+        ? { status: "queued", expected: queued, to: planId ? business.email : freeDemo ? demoRecipient : recipientEmail }
+        : planId || freeDemo
+          ? { status: "skipped_no_email" }
+          : null,
     freeDemo,
-    plan: planReport?.progress ?? null,
+    plan: planProgress,
     dmMessage,
     dmLink,
     profileLink,

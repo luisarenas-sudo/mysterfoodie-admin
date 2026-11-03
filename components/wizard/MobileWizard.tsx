@@ -4,7 +4,7 @@ import { Pix } from "@/components/ui/Pix";
 import FreeSendButton from "./FreeSendButton";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import EmailStatusPanel from "@/components/EmailStatusPanel";
+import EmailStatusPanel, { useEmailStatus } from "@/components/EmailStatusPanel";
 import SelectChips from "@/components/SelectChips";
 import TriState, { type TriValue } from "@/components/wizard/TriState";
 import { QUICK_TAGS, composeComments, commentPartsHaveContent } from "@/lib/visitComments";
@@ -105,7 +105,7 @@ function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "rati
 }
 
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
-type EmailOutcome = { status: string; error?: string };
+type EmailOutcome = { status: string; error?: string; to?: string | null; expected?: number };
 type SubmitResult = {
   formId: string;
   shortCode: string;
@@ -243,6 +243,25 @@ const inputStyle: React.CSSProperties = {
   fontSize: 16, // >=16px evita el zoom automático de iOS Safari al enfocar
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
+
+/** Línea de estado del correo bajo la calificación: "Enviando…" y luego enviado / aún no se envió. */
+function EmailLine({ formId, initial }: { formId: string; initial: EmailOutcome | null }) {
+  const { status, waiting } = useEmailStatus(formId, initial);
+  const ok = status?.status === "sent";
+  const color = ok ? "#248A3D" : waiting ? "rgba(60,60,67,0.6)" : "#B45309";
+  return (
+    <div className="mt-3.5 flex items-center gap-2 px-1 text-[13px] font-medium" style={{ color }}>
+      <span aria-hidden>{ok ? "✓" : waiting ? "…" : "!"}</span>
+      <span>
+        {ok
+          ? "Correo enviado al negocio."
+          : waiting
+            ? "Enviando el correo al negocio…"
+            : "Aún no se confirma el correo al negocio. Puedes revisarlo o reenviarlo en “Más opciones”."}
+      </span>
+    </div>
+  );
+}
 
 export default function MobileWizard({ boundAssignment, canSendFree, freePrice }: { boundAssignment?: BoundAssignment; freePrice?: number; canSendFree?: boolean } = {}) {
   const router = useRouter();
@@ -489,15 +508,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
             </div>
           )}
 
-          {(() => {
-            const emailOk = result.email?.status === "sent";
-            return (
-              <div className="mt-3.5 flex items-center gap-2 px-1 text-[13px] font-medium" style={{ color: emailOk ? "#248A3D" : "#B45309" }}>
-                <span aria-hidden>{emailOk ? "✓" : "!"}</span>
-                <span>{emailOk ? "Correo enviado al negocio." : "Aún no se envió el correo al negocio. Puedes hacerlo en “Más opciones”."}</span>
-              </div>
-            );
-          })()}
+          <EmailLine formId={result.formId} initial={result.email} />
 
           {!result.plan && (
             <div className="card mt-3 p-4">
@@ -516,7 +527,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
             </div>
           )}
 
-          <details className="card mt-3 p-4" open={result.email?.status === "failed"}>
+          <details className="card mt-3 p-4" open={result.email?.status === "failed" || result.email?.status === "skipped_no_email"}>
             <summary className="mf-tap mf-disclosure cursor-pointer text-[14.5px] font-semibold" style={{ listStyle: "none" }}>
               Más opciones
             </summary>

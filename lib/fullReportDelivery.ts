@@ -162,23 +162,17 @@ export async function deliverFullReportEmail(
   return { ...outcome, to: recipientEmail };
 }
 
-/**
- * Reporte completo de una visita de un plan mensual: calcula el avance del
- * mes ("visita 2 de 4") y manda el correo con el PDF. Lo usan el guardado de
- * la visita y el reenvío desde la pantalla de la visita.
- */
-export async function deliverPlanReportEmail(
+/** Avance del mes de una visita de plan ("visita 2 de 4"); null si la visita no está ligada a un plan. */
+export async function getPlanProgress(
   db: ReturnType<typeof getSupabaseServiceClient>,
-  form: UnlockedForm,
-  opts: { to?: string | null; demo?: boolean } = {}
-): Promise<{ outcome: FullReportOutcome; progress: PlanProgress | null }> {
+  formId: string
+): Promise<PlanProgress | null> {
   let progress: PlanProgress | null = null;
   const { data: assignment } = await db
     .from("visit_assignments")
     .select("plan_id, plan_month")
-    .eq("completed_form_id", form.id)
+    .eq("completed_form_id", formId)
     .maybeSingle();
-
   if (assignment?.plan_id && assignment.plan_month) {
     const [{ data: plan }, { count }] = await Promise.all([
       db.from("client_plans").select("plan_name, visits_per_month").eq("id", assignment.plan_id).maybeSingle(),
@@ -196,6 +190,20 @@ export async function deliverPlanReportEmail(
       planName: plan?.plan_name ?? "mensual",
     };
   }
+  return progress;
+}
+
+/**
+ * Reporte completo de una visita de un plan mensual: calcula el avance del
+ * mes ("visita 2 de 4") y manda el correo con el PDF. Lo usan el guardado de
+ * la visita y el reenvío desde la pantalla de la visita.
+ */
+export async function deliverPlanReportEmail(
+  db: ReturnType<typeof getSupabaseServiceClient>,
+  form: UnlockedForm,
+  opts: { to?: string | null; demo?: boolean } = {}
+): Promise<{ outcome: FullReportOutcome; progress: PlanProgress | null }> {
+  const progress = await getPlanProgress(db, form.id);
 
   const outcome = await deliverFullReportEmail(db, form, { recipientEmail: opts.to, planProgress: progress ?? undefined, demo: opts.demo });
   return { outcome, progress };

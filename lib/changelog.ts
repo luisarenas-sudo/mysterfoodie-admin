@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.32.0",
+    date: "2026-11-03",
+    title: "Guardar la visita, al instante",
+    emoji: "⚡",
+    highlights: [
+      "Al terminar una visita, la pantalla de confirmación aparece en cuanto se guarda: el PDF y los correos ya no hacen esperar, salen en segundo plano.",
+      "La confirmación muestra «Enviando el correo…» y se actualiza sola a «Correo enviado»; si algo falla, queda marcado y avisa en Pendientes.",
+      "El enlace corto del reporte se pide mientras se guarda la visita, no después.",
+    ],
+  },
+  {
     version: "0.31.0",
     date: "2026-11-03",
     title: "Demo GRATIS con pago simulado",

@@ -102,7 +102,7 @@ function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "rati
 
 type CategoryScoreResult = { key: string; label: string; average: number; count: number };
 
-type EmailOutcome = { status: string; error?: string };
+type EmailOutcome = { status: string; error?: string; to?: string | null; expected?: number };
 
 type SubmitResult = {
   formId: string;
