@@ -101,6 +101,74 @@ export default async function PerfilPage({
     ? RANKS[1]
     : RANKS[2];
 
+  const herramientas = (className?: string) => (
+    <Group title="Herramientas" className={className}>
+      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+        <Row
+          href="/perfil/anonimo"
+          icon="🕶️"
+          iconBg="#E5E5EA"
+          title="Mi perfil anónimo"
+          subtitle="Código postal y gustos que ven los negocios (sin tu nombre)"
+        />
+      )}
+      {(profile.role === "admin" || profile.role === "sibarita") && (
+        <Row
+          href="/perfil/invitar"
+          icon="📲"
+          iconBg="#007AFF"
+          title="Invitar Shoppers con QR"
+          subtitle="Tu QR fijo: quien lo escanee llena su solicitud"
+        />
+      )}
+      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+        <Row
+          href="/finanzas"
+          icon="💰"
+          iconBg="#34C759"
+          title="Finanzas"
+          subtitle={profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes"}
+        />
+      )}
+      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
+        <Row
+          href="/planes"
+          icon="📅"
+          iconBg="#007AFF"
+          title="Planes"
+          subtitle={profile.role === "admin" ? "Visitas mensuales por sucursal y lo que gana cada perfil" : "Tus visitas de plan: cuánto ganas y por qué"}
+          last={profile.role !== "admin"}
+        />
+      )}
+      {profile.role === "admin" && (
+        <>
+          <Row
+            href="/solicitudes"
+            icon="🎁"
+            iconBg="#F24444"
+            title="Solicitudes de visita"
+            subtitle={
+              solicitudesPendientes > 0
+                ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
+                : "Visitas gratis pedidas en la web"
+            }
+          />
+          <Row
+            href="/admin/aspirantes"
+            icon="🙋"
+            iconBg="#34C759"
+            title="Aspirantes a Shopper"
+            subtitle={aspirantesPendientes > 0 ? `${aspirantesPendientes} por aprobar · llegaron con un QR` : "Solicitudes que llegan con un QR"}
+          />
+          <Row href="/admin/ganancias-perfil" icon="💸" iconBg="#34C759" title="Ganancias de perfiles" subtitle="Lo que ganan los MysterFoodies por sus perfiles anónimos" />
+          <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
+          <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
+          <Row href="/admin/seguimiento" icon="📈" iconBg="#AF52DE" title="Stats" subtitle="Aperturas, clics, correos y visitas a la web" last />
+        </>
+      )}
+    </Group>
+  );
+
   return (
     <>
     <div className="md:hidden min-h-[70vh] pb-6" style={{ background: "#F2F2F7" }}>
@@ -249,71 +317,7 @@ export default async function PerfilPage({
         </div>
       )}
 
-      <Group title="Herramientas">
-        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-          <Row
-            href="/perfil/anonimo"
-            icon="🕶️"
-            iconBg="#E5E5EA"
-            title="Mi perfil anónimo"
-            subtitle="Código postal y gustos que ven los negocios (sin tu nombre)"
-          />
-        )}
-        {(profile.role === "admin" || profile.role === "sibarita") && (
-          <Row
-            href="/perfil/invitar"
-            icon="📲"
-            iconBg="#007AFF"
-            title="Invitar Shoppers con QR"
-            subtitle="Tu QR fijo: quien lo escanee llena su solicitud"
-          />
-        )}
-        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-          <Row
-            href="/finanzas"
-            icon="💰"
-            iconBg="#34C759"
-            title="Finanzas"
-            subtitle={profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes"}
-          />
-        )}
-        {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-          <Row
-            href="/planes"
-            icon="📅"
-            iconBg="#007AFF"
-            title="Planes"
-            subtitle={profile.role === "admin" ? "Visitas mensuales por sucursal y lo que gana cada perfil" : "Tus visitas de plan: cuánto ganas y por qué"}
-            last={profile.role !== "admin"}
-          />
-        )}
-        {profile.role === "admin" && (
-          <>
-            <Row
-              href="/solicitudes"
-              icon="🎁"
-              iconBg="#F24444"
-              title="Solicitudes de visita"
-              subtitle={
-                solicitudesPendientes > 0
-                  ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
-                  : "Visitas gratis pedidas en la web"
-              }
-            />
-            <Row
-              href="/admin/aspirantes"
-              icon="🙋"
-              iconBg="#34C759"
-              title="Aspirantes a Shopper"
-              subtitle={aspirantesPendientes > 0 ? `${aspirantesPendientes} por aprobar · llegaron con un QR` : "Solicitudes que llegan con un QR"}
-            />
-            <Row href="/admin/ganancias-perfil" icon="💸" iconBg="#34C759" title="Ganancias de perfiles" subtitle="Lo que ganan los MysterFoodies por sus perfiles anónimos" />
-            <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
-            <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
-            <Row href="/admin/seguimiento" icon="📈" iconBg="#AF52DE" title="Stats" subtitle="Aperturas, clics, correos y visitas a la web" last />
-          </>
-        )}
-      </Group>
+      {herramientas()}
 
       <PalabraFoodieCard />
 
@@ -428,6 +432,16 @@ export default async function PerfilPage({
                 <div className="text-sm text-stone-500">Eres MysterFoodie</div>
               </div>
             </div>
+            <ul className="mt-3.5 space-y-1.5" aria-label={`Lo que puede hacer un ${currentRank.label}`}>
+              {currentRank.can.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm leading-snug text-stone-600">
+                  <svg viewBox="0 0 20 20" className="mt-[2px] h-4 w-4 flex-shrink-0" fill="none" stroke="#8E8E93" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4.5 10.5l3.5 3.5 7.5-8" />
+                  </svg>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
             <div className="mt-3.5 flex border-t border-stone-100 pt-3.5">
               <div className="flex-1 text-center">
                 <div className="text-lg font-bold text-ink">{visits.length}</div>
@@ -480,6 +494,10 @@ export default async function PerfilPage({
           {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
         </div>
       )}
+
+      {!isCliente && <div className="mt-8">{herramientas("mb-0")}</div>}
+
+      {!isCliente && <PalabraFoodieCard className="mt-6" />}
 
       {profile.role === "admin" && (
         <div className="mt-6 border-t border-stone-100 pt-6">

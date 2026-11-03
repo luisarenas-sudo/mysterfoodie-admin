@@ -14,7 +14,7 @@ export default async function SeguimientoPage({ searchParams }: { searchParams: 
   const data = await getSeguimiento(getSupabaseServiceClient(), days);
   return (
     <div className="mf-push-in min-h-screen" style={{ background: "#F2F2F7" }}>
-      <div className="mx-auto max-w-2xl pb-10">
+      <div className="mx-auto max-w-2xl pb-10 md:max-w-4xl">
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
         <div className="px-5 pb-3 pt-5">
           <div className="heading text-[30px] font-bold">📈 Stats</div>

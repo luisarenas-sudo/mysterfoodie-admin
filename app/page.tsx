@@ -72,10 +72,26 @@ export default async function Page() {
       </PullToRefresh>
       <div className="hidden md:block">
         {profile?.role === "agente" ? (
-          <main className="mx-auto max-w-xl px-6 py-14 text-center">
+          <main className="mx-auto max-w-3xl px-6 pb-16 pt-8">
             <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-            <h1 className="heading mt-2 text-2xl text-ink">Inicio</h1>
-            <p className="mt-2 text-sm text-stone-500">Esta pantalla está diseñada para móvil.</p>
+            <h1 className="heading mt-1 text-3xl text-ink">Hola, {displayName.split(" ")[0]}</h1>
+            {pending && pending.length > 0 && (
+              <div className="card mt-5 flex items-center gap-3 px-4 py-3.5">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg" style={{ background: "rgba(242,68,68,0.12)" }} aria-hidden="true">
+                  🍽️
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[15px] font-bold text-ink">
+                    {pending.length === 1 ? "Tienes 1 visita asignada" : `Tienes ${pending.length} visitas asignadas`}
+                  </div>
+                  <div className="text-sm text-stone-500">Las visitas se levantan desde el celular, entrando a tu cuenta.</div>
+                </div>
+              </div>
+            )}
+            <div className="mt-5">
+              <PendientesPanel alerts={alerts} />
+            </div>
+            {insights && insightRole && <HomeInsights data={insights} role={insightRole} />}
           </main>
         ) : (
           <main className="mx-auto max-w-5xl px-6 pb-16 pt-8">

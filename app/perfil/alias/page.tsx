@@ -16,7 +16,7 @@ export default async function AliasPage({ searchParams }: { searchParams: Promis
   if (mine.alias && mine.capped) redirect(nextHref);
   return (
     <div className="mf-push-in min-h-screen" style={{ background: "#F2F2F7" }}>
-      <div className="mx-auto max-w-md pb-10">
+      <div className="mx-auto max-w-md pb-10 md:max-w-2xl">
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
         <div className="px-5 pb-2 pt-5">
           <div className="heading text-[30px] font-bold">{mine.alias ? "Cambiar mi nombre" : "Tu nombre anónimo"}</div>

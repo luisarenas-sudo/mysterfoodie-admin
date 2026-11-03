@@ -11,13 +11,16 @@ export function Group({
   title,
   footer,
   children,
+  className = "mx-5 mb-6",
 }: {
   title?: string;
   footer?: ReactNode;
   children: ReactNode;
+  /** Márgenes del bloque (en escritorio se usa sin el margen lateral del celular). */
+  className?: string;
 }) {
   return (
-    <section className="mx-5 mb-6">
+    <section className={className}>
       {title && (
         <div className="mb-1.5 px-1 text-[13px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.6)" }}>
           {title}
@@ -95,7 +98,7 @@ export function Row({
   const cls = "flex min-h-[56px] items-center gap-3 px-4 py-2.5";
   const style = last ? undefined : { borderBottom: "1px solid rgba(60,60,67,0.08)" };
   return href ? (
-    <Link href={href} className={`${cls} mf-tap active:bg-black/5`} style={style}>
+    <Link href={href} className={`${cls} mf-tap hover:bg-black/[0.03] active:bg-black/5`} style={style}>
       {body}
     </Link>
   ) : (

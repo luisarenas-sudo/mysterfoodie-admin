@@ -20,7 +20,7 @@ export default async function PerfilAnonimoPage() {
   const paid = (earn ?? []).filter((e) => e.status === "pagado").reduce((a, e) => a + Number(e.amount), 0);
   return (
     <div className="mf-push-in min-h-screen" style={{ background: "#F2F2F7" }}>
-      <div className="mx-auto max-w-md pb-10">
+      <div className="mx-auto max-w-md pb-10 md:max-w-2xl">
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
         <div className="px-5 pb-2 pt-5">
           <div className="heading text-[30px] font-bold">Mi perfil anónimo</div>
