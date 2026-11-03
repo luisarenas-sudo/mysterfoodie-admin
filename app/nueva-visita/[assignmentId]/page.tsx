@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getAssignmentDetail } from "@/lib/dashboard";
+import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import MobileWizard from "@/components/wizard/MobileWizard";
 import DesktopWizard from "@/components/wizard/DesktopWizard";
 
@@ -35,9 +36,9 @@ export default async function VisitaAsignadaPage({
 
   return (
     <>
-      <MobileWizard boundAssignment={boundAssignment} canSendFree={canSendFree} />
+      <MobileWizard boundAssignment={boundAssignment} canSendFree={canSendFree} freePrice={FULL_REPORT_PRICE_MXN} />
       <div className="hidden md:block">
-        <DesktopWizard boundAssignment={boundAssignment} canSendFree={canSendFree} />
+        <DesktopWizard boundAssignment={boundAssignment} canSendFree={canSendFree} freePrice={FULL_REPORT_PRICE_MXN} />
       </div>
     </>
   );

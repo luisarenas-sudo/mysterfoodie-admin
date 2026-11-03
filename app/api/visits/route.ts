@@ -39,6 +39,8 @@ type Body = {
   waiterName?: string;
   /** Demo gratis: el reporte se entrega abierto (sin link de pago) y el PDF lleva marca de agua. */
   freeDemo?: boolean;
+  /** Checkout simulado del demo: hay que haber escrito GRATIS (mayúsculas o minúsculas). */
+  freeCode?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -71,6 +73,10 @@ export async function POST(req: NextRequest) {
 
   if (body.freeDemo && profile.role === "agente") {
     return NextResponse.json({ error: "Solo un Master Chef o un Sibarita puede enviar un demo gratis" }, { status: 403 });
+  }
+
+  if (body.freeDemo && String(body.freeCode ?? "").trim().toUpperCase() !== "GRATIS") {
+    return NextResponse.json({ error: "Para enviar el demo escribe la palabra GRATIS y toca PAGAR" }, { status: 400 });
   }
 
   let db;
@@ -338,6 +344,13 @@ export async function POST(req: NextRequest) {
 
   let demoReport: Awaited<ReturnType<typeof deliverFullReportEmail>> | null = null;
   if (freeDemo) {
+    // Pago simulado: queda como un pago aprobado de $0 (no cuenta como venta en Ganancias).
+    await db.from("report_payments").insert({
+      form_id: form.id,
+      mercadopago_payment_id: `GRATIS-${shortCode}`,
+      status: "approved",
+      amount: 0,
+    });
     try {
       demoReport = await deliverFullReportEmail(
         db,
@@ -349,7 +362,7 @@ export async function POST(req: NextRequest) {
           short_code: shortCode,
           created_at: new Date().toISOString(),
         },
-        { recipientEmail: business.email || process.env.ADMIN_EMAIL || null, demo: true }
+        { recipientEmail: business.email || process.env.ADMIN_EMAIL || null, demo: true, receipt: { free: true, paymentId: `GRATIS-${shortCode}`, amountPaid: 0 } }
       );
     } catch (err) {
       console.error("No se pudo mandar el reporte demo gratis:", err);

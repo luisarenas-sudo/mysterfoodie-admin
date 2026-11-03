@@ -440,8 +440,6 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
   const verdict = getVerdict(score);
   const heading = planProgress
     ? `Visita ${planProgress.done} de ${planProgress.total} de ${planProgress.monthLabel.toLowerCase()}`
-    : params.demo
-    ? "Tu reporte completo, de cortesía"
     : "¡Gracias por su compra!";
   const progressBar = planProgress
     ? `<p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6b7280;">Plan ${escapeHtml(planProgress.planName)}: ${"●".repeat(Math.min(planProgress.done, planProgress.total))}${"○".repeat(Math.max(planProgress.total - planProgress.done, 0))} ${planProgress.done} de ${planProgress.total} visitas del mes.</p>`
@@ -450,6 +448,7 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
   return renderEmailShell(`
     <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">${escapeHtml(heading)}</h2>
     ${progressBar}
+    ${params.demo && !planProgress ? `<p style="margin: -8px 0 18px; font-size: 13px; letter-spacing: 0.08em; font-weight: bold; color: #15803d;">COMPRA GRATIS · CORTESÍA DE MYSTERFOODIE</p>` : ""}
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
       ${escapeHtml(annotateFirst("Aquí está el reporte completo de la evaluación que hizo su MysterFoodie, con calificación general de", params.glosario))}
@@ -631,6 +630,117 @@ export async function sendPlanTicketEmail(params: SendPlanTicketParams): Promise
       ...(params.bcc && params.bcc.toLowerCase() !== params.to.toLowerCase() ? { bcc: params.bcc } : {}),
       subject: `Tu ticket de servicio · Plan ${params.planName} · ${params.businessName}`,
       html: renderPlanTicketHtml(params),
+    });
+    if (result.error) return { status: "failed", error: result.error.message };
+    return { status: "sent", providerId: result.data?.id };
+  } catch (err) {
+    return { status: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// ============================================================
+// Comprobante de pago del reporte completo, con aspecto de ticket (igual
+// que el ticket de servicio del plan). Se manda tanto en la compra real
+// (MercadoPago aprobado) como en el demo gratis (pago simulado: total GRATIS).
+// ============================================================
+
+export type SendPaymentReceiptParams = {
+  to: string;
+  businessName: string;
+  /** Código corto del reporte; el folio sale de aquí. */
+  shortCode: string;
+  reportUrl: string;
+  /** Valor del reporte completo (sin IVA). */
+  price: number;
+  /** Lo realmente cobrado; 0 en el demo gratis. */
+  amountPaid: number;
+  /** Demo gratis: se muestra la cortesía y el total GRATIS. */
+  free: boolean;
+  /** ID del pago en MercadoPago (solo compra real). */
+  paymentId?: string | null;
+  issuedAt: Date;
+  includes: string[];
+  whatsappLink?: string | null;
+};
+
+export function receiptSubject(businessName: string, free: boolean): string {
+  return free ? `Comprobante de su pedido (GRATIS) · ${businessName}` : `Comprobante de su pago · ${businessName}`;
+}
+
+export function renderPaymentReceiptHtml(p: SendPaymentReceiptParams): string {
+  const mono = "font-family: 'Courier New', Courier, monospace;";
+  const dash = `<div style="border-top: 2px dashed #c9ccd3; margin: 14px 0;"></div>`;
+  const row = (left: string, right: string, bold = false, color = "#111827") => `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+      <tr>
+        <td style="padding: 3px 0; ${mono} font-size: 14px; color: ${color}; ${bold ? "font-weight: bold;" : ""}">${left}</td>
+        <td style="padding: 3px 0; ${mono} font-size: 14px; color: ${color}; text-align: right; white-space: nowrap; ${bold ? "font-weight: bold;" : ""}">${right}</td>
+      </tr>
+    </table>`;
+  const issued = new Intl.DateTimeFormat("es-MX", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Mexico_City",
+  }).format(p.issuedAt);
+  const folio = `${p.free ? "GRATIS" : "PAGO"}-${p.shortCode.toUpperCase()}`;
+  const includes = p.includes
+    .map((i) => `<div style="padding: 2px 0; ${mono} font-size: 13px; line-height: 1.5; color: #374151;">+ ${escapeHtml(i)}</div>`)
+    .join("");
+
+  return renderEmailShell(`
+    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(p.businessName)}</strong>, gracias por sentarse a la mesa. Este es el comprobante de ${p.free ? "su pedido" : "su pago"}:</p>
+
+    <div style="background-color: #fbfaf7; border: 1px solid #e7e3d8; border-radius: 6px; padding: 24px 22px; ${mono}">
+      <div style="text-align: center;">
+        <div style="${mono} font-size: 18px; font-weight: bold; letter-spacing: 0.18em; color: #111827;">MYSTERFOODIE</div>
+        <div style="${mono} font-size: 12px; letter-spacing: 0.12em; color: #6b7280; margin-top: 2px;">COMPROBANTE DE PAGO</div>
+      </div>
+      ${dash}
+      ${row("FOLIO", escapeHtml(folio))}
+      ${row("FECHA", escapeHtml(issued))}
+      ${row("MESA", escapeHtml(p.businessName.toUpperCase()))}
+      ${row("FORMA DE PAGO", p.free ? "GRATIS (CORTESÍA)" : "MERCADO PAGO")}
+      ${!p.free && p.paymentId ? row("ID DE PAGO", escapeHtml(p.paymentId)) : ""}
+      ${dash}
+      <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">CANT  DESCRIPCIÓN</div>
+      ${row("1 &nbsp;Reporte completo MysterFoodie", mxn(p.price))}
+      <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Código ${escapeHtml(p.shortCode)} · pago único, sin IVA</div>
+      ${p.free ? row("Cortesía MysterFoodie", "-" + mxn(p.price), false, "#15803d") : ""}
+      ${dash}
+      ${row(p.free ? "TOTAL A PAGAR" : "TOTAL PAGADO", p.free ? "GRATIS" : mxn(p.amountPaid) + " MXN", true)}
+      ${dash}
+      <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">INCLUYE</div>
+      ${includes}
+      ${dash}
+      <div style="text-align: center; ${mono} font-size: 13px; line-height: 1.6; color: #374151;">
+        *** GRACIAS POR SU PREFERENCIA ***<br />
+        ${escapeHtml(PALABRA_FOODIE_QUOTE)}
+      </div>
+    </div>
+
+    <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
+      Su reporte completo ya va por correo, en otro mensaje, con el PDF adjunto. También pueden abrirlo en línea cuando quieran.
+    </p>
+    <div style="margin-top: 18px;">${renderButton(p.reportUrl, "Ver el reporte en línea")}</div>
+    ${p.whatsappLink ? `<div style="margin-top: 12px;">${renderButton(p.whatsappLink, "¿Dudas? Platiquemos por WhatsApp", "#25D366")}</div>` : ""}
+  `);
+}
+
+/** Comprobante tipo ticket del pago del reporte completo (real o demo gratis). */
+export async function sendPaymentReceiptEmail(params: SendPaymentReceiptParams): Promise<SendEmailOutcome> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { status: "skipped_no_api_key" };
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: resolveFromAddress(),
+      replyTo: resolveReplyTo(),
+      to: params.to,
+      subject: receiptSubject(params.businessName, params.free),
+      html: renderPaymentReceiptHtml(params),
     });
     if (result.error) return { status: "failed", error: result.error.message };
     return { status: "sent", providerId: result.data?.id };

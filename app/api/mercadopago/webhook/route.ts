@@ -92,7 +92,10 @@ export async function POST(req: NextRequest) {
       // respuesta del webhook (MercadoPago reintentaría innecesariamente
       // y el reporte ya quedó desbloqueado, que es lo importante).
       try {
-        await deliverFullReportEmail(db, unlockedForm, { recipientEmail: payment.payer?.email });
+        await deliverFullReportEmail(db, unlockedForm, {
+          recipientEmail: payment.payer?.email,
+          receipt: { free: false, paymentId: String(payment.id), amountPaid: payment.transaction_amount ?? null },
+        });
       } catch (err) {
         console.error("No se pudo mandar el correo del reporte completo:", err);
       }

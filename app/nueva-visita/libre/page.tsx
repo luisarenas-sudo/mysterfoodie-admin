@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
+import { FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import DesktopWizard from "@/components/wizard/DesktopWizard";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ export default async function VisitaLibrePage() {
         </Link>
       </main>
       <div className="hidden md:block">
-        <DesktopWizard defaultShopperName={profile.fullName ?? undefined} canSendFree={true} />
+        <DesktopWizard defaultShopperName={profile.fullName ?? undefined} canSendFree={true} freePrice={FULL_REPORT_PRICE_MXN} />
       </div>
     </>
   );

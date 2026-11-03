@@ -244,7 +244,7 @@ const inputStyle: React.CSSProperties = {
   boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
 };
 
-export default function MobileWizard({ boundAssignment, canSendFree }: { boundAssignment?: BoundAssignment; canSendFree?: boolean } = {}) {
+export default function MobileWizard({ boundAssignment, canSendFree, freePrice }: { boundAssignment?: BoundAssignment; freePrice?: number; canSendFree?: boolean } = {}) {
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
@@ -387,7 +387,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
     }
   }
 
-  async function handleSubmit(freeDemo = false) {
+  async function handleSubmit(freeDemo = false, freeCode = "") {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -400,7 +400,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true } : payload),
+        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true, freeCode } : payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -833,7 +833,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
               />
             </MobileField>
             {submitError && <p className="text-sm text-red-600">{submitError}</p>}
-            {canSendFree && <FreeSendButton onConfirm={() => handleSubmit(true)} disabled={submitting} />}
+            {canSendFree && <FreeSendButton onConfirm={(code) => handleSubmit(true, code)} disabled={submitting} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
           </div>
         )}
       </div>

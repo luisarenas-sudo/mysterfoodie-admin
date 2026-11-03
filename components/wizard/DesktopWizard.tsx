@@ -136,7 +136,7 @@ function stepLabel(step: StepDef): string {
   return "Revisar";
 }
 
-export default function DesktopWizard({ boundAssignment, defaultShopperName, canSendFree }: { boundAssignment?: BoundAssignment; defaultShopperName?: string; canSendFree?: boolean } = {}) {
+export default function DesktopWizard({ boundAssignment, defaultShopperName, canSendFree, freePrice }: { boundAssignment?: BoundAssignment; freePrice?: number; defaultShopperName?: string; canSendFree?: boolean } = {}) {
   const router = useRouter();
   const steps = boundAssignment ? STEPS.filter((s) => s.kind !== "business") : STEPS;
   const [step, setStep] = useState(0);
@@ -254,7 +254,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
     }
   }
 
-  async function handleSubmit(freeDemo = false) {
+  async function handleSubmit(freeDemo = false, freeCode = "") {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -267,7 +267,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true } : payload),
+        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true, freeCode } : payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -636,7 +636,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
             )}
           </div>
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
-          {canSendFree && <FreeSendButton variant="desktop" onConfirm={() => handleSubmit(true)} disabled={submitting} />}
+          {canSendFree && <FreeSendButton variant="desktop" onConfirm={(code) => handleSubmit(true, code)} disabled={submitting} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
         </div>
       )}
 

@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.31.0",
+    date: "2026-11-03",
+    title: "Demo GRATIS con pago simulado",
+    emoji: "🧾",
+    highlights: [
+      "Enviar GRATIS ahora finge el pago: aparece un mini checkout, se escribe la palabra GRATIS (mayúsculas o minúsculas) y al tocar PAGAR una palomita verde aparece y desaparece 2 veces hasta quedarse fija.",
+      "Después sigue el proceso como si el negocio hubiera pagado: reporte desbloqueado, el mismo correo con PDF (marcado GRATIS) y comprobante tipo ticket.",
+      "El comprobante tipo ticket también se manda en la compra real: monto pagado e ID de pago de MercadoPago.",
+    ],
+  },
+  {
     version: "0.30.0",
     date: "2026-11-03",
     title: "Proceso de venta, VIP y expediente",

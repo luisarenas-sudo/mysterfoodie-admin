@@ -1,7 +1,9 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { categoryScores, overallScore, type Ratings } from "./scoring";
 import { buildReportPdf } from "./reportPdf";
-import { fullReportSubject, sendFullReportEmail, type SendEmailOutcome } from "./email";
+import { fullReportSubject, sendFullReportEmail, sendPaymentReceiptEmail, receiptSubject, type SendEmailOutcome } from "./email";
+import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
+import { TOTAL_ITEM_COUNT } from "./categories";
 import { monthLabel } from "./months";
 import { downloadTicket } from "./ticket";
 import { GLOSARIO_NEGOCIO } from "./glosario";
@@ -33,6 +35,8 @@ export async function deliverFullReportEmail(
     planProgress?: { done: number; total: number; monthLabel: string; planName: string };
     /** Demo gratis: PDF con marca de agua y encabezado sin "gracias por tu compra". */
     demo?: boolean;
+    /** Manda además el comprobante tipo ticket (compra real o demo gratis). Los reenvíos no lo mandan. */
+    receipt?: { free: boolean; paymentId?: string | null; amountPaid?: number | null };
   } = {}
 ): Promise<FullReportOutcome> {
   const { data: client } = await db
@@ -126,6 +130,35 @@ export async function deliverFullReportEmail(
     provider_id: outcome.providerId || null,
     error: outcome.error || null,
   });
+
+  if (opts.receipt && !opts.planProgress) {
+    const receiptOutcome = await sendPaymentReceiptEmail({
+      to: recipientEmail,
+      businessName: client?.name || "Negocio",
+      shortCode: form.short_code,
+      reportUrl,
+      price: FULL_REPORT_PRICE_MXN,
+      amountPaid: opts.receipt.free ? 0 : opts.receipt.amountPaid ?? FULL_REPORT_PRICE_MXN,
+      free: opts.receipt.free,
+      paymentId: opts.receipt.paymentId ?? null,
+      issuedAt: new Date(),
+      includes: [
+        `Detalle de los ${TOTAL_ITEM_COUNT} indicadores`,
+        "Comentarios del MysterFoodie",
+        "Ticket de consumo, si lo hay",
+        "Asesoría de 20 minutos",
+      ],
+      whatsappLink,
+    });
+    await db.from("email_confirmations").insert({
+      form_id: form.id,
+      recipient_email: recipientEmail,
+      subject: receiptSubject(client?.name || "Negocio", opts.receipt.free),
+      status: receiptOutcome.status,
+      provider_id: receiptOutcome.providerId || null,
+      error: receiptOutcome.error || null,
+    });
+  }
   return { ...outcome, to: recipientEmail };
 }
 
