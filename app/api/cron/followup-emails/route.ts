@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAutomation, renderTemplate } from "@/lib/automations";
+import { SABER_MAS } from "@/lib/links";
 import { sendTemplatedEmail } from "@/lib/email";
 
 /**
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
     const subject = renderTemplate(automation.subjectTemplate, { negocio: client.name });
     const body = renderTemplate(automation.bodyTemplate, { negocio: client.name, link_agenda: agendaUrl });
 
-    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: body, ctaLabel: "Agendar mi asesoría gratuita" });
+    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: body, ctaLabel: "Agendar mi asesoría gratuita", saberMas: [SABER_MAS.quienOpina] });
 
     await db.from("email_confirmations").insert({
       form_id: form.id,

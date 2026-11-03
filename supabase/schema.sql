@@ -289,8 +289,8 @@ insert into automations (key, enabled, subject_template, body_template)
 values (
   'activacion_cuenta_negocio',
   true,
-  'Activa tu cuenta en MysterFoodie',
-  E'Hola equipo de {{negocio}},\n\nYa puedes crear tu cuenta en MysterFoodie para ver el historial de visitas de tu negocio, pedir nuevas visitas programadas y revisar tus reportes cuando quieras.\n\nEntra aquí para crear tu contraseña (o puedes continuar con tu cuenta de Google desde la misma pantalla):\n{{link_acceso}}\n\nSaludos,\nMysterFoodie'
+  'Activen su cuenta en MysterFoodie',
+  E'Hola equipo de {{negocio}},\n\nYa pueden crear su cuenta en MysterFoodie para ver el historial de visitas de su negocio, pedir nuevas visitas programadas y revisar sus reportes cuando quieran.\n\nEntren aquí para crear su contraseña (o continúen con su cuenta de Google desde la misma pantalla):\n{{link_acceso}}\n\nSaludos,\nMysterFoodie'
 )
 on conflict (key) do nothing;
 

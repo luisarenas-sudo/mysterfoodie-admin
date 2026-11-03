@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAutomation, renderTemplate } from "@/lib/automations";
 import { sendTemplatedEmail } from "@/lib/email";
+import { SABER_MAS } from "@/lib/links";
 import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "@/lib/accessTokens";
 
 /**
@@ -116,14 +117,14 @@ export async function GET(req: NextRequest) {
     });
     const actionLink = accessUrl(baseUrl, token);
     const codeNote =
-      `\n\nSi el botón no abre, entra a ${baseUrl}/set-password, escribe tu correo y este código de 6 dígitos: ` +
+      `\n\nSi el botón no abre, entren a ${baseUrl}/set-password, escriban su correo y este código de 6 dígitos: ` +
       `${code.split("").join(" ")} (vale ${ACCESS_TTL_DAYS} días).`;
-    const defaultSubject = "Activa tu cuenta en MysterFoodie";
+    const defaultSubject = "Activen su cuenta en MysterFoodie";
     const defaultBody =
       `Hola equipo de ${client.name},\n\n` +
-      `Ya puedes crear tu cuenta en MysterFoodie para ver el historial de visitas de tu negocio, ` +
-      `pedir nuevas visitas programadas y revisar tus reportes cuando quieras.\n\n` +
-      `Entra aquí para crear tu contraseña (o puedes continuar con tu cuenta de Google desde la misma pantalla):\n${actionLink}\n\n` +
+      `Ya pueden crear su cuenta en MysterFoodie para ver el historial de visitas de su negocio, ` +
+      `pedir nuevas visitas programadas y revisar sus reportes cuando quieran.\n\n` +
+      `Entren aquí para crear su contraseña (o continúen con su cuenta de Google desde la misma pantalla):\n${actionLink}\n\n` +
       `Saludos,\nMysterFoodie`;
 
     const subject = automationEnabled
@@ -133,7 +134,7 @@ export async function GET(req: NextRequest) {
       ? renderTemplate(automation!.bodyTemplate, { negocio: client.name, link_acceso: actionLink })
       : defaultBody;
 
-    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText: bodyText + codeNote, ctaLabel: "Crear mi cuenta" });
+    const outcome = await sendTemplatedEmail({ to: client.email as string, subject, bodyText: bodyText + codeNote, ctaLabel: "Crear mi cuenta", saberMas: [SABER_MAS.reporte] });
 
     await db.from("clients").update({ account_invited_at: new Date().toISOString() }).eq("id", client.id);
 
