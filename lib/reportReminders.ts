@@ -5,7 +5,7 @@ import { businessTypePhrase, TOTAL_ITEM_COUNT } from "./categories";
 import { buildTeaser } from "./reportTeaser";
 import type { Ratings } from "./scoring";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
-import { PACKAGES_URL } from "./links";
+import { PACKAGES_URL, METODOLOGIA_URL } from "./links";
 
 type Db = ReturnType<typeof getSupabaseServiceClient>;
 
@@ -39,7 +39,7 @@ export function reminder1Text(p: { negocio: string; tipo: string; requested: boo
       `Hola equipo de ${p.negocio},\n\n` +
       `Hace unos días un MysterFoodie visitó su ${p.tipo} y su resultado sigue disponible por si quieren verlo con calma.\n\n` +
       (p.teaser ? `${p.teaser.title}. ${p.teaser.detail}\n\n` : "") +
-      `${detalle} Si les surge alguna duda, respondan este correo y con gusto les ayudamos.\n\n` +
+      `${detalle} Si quieren saber cómo evaluamos, lo explicamos paso a paso en [nuestra metodología](${METODOLOGIA_URL}). Si les surge alguna duda, respondan este correo y con gusto les ayudamos.\n\n` +
       `${p.reportUrl}\n\n` +
       optOutLine(p.baseUrl, p.shortCode),
     ctaLabel: "Ver mi resultado",
@@ -54,7 +54,7 @@ export function reminder2Text(p: { negocio: string; baseUrl: string; shortCode: 
       `Si el resultado de su visita les sirvió, la mejor forma de saber si algo mejora es repetir la evaluación con la misma escala cada mes. ` +
       `Para eso tenemos paquetes mensuales: Starter (1 sucursal, 3 visitas al mes) y, para varias sucursales, Appetizer y Main course. ` +
       `Todos incluyen el reporte completo de cada visita y seguimiento personalizado.\n\n` +
-      `Pueden compararlos aquí, sin compromiso:\n\n${PACKAGES_URL}\n\n` +
+      `Si quieren recordar cómo evaluamos, aquí está [la metodología](${METODOLOGIA_URL}). Y pueden comparar los paquetes aquí, sin compromiso:\n\n${PACKAGES_URL}\n\n` +
       `Este es el último mensaje que les enviamos sobre este resultado. Quedamos a sus órdenes en hola@mysterfoodie.com.\n\n` +
       optOutLine(p.baseUrl, p.shortCode),
     ctaLabel: "Ver los paquetes",

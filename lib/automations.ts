@@ -218,7 +218,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
  * plantilla está desactivada). Las partes entre **doble asterisco** salen en
  * negritas en el correo.
  */
-export const DEFAULT_RESULTADO_SUBJECT = "Resultado de tu visita MysterFoodie: {{promedio}} de 5 estrellas";
+export const DEFAULT_RESULTADO_SUBJECT = "Resultado de su visita MysterFoodie: {{promedio}} de 5 estrellas";
 export const DEFAULT_RESULTADO_INTRO =
   "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y calificó de forma independiente** " +
   "la experiencia real.{{mesero_linea}} Este es el resultado:";

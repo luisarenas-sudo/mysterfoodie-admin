@@ -51,7 +51,7 @@ export function buildDmMessage(
   return (
     `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
     `y calificó de forma independiente la experiencia real.${waiterPart} ` +
-    `El resultado fue de ${score} de 5 estrellas. Aquí lo puedes ver: ${reportUrl}`
+    `El resultado fue de ${score} de 5 estrellas. Aquí lo pueden ver: ${reportUrl}`
   );
 }
 

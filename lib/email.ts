@@ -6,6 +6,7 @@ import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercado
 import { PALABRA_FOODIE_QUOTE } from "./brand";
 import { annotateFirst, type GlosarioKey } from "./glosario";
 import type { EmailCallout } from "./earningsCopy";
+import { METODOLOGIA_URL, METODOLOGIA_BOTON } from "./links";
 
 export type SendResultEmailParams = {
   to: string;
@@ -96,6 +97,11 @@ export function renderButton(href: string, label: string, background = BRAND_RED
   return `<a href="${escapeHtml(href)}" style="display: block; background-color: ${background}; color: #ffffff; text-align: center; text-decoration: none; font-weight: bold; font-size: 15px; line-height: 1.3; padding: 16px 18px; border-radius: 14px;">${label}</a>`;
 }
 
+/** Botón secundario (contorno): para enlaces a la web que no deben competir con la acción principal. */
+export function renderSecondaryButton(href: string, label: string): string {
+  return `<a href="${escapeHtml(href)}" style="display: block; background-color: #ffffff; color: #111827; text-align: center; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 1.35; padding: 14px 18px; border-radius: 14px; border: 1.5px solid #d1d5db;">${label}</a>`;
+}
+
 /**
  * Estructura común de TODOS los correos: fondo gris claro, logo completo
  * de MysterFoodie arriba, tarjeta blanca redondeada con el contenido y,
@@ -117,10 +123,10 @@ export function renderEmailShell(cardHtml: string): string {
           <img src="${baseUrl}/icon-512.png" width="40" height="40" alt="MysterFoodie" style="display: inline-block; width: 40px; height: 40px; border-radius: 10px;" />
           <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
             MysterFoodie · Evaluaciones objetivas e independientes con el respaldo de
-            <a href="https://flancoizquierdo.com/" style="color: #9ca3af; text-decoration: underline;">Flanco Izquierdo</a>.
+            <a href="https://flancoizquierdo.com/" style="color: #9ca3af; text-decoration: underline;">Flanco Izquierdo®</a>.
           </p>
           <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
-            ¿Dudas? Escríbenos a <a href="mailto:hola@mysterfoodie.com" style="color: #9ca3af; text-decoration: underline;">hola@mysterfoodie.com</a>.
+            ¿Dudas? Estamos en <a href="mailto:hola@mysterfoodie.com" style="color: #9ca3af; text-decoration: underline;">hola@mysterfoodie.com</a>.
           </p>
         </div>
       </div>
@@ -182,12 +188,12 @@ function renderScoreCard(score: number): string {
   `;
 }
 
-function renderEmailHtml(params: SendResultEmailParams): string {
+export function renderEmailHtml(params: SendResultEmailParams): string {
   const { businessName, introText, score, reportUrl, categoryScores } = params;
   const rated = categoryScores.filter((c) => c.count > 0).length;
 
   return renderEmailShell(`
-    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de tu visita MysterFoodie</h2>
+    <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de su visita MysterFoodie</h2>
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="white-space: pre-line; margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">${renderRichText(annotateFirst(introText, params.glosario))}</p>
 
@@ -206,24 +212,24 @@ function renderEmailHtml(params: SendResultEmailParams): string {
     <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #6b7280;">
       ${
         params.hideScore
-          ? "Tu calificación y el resumen por categoría te esperan en tu reporte. El estudio completo evalúa"
-          : `Este resumen muestra solo las ${rated} categorías generales. El estudio completo evalúa`
+          ? "Su calificación y el resumen por categoría los esperan en su reporte."
+          : `Este resumen muestra solo las ${rated} categorías generales.`
       }
-      <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, etc.),
-      desarrollado bajo la metodología técnica de <strong>Flanco Izquierdo</strong>.
+      El estudio completo evalúa <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, etc.)
+      y ${
+        params.requested
+          ? `ahí mismo pueden programar su visita ($${FULL_REPORT_PRICE_MXN} MXN + el consumo de la visita; si necesitan factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN) o conocer nuestros paquetes.`
+          : `ahí mismo pueden pedirlo ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si les interesa.`
+      }
     </p>
 
+    ${params.glosario ? `<div style="margin: 0 0 12px;">${renderSecondaryButton(METODOLOGIA_URL, METODOLOGIA_BOTON)}</div>` : ""}
     ${renderButton(reportUrl, "Ver mi resultado")}
     ${
       params.acceso
-        ? `<p style="margin: 22px 0 0; font-size: 13.5px; line-height: 1.65; color: #6b7280;">Ya generamos tu cuenta de MysterFoodie para que veas tus visitas y reportes en un solo lugar. <a href="${escapeHtml(params.acceso.link)}" style="color: ${BRAND_RED}; text-decoration: underline;">Crea tu contraseña aquí</a> (o continúa con Google desde la misma pantalla). Si el enlace no abre, entra a ${escapeHtml(params.acceso.baseUrl)}/set-password, escribe tu correo y este código de 6 dígitos: ${escapeHtml(params.acceso.code.split("").join(" "))} (vale ${params.acceso.ttlDays} días).</p>`
+        ? `<p style="margin: 22px 0 0; font-size: 13.5px; line-height: 1.65; color: #6b7280;">Ya generamos su cuenta de MysterFoodie para que vean sus visitas y reportes en un solo lugar. <a href="${escapeHtml(params.acceso.link)}" style="color: ${BRAND_RED}; text-decoration: underline;">Creen su contraseña aquí</a> (o continúen con Google desde la misma pantalla). Si el enlace no abre, entren a ${escapeHtml(params.acceso.baseUrl)}/set-password, escriban su correo y este código de 6 dígitos: ${escapeHtml(params.acceso.code.split("").join(" "))} (vale ${params.acceso.ttlDays} días).</p>`
         : ""
     }
-    <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; line-height: 1.5; color: #9ca3af;">${
-      params.requested
-        ? `Si quieres el estudio completo de ${TOTAL_ITEM_COUNT} indicadores, ahí mismo puedes programar tu visita ($${FULL_REPORT_PRICE_MXN} MXN + el consumo de la visita; si necesitas factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN) o conocer nuestros paquetes.`
-        : `Ahí mismo puedes pedir el estudio completo de ${TOTAL_ITEM_COUNT} indicadores ($${FULL_REPORT_PRICE_MXN} MXN sin IVA), si te interesa.`
-    }</p>
   `);
 }
 
@@ -281,7 +287,22 @@ export type SendTemplatedEmailParams = {
   glosario?: GlosarioKey[];
   /** Cuadro destacado (ej. cuánto podría ganar un sibarita con la visita). */
   callout?: EmailCallout;
+  /** Bloque «Para saber más» al final: enlaces a páginas de mysterfoodie.com que amplían el tema (se agrega aunque la plantilla sea personalizada). */
+  saberMas?: EmailLink[];
 };
+
+export type EmailLink = { label: string; url: string };
+
+/** Bloque «Para saber más»: enlaces a la web de MysterFoodie, discreto para no competir con el botón principal. */
+function renderSaberMasBlock(links: EmailLink[]): string {
+  const items = links
+    .map((l) => `<li style="margin: 0 0 6px;"><a href="${escapeHtml(l.url)}" style="color: ${BRAND_RED}; text-decoration: underline;">${escapeHtml(l.label)}</a></li>`)
+    .join("");
+  return `<div style="margin: 24px 0 0; padding-top: 16px; border-top: 1px solid #eef0f3;">
+    <p style="margin: 0 0 8px; font-size: 13px; font-weight: bold; color: #6b7280;">Para saber más</p>
+    <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55; color: #374151;">${items}</ul>
+  </div>`;
+}
 
 /** Cuadro gris con título y viñetas (para datos que conviene destacar dentro de un correo de texto). */
 function renderCalloutBlock(c: EmailCallout): string {
@@ -292,11 +313,16 @@ function renderCalloutBlock(c: EmailCallout): string {
   </div>`;
 }
 
-function renderPlainEmailHtml(rawBodyText: string, ctaLabel?: string, glosario?: GlosarioKey[], callout?: EmailCallout): string {
+function renderPlainEmailHtml(rawBodyText: string, ctaLabel?: string, glosario?: GlosarioKey[], callout?: EmailCallout, saberMas?: EmailLink[]): string {
   const bodyText = annotateFirst(rawBodyText, glosario);
   const urlLine = /^\s*(https?:\/\/\S+)\s*$/;
+  // Enlaces con texto: [texto](https://...) -> <a>; las direcciones sueltas también se vuelven enlace.
   const linkify = (escaped: string) =>
-    escaped.replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color: ${BRAND_RED}; text-decoration: underline;">$1</a>`);
+    escaped.replace(
+      /\[([^\]\n]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<]+)/g,
+      (_m, text: string | undefined, href: string | undefined, bare: string | undefined) =>
+        `<a href="${href ?? bare}" style="color: ${BRAND_RED}; text-decoration: underline;">${text ?? bare}</a>`
+    );
   const textStyle = "white-space: pre-line; font-size: 15px; line-height: 1.7; color: #374151;";
 
   const parts: string[] = [];
@@ -317,6 +343,7 @@ function renderPlainEmailHtml(rawBodyText: string, ctaLabel?: string, glosario?:
   }
   flush();
   if (callout) parts.push(renderCalloutBlock(callout));
+  if (saberMas && saberMas.length > 0) parts.push(renderSaberMasBlock(saberMas));
   return renderEmailShell(parts.join(""));
 }
 
@@ -335,7 +362,7 @@ export async function sendTemplatedEmail(params: SendTemplatedEmailParams): Prom
       replyTo: resolveReplyTo(),
       to: params.to,
       subject: params.subject,
-      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel, params.glosario, params.callout),
+      html: renderPlainEmailHtml(params.bodyText, params.ctaLabel, params.glosario, params.callout, params.saberMas),
     });
 
     if (result.error) {
@@ -415,7 +442,7 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
     ? `Visita ${planProgress.done} de ${planProgress.total} de ${planProgress.monthLabel.toLowerCase()}`
     : params.demo
     ? "Tu reporte completo, de cortesía"
-    : "¡Gracias por tu compra!";
+    : "¡Gracias por su compra!";
   const progressBar = planProgress
     ? `<p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #6b7280;">Plan ${escapeHtml(planProgress.planName)}: ${"●".repeat(Math.min(planProgress.done, planProgress.total))}${"○".repeat(Math.max(planProgress.total - planProgress.done, 0))} ${planProgress.done} de ${planProgress.total} visitas del mes.</p>`
     : "";
@@ -425,15 +452,16 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
     ${progressBar}
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
-      ${escapeHtml(annotateFirst("Aquí está el reporte completo de la evaluación que hizo tu MysterFoodie, con calificación general de", params.glosario))}
+      ${escapeHtml(annotateFirst("Aquí está el reporte completo de la evaluación que hizo su MysterFoodie, con calificación general de", params.glosario))}
       <strong>${score} / 5 (${verdict.label})</strong>. Va adjunto en PDF con el detalle por categoría,
-      la metodología del estudio y el respaldo de Flanco Izquierdo.
+      la metodología del estudio y el respaldo de Flanco Izquierdo®.
     </p>
 
     ${renderGuaranteeBlock()}
 
+    ${params.glosario ? `<div style="margin: 0 0 12px;">${renderSecondaryButton(METODOLOGIA_URL, METODOLOGIA_BOTON)}</div>` : ""}
     ${renderButton(reportUrl, "Ver el reporte en línea")}
-    ${whatsappLink ? `<div style="margin-top: 12px;">${renderButton(whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+    ${whatsappLink ? `<div style="margin-top: 12px;">${renderButton(whatsappLink, "¿Dudas? Platiquemos por WhatsApp", "#25D366")}</div>` : ""}
   `);
 }
 
@@ -582,10 +610,10 @@ export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
     </div>
 
     <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
-      ${escapeHtml(annotateFirst("En breve nos pondremos en contacto contigo para coordinar el arranque, presentarte a tu MysterFoodie, resolver dudas y acordar la forma de pago.", ["mysterfoodie"]))}
-      No tienes que hacer nada más por ahora.
+      ${escapeHtml(annotateFirst("En breve nos pondremos en contacto para coordinar el arranque, presentarles a su MysterFoodie, resolver dudas y acordar la forma de pago.", ["mysterfoodie"]))}
+      No tienen que hacer nada más por ahora.
     </p>
-    ${p.whatsappLink ? `<div style="margin-top: 18px;">${renderButton(p.whatsappLink, "¿Dudas? Escríbenos por WhatsApp", "#25D366")}</div>` : ""}
+    ${p.whatsappLink ? `<div style="margin-top: 18px;">${renderButton(p.whatsappLink, "¿Dudas? Platiquemos por WhatsApp", "#25D366")}</div>` : ""}
   `);
 }
 

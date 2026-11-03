@@ -3,7 +3,7 @@ import { getSupabaseServiceClient } from "./supabase";
 import { BUSINESS_TYPES, businessTypePhrase, TOTAL_ITEM_COUNT } from "./categories";
 import { escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
 import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercadopago";
-import { PACKAGES_URL } from "./links";
+import { PACKAGES_URL, SABER_MAS } from "./links";
 import { sibaritaEarningsCallout, shopperEarningsCallout } from "./earningsCopy";
 import { getAutomation, renderTemplate } from "./automations";
 import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "./accessTokens";
@@ -343,7 +343,7 @@ async function sendRequestReceivedEmail(p: {
       .split("")
       .join(" ")} (vale ${ACCESS_TTL_DAYS} días).`;
   }
-  return sendTemplatedEmail({ to: p.to, subject, bodyText, ctaLabel: p.acceso ? "Crear mi cuenta" : "Entrar a mi cuenta", glosario: GLOSARIO_NEGOCIO });
+  return sendTemplatedEmail({ to: p.to, subject, bodyText, ctaLabel: p.acceso ? "Crear mi cuenta" : "Entrar a mi cuenta", glosario: GLOSARIO_NEGOCIO, saberMas: [SABER_MAS.metodologia, SABER_MAS.preguntas] });
 }
 
 /** Avisa a los admins (Master Chef) que llegó una solicitud nueva. Devuelve "sent" si salió al menos un correo. */
@@ -465,6 +465,7 @@ export async function settleVisitPayment(
         `Es una visita anónima: el MysterFoodie llegará como un cliente más. Cuando termine, recibirás tu reporte completo.\n\n` +
         `Saludos,\nMysterFoodie`,
       glosario: GLOSARIO_NEGOCIO,
+      saberMas: [SABER_MAS.metodologia],
     }).catch(() => undefined);
   }
   const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").not("email", "is", null);
@@ -983,6 +984,7 @@ async function sendNoFoodieEmail(db: Db, clientId: string, requestId: string): P
     bodyText,
     ctaLabel: "Asegurar mi visita",
     glosario: GLOSARIO_NEGOCIO,
+    saberMas: [SABER_MAS.metodologia, SABER_MAS.preguntas],
   });
   return out.status;
 }

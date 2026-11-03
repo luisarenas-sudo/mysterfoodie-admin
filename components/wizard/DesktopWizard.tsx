@@ -497,7 +497,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
               className="input"
             />
           </Field>
-          <Field label="Tu nombre (mystery shopper)">
+          <Field label="Tu nombre (MysterFoodie)">
             <input
               value={shopperName}
               onChange={(e) => setShopperName(e.target.value)}

@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { sendTemplatedEmail } from "./email";
+import { SABER_MAS } from "./links";
 import { getAutomation, renderTemplate } from "./automations";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 
@@ -61,15 +62,15 @@ export const TICKET_DEFAULTS: Record<TicketEmailKind, { subject: string; body: s
     subject: "Ya está el ticket de consumo de la visita a {{negocio}}",
     body:
       "Hola equipo de {{negocio}},\n\n" +
-      "El mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
+      "El MysterFoodie que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
       "Conozcan los indicadores evaluados, un reporte completo con todos ellos y el ticket del consumo por solo {{precio}}.\n\n" +
       "{{link_reporte}}\n\nSaludos,\nMysterFoodie",
   },
   aviso: {
-    subject: "Tu visita a {{negocio}} ahora tiene más información",
+    subject: "Su visita a {{negocio}} ahora tiene más información",
     body:
       "Hola equipo de {{negocio}},\n\n" +
-      "El mystery shopper que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
+      "El MysterFoodie que los visitó el {{fecha_visita}} ya subió el ticket de consumo a su visita.\n\n" +
       "Como ya tienen el reporte completo, no tienen que hacer nada: ahora hay más información en su visita y el ticket ya aparece en su reporte en línea.\n\n" +
       "{{link_reporte}}\n\nSaludos,\nMysterFoodie",
   },
@@ -142,6 +143,7 @@ export async function sendDueTicketEmails(
       subject: mail.subject,
       bodyText: mail.bodyText,
       ctaLabel: TICKET_CTA_LABEL[kind],
+      saberMas: kind === "oferta" ? [SABER_MAS.metodologia, SABER_MAS.reporte] : undefined,
     });
 
     await db.from("email_confirmations").insert({

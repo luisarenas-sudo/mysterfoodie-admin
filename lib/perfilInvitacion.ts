@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { sendTemplatedEmail } from "./email";
+import { SABER_MAS } from "./links";
 import { getAutomation, renderTemplate } from "./automations";
 import { inNotificationWindow } from "./visitRequests";
 import { formatMxn } from "./earningsMatrix";
@@ -110,6 +111,7 @@ export async function sendDuePerfilInvites(db: Db, baseUrl: string): Promise<{ s
       bodyText: renderTemplate(custom && automation.bodyTemplate ? automation.bodyTemplate : PERFIL_INVITE_BODY, vars).replace(/^Hola ,/, "Hola,"),
       ctaLabel: "Llenar mi perfil anónimo",
       callout: perfilInviteCallout(),
+      saberMas: [SABER_MAS.privacidad],
     });
     if (outcome.status === "sent") sent++;
     else {

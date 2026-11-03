@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { sendTemplatedEmail } from "./email";
+import { SABER_MAS } from "./links";
 import { accessUrl, issueAccessToken } from "./accessTokens";
 import { sendInviteEmail } from "./accessEmails";
 import { ROLE_LABELS } from "./brand";
@@ -135,6 +136,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
       `${inviter.alias ? `${inviter.alias} te invitó y ` : ""}ya recibimos tu solicitud para ser MysterFoodie Shopper. ¡Gracias por tu interés!\n\n` +
       `Un Master Chef va a revisarla con calma. Si todo va bien, te llegará un correo para crear tu acceso a la app. No tienes que hacer nada más por ahora.\n\n` +
       `Si tienes dudas, responde a este correo o escríbenos a hola@mysterfoodie.com.`,
+    saberMas: [SABER_MAS.quienOpina],
   }).catch(() => null);
   // A los Master Chef.
   const { data: admins } = await db.from("profiles").select("email").eq("role", "admin").not("email", "is", null);

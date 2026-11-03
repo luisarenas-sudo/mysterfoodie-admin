@@ -117,7 +117,7 @@ function FullDetail({
       ))}
       {comments && comments.trim() && (
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Comentarios del mystery shopper</div>
+          <div className="text-[13px] font-semibold">Comentarios del MysterFoodie</div>
           <div className="mt-1.5 whitespace-pre-wrap text-[13.5px]" style={{ color: "rgba(60,60,67,0.7)" }}>
             {comments}
           </div>

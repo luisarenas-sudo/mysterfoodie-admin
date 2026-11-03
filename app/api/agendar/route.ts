@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { isSlotStillFree, createCalendarEvent } from "@/lib/googleCalendar";
 import { sendTemplatedEmail, formatSlot } from "@/lib/email";
+import { SABER_MAS } from "@/lib/links";
 import { getAutomation, renderTemplate } from "@/lib/automations";
 
 type Body = {
@@ -129,12 +130,12 @@ export async function POST(req: NextRequest) {
   const defaultNegocioBody =
     `Hola equipo de ${client.name},
 
-Tu asesoría gratuita con MysterFoodie quedó agendada para:
+Su asesoría gratuita con MysterFoodie quedó agendada para:
 
 ${fechaHora}
 
 ` +
-    `Te llega una invitación de Google Calendar por separado con el enlace de la videollamada.
+    `Les llega una invitación de Google Calendar por separado con el enlace de la videollamada.
 
 Saludos,
 MysterFoodie`;
@@ -168,7 +169,7 @@ MysterFoodie`;
 
   const adminEmail = process.env.ADMIN_EMAIL;
   await Promise.all([
-    sendTemplatedEmail({ to: contactEmail, subject: negocioSubject, bodyText: negocioBody }),
+    sendTemplatedEmail({ to: contactEmail, subject: negocioSubject, bodyText: negocioBody, saberMas: [SABER_MAS.metodologia] }),
     adminEmail
       ? sendTemplatedEmail({ to: adminEmail, subject: adminSubject, bodyText: adminBody })
       : Promise.resolve(),

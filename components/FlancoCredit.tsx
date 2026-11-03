@@ -6,7 +6,7 @@
  * a toda la app.
  */
 export default function FlancoCredit({
-  label = "Con el respaldo de Flanco Izquierdo",
+  label = "Con el respaldo de Flanco Izquierdo®",
   className = "text-[11px]",
   color = "rgba(60,60,67,0.35)",
 }: {

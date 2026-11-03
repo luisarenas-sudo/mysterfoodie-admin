@@ -229,7 +229,7 @@ export default function AgendarPicker({
               : `Confirmar ${dayLabel(selected.startISO)}, ${timeLabel(selected.startISO)}`}
           </button>
           <div className="text-center">
-            <FlancoCredit label="Tus datos solo se usan para esta llamada · Respaldado por Flanco Izquierdo" className="text-[11px]" />
+            <FlancoCredit label="Tus datos solo se usan para esta llamada · Respaldado por Flanco Izquierdo®" className="text-[11px]" />
           </div>
         </form>
       )}

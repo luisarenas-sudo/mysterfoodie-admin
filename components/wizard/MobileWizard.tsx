@@ -696,7 +696,7 @@ export default function MobileWizard({ boundAssignment, canSendFree }: { boundAs
                 enterKeyHint="next"
               />
             </MobileField>
-            <MobileField label="Tu nombre (mystery shopper)">
+            <MobileField label="Tu nombre (MysterFoodie)">
               <input
                 value={shopperName}
                 onChange={(e) => setShopperName(e.target.value)}

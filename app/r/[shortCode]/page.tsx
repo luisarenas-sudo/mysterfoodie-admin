@@ -226,7 +226,7 @@ function FullReportDetail({
       ))}
       {comments && comments.trim() && (
         <div className="card p-4">
-          <p className="text-sm font-medium text-ink">Comentarios del mystery shopper</p>
+          <p className="text-sm font-medium text-ink">Comentarios del MysterFoodie</p>
           <p className="mt-2 whitespace-pre-wrap text-sm text-stone-600">{comments}</p>
         </div>
       )}
@@ -510,7 +510,7 @@ export default async function ReportPage({
           <p className="font-medium text-ink">{isLowScore(form.overall_score) ? "Este es un resumen por categoría. El reporte completo te muestra por dónde empezar." : "Este es un resumen por categoría."}</p>
           <p className="mt-2 font-medium text-ink">
             El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores
-            evaluados dentro de cada categoría y los comentarios del mystery shopper
+            evaluados dentro de cada categoría y los comentarios del MysterFoodie
             {form.ticket_photo_path ? ", además del ticket de consumo de la visita" : ""}.
           </p>
           {agendaIncluded && (

@@ -108,7 +108,7 @@ function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: numb
   seg("MysterFoodie", "https://mysterfoodie.com/");
   seg(" (mysterfoodie.com)", "https://mysterfoodie.com/");
   seg(" trabaja con experiencia en el sector, personal calificado y una metodología desarrollada con el respaldo de ");
-  seg("Flanco Izquierdo", "https://www.flancoizquierdo.com/");
+  seg("Flanco Izquierdo®", "https://www.flancoizquierdo.com/");
   seg(" (www.flancoizquierdo.com)", "https://www.flancoizquierdo.com/");
   seg(".", undefined, true);
   doc.text(`${pageNumber} / ${pageCount}`, doc.page.width - PAGE_MARGIN - 60, bottom + 5, {
@@ -539,7 +539,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
         .fontSize(10.5)
         .fillColor(INK)
         .text(
-          "Este estudio es realizado y respaldado por Flanco Izquierdo, agencia responsable de la operación de MysterFoodie.",
+          "Este estudio es realizado y respaldado por Flanco Izquierdo®, agencia responsable de la operación de MysterFoodie.",
           PAGE_MARGIN,
           textY,
           { width: contentWidth, lineGap: 4 }

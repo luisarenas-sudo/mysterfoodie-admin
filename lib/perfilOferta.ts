@@ -1,5 +1,6 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { sendTemplatedEmail } from "./email";
+import { SABER_MAS } from "./links";
 import { getAutomation, renderTemplate } from "./automations";
 import { getProfileOffer } from "./mysterfoodieProfile";
 import { getOwnedTiers } from "./profilePurchases";
@@ -82,7 +83,7 @@ export async function sendDuePerfilOffers(db: Db, baseUrl: string, now: Date = n
 
     const vars = perfilOfertaVars({ negocio: client.name, visitDate: form.created_at, link: `${baseUrl.replace(/\/$/, "")}/mi-negocio/mysterfoodie/${form.id}` });
     const subject = renderTemplate(subjectTpl, vars);
-    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: renderTemplate(bodyTpl, vars), ctaLabel: PERFIL_OFERTA_CTA });
+    const outcome = await sendTemplatedEmail({ to: client.email, subject, bodyText: renderTemplate(bodyTpl, vars), ctaLabel: PERFIL_OFERTA_CTA, saberMas: [SABER_MAS.niveles, SABER_MAS.privacidad] });
     await db.from("email_confirmations").insert({
       form_id: form.id,
       recipient_email: client.email,

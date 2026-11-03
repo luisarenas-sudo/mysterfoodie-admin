@@ -46,7 +46,7 @@ export async function sendAssignmentEmail(
     `Hola${foodie.full_name ? ` ${foodie.full_name}` : ""},
 
 ` +
-    `Se te asignó una nueva visita Mystery Shopper:
+    `Se te asignó una nueva visita MysterFoodie:
 
 ` +
     `Negocio: ${client.name}
