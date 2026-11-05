@@ -7,7 +7,7 @@ import { annotateFirst } from "./glosario";
 
 /**
  * Correo de confirmación de la lista de espera de la MysterFoodie Uni: qué se
- * aprende (los 52 indicadores), la metodología y los esquemas de ganancias.
+ * aprende (los 76 indicadores), la metodología y los esquemas de ganancias.
  * Las cifras salen de las mismas fuentes que la app (categorías, matriz de
  * ganancias, catálogo de planes), así que si cambian, el correo cambia solo.
  */
@@ -61,11 +61,11 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
     ${p(annotateFirst("Gracias por tu interés en la <strong>MysterFoodie Uni</strong>, el programa donde formamos a los MysterFoodies y Sibaritas que evalúan restaurantes y bares con criterio profesional. En cuanto abramos la primera generación, <strong>este es el correo al que te avisaremos</strong>: no tienes que hacer nada más.", ["mysterfoodie", "sibarita"]))}
 
     ${h("Lo que aprenderías a calificar")}
-    ${p(`Cada visita se evalúa con <strong>${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías</strong>. Aprenderías a observarlos, a calificarlos con el mismo protocolo y a registrar sugerencias útiles:`)}
+    ${p(`Cada visita se evalúa con <strong>${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías</strong>. Aprenderías a observarlos, a calificarlos con el mismo protocolo y a registrar sugerencias útiles. Son indicadores líderes en el mercado, basados en distintivos y certificaciones actuales además de la metodología de Flanco Izquierdo®:`)}
     <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">${catRows}</table>
 
     ${h("Nuestra metodología")}
-    ${p("Las visitas son <strong>anónimas</strong>: llegas como cualquier cliente, consumes y vives la experiencia completa, de la fachada a la cuenta. Casi todos los indicadores se califican de 1 a 5 (1 es malo, 3 regular y 5 excelente); los de sí/no, como accesibilidad, se convierten a esa misma escala.")}
+    ${p("Las visitas son <strong>anónimas</strong>: llegas como cualquier cliente, consumes y vives la experiencia completa, de la fachada a la cuenta. Casi todos los indicadores se califican de 1 a 5 (1 es malo, 3 regular y 5 excelente); los de sí/no, como accesibilidad e higiene (esta última inspirada en el Distintivo H, sin ser auditoría), se convierten a esa misma escala. Además registras el contexto de la visita: hora, ocupación del lugar, tiempos del servicio y si volverías (1 a 10).")}
     ${p("La calificación general es el <strong>promedio de los promedios</strong> de las categorías, no un promedio plano de los indicadores, y se traduce en un veredicto:")}
     <div style="margin: 0 0 6px;">${bandas}</div>
     ${p("Cada visita termina en un reporte claro para el negocio, con seguimiento personalizado de nuestro equipo. Todo bajo nuestro lema:")}
@@ -91,7 +91,7 @@ export function academyConfirmationEmail(): { subject: string; html: string; tex
     `LO QUE APRENDERÍAS A CALIFICAR: ${TOTAL_ITEM_COUNT} indicadores en ${CATEGORIES.length} categorías`,
     ...CATEGORIES.map((c) => `- ${nombreCat(c.key, c.label)}: ${c.items.length} indicadores (${EJEMPLOS[c.key] ?? ""})`),
     "",
-    "METODOLOGÍA: visitas anónimas; casi todos los indicadores se califican de 1 a 5 y los de sí/no se convierten a esa escala; la calificación general es el promedio de los promedios de las categorías. Más en https://mysterfoodie.com/metodologia/",
+    "METODOLOGÍA: visitas anónimas; casi todos los indicadores se califican de 1 a 5 y los de sí/no se convierten a esa escala (higiene se observa como cliente, inspirada en el Distintivo H); además se registra el contexto de la visita; la calificación general es el promedio de los promedios de las categorías. Más en https://mysterfoodie.com/metodologia/",
     "",
     "ESQUEMAS DE GANANCIAS (si completas la certificación y cumples los requisitos; se paga por reporte entregado):",
     `- Shopper: ${hasta(foodieReporte)} por reporte completo entregado; en planes mensuales ${hasta(foodiePlan)} por visita, recurrente.`,

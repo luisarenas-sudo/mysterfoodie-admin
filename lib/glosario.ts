@@ -6,6 +6,7 @@
  * (mysterfoodie.com: TIPS en web/_src/build.py): si cambia una definición, cámbiala allá también.
  * Módulo SIN dependencias de servidor.
  */
+import { TOTAL_ITEM_COUNT } from "./categories";
 
 export type GlosarioKey =
   | "mysterfoodie"
@@ -32,7 +33,7 @@ export const GLOSARIO: Record<GlosarioKey, GlosarioEntry> = {
     key: "mysterfoodie",
     term: "MysterFoodie",
     emoji: "🕵️",
-    def: "Quien te visita: un profesional de la industria restaurantera que llega como un cliente más, consume, paga su cuenta y evalúa la experiencia con los mismos 52 indicadores. Es un «cliente misterioso» con apellido gastronómico. Todas las personas de nuestro equipo somos MysterFoodies.",
+    def: `Quien te visita: un profesional de la industria restaurantera que llega como un cliente más, consume, paga su cuenta y evalúa la experiencia con los mismos ${TOTAL_ITEM_COUNT} indicadores líderes en el mercado (basados en distintivos y certificaciones actuales además de la metodología de Flanco Izquierdo®). Es un «cliente misterioso» con apellido gastronómico. Todas las personas de nuestro equipo somos MysterFoodies.`,
     short: "así llamamos a nuestros mystery shoppers calificados",
   },
   shopper: {

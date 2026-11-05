@@ -453,7 +453,7 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
     <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">
       ${escapeHtml(annotateFirst("Aquí está el reporte completo de la evaluación que hizo su MysterFoodie, con calificación general de", params.glosario))}
       <strong>${score} / 5 (${verdict.label})</strong>. Va adjunto en PDF con el detalle por categoría,
-      la metodología del estudio y el respaldo de Flanco Izquierdo®.
+      la metodología del estudio (indicadores líderes en el mercado, basados en distintivos y certificaciones actuales) y el respaldo de Flanco Izquierdo®.
     </p>
 
     ${renderGuaranteeBlock()}
