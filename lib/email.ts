@@ -124,6 +124,7 @@ export function renderEmailShell(cardHtml: string): string {
           <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
             MysterFoodie · Evaluaciones objetivas e independientes con el respaldo de
             <a href="https://flancoizquierdo.com/" style="color: #9ca3af; text-decoration: underline;">Flanco Izquierdo®</a>.
+            MysterFoodie es una marca de Flanco Izquierdo®.
           </p>
           <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #9ca3af;">
             ¿Dudas? Estamos en <a href="mailto:hola@mysterfoodie.com" style="color: #9ca3af; text-decoration: underline;">hola@mysterfoodie.com</a>.

@@ -112,10 +112,9 @@ function drawFooter(doc: PDFKit.PDFDocument, pageNumber: number, pageCount: numb
   doc.text("", PAGE_MARGIN, legalY, { continued: true, width: legalW });
   seg("MysterFoodie", "https://mysterfoodie.com/");
   seg(" (mysterfoodie.com)", "https://mysterfoodie.com/");
-  seg(" trabaja con experiencia en el sector, personal calificado y una metodología desarrollada con el respaldo de ");
+  seg(" es una marca de ");
   seg("Flanco Izquierdo®", "https://www.flancoizquierdo.com/");
-  seg(" (www.flancoizquierdo.com)", "https://www.flancoizquierdo.com/");
-  seg(".", undefined, true);
+  seg(" (www.flancoizquierdo.com) y trabaja con experiencia en el sector, personal calificado y una metodología propia.", undefined, true);
   doc.text(`${pageNumber} / ${pageCount}`, doc.page.width - PAGE_MARGIN - 60, bottom + 5, {
     width: 60,
     align: "right",
