@@ -70,7 +70,7 @@ function delta(cur: number, prev: number, unit = ""): Kpi["delta"] {
 const STOP = new Set(
   ("el la los las de del un una unos unas y o en a que es muy poco mas con sin no si fue fueron estaba estuvo pero por para se su sus lo al como tambien este esta estos estas hay habia nos les le hubo era eran todo toda todos todas ser estan estuvieron bien mal algo cosas cosa " +
     "mejor mejorar otros comentarios tiene tienen tuvo cuando donde porque cada solo sobre entre desde hasta ademas aunque pues asi aqui alli mesa mesero meseros visita negocio lugar " +
-    "ambiente fachada atencion alimentos bebidas accesibilidad")
+    "ambiente fachada atencion alimentos bebidas accesibilidad higiene")
     .split(" ")
 );
 const norm = (w: string) => w.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9ñ]/g, "");

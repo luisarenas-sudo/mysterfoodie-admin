@@ -317,6 +317,11 @@ export default function MobileReportePublico({
               );
             })}
           </div>
+          {categories.some((c) => c.key === "higiene") && (
+            <p className="mt-2 text-center text-[11.5px] leading-snug" style={{ color: "rgba(60,60,67,0.5)" }}>
+              Higiene: observación como cliente, inspirada en el Distintivo H.
+            </p>
+          )}
         </div>
       )}
 

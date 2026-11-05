@@ -26,8 +26,10 @@ export default function MobileVisitDetail({
   canDelete?: boolean;
 }) {
   const verdict = getVerdict(visit.overallScore);
-  const mainCategories = visit.categoryScores.filter((c) => c.key !== "accesibilidad");
-  const extraCategory = visit.categoryScores.find((c) => c.key === "accesibilidad");
+  // Categorías de puro Sí/No (Accesibilidad, Higiene) van aparte, convertidas a 1–5.
+  const YES_NO_KEYS = ["accesibilidad", "higiene"];
+  const mainCategories = visit.categoryScores.filter((c) => !YES_NO_KEYS.includes(c.key));
+  const extraCategories = visit.categoryScores.filter((c) => YES_NO_KEYS.includes(c.key) && c.count > 0);
 
   async function share() {
     const shareData = {
@@ -94,8 +96,8 @@ export default function MobileVisitDetail({
           </div>
         </div>
 
-        {extraCategory && (
-          <div className="card mt-2.5 flex items-center gap-3 p-3.5">
+        {extraCategories.map((extraCategory) => (
+          <div key={extraCategory.key} className="card mt-2.5 flex items-center gap-3 p-3.5">
             <ActivityRing value={extraCategory.average} max={5} size={40} strokeWidth={6} color={getVerdict(extraCategory.average).color}>
               <div className="text-[15px]">{CATEGORY_EMOJI[extraCategory.key] ?? "⭐"}</div>
             </ActivityRing>
@@ -107,11 +109,13 @@ export default function MobileVisitDetail({
                 <span style={{ color: "rgba(60,60,67,0.55)" }}>{extraCategory.average}</span>
               </div>
               <div className="mt-0.5 text-[11px]" style={{ color: "rgba(60,60,67,0.45)" }}>
-                Sí/No convertido a 1–5: sí cuenta para el promedio general
+                {extraCategory.key === "higiene"
+                  ? "Observación como cliente, inspirada en el Distintivo H · Sí/No convertido a 1–5"
+                  : "Sí/No convertido a 1–5: sí cuenta para el promedio general"}
               </div>
             </div>
           </div>
-        )}
+        ))}
 
         {visit.comments && (
           <div className="card mt-3.5 p-4">

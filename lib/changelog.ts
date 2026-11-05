@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.33.1",
+    date: "2026-11-05",
+    title: "Higiene y contexto, afinados",
+    emoji: "🧼",
+    highlights: [
+      "Higiene se muestra como tarjeta Sí/No junto a Accesibilidad y lleva la leyenda «observación como cliente, inspirada en el Distintivo H» en el resumen gratis y en el correo del resultado.",
+      "Tener o no el Distintivo H se registra, pero ya no sube ni baja la calificación de Higiene: puntúan solo las conductas observables.",
+      "En Atención, los Sí/No de seguridad y venta sugerida siguen siendo informativos y nunca suplen estrellas que falten.",
+    ],
+  },
+  {
     version: "0.33.0",
     date: "2026-11-05",
     title: "76 indicadores líderes en el mercado",

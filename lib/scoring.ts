@@ -1,4 +1,4 @@
-import { CATEGORIES } from "./categories";
+import { CATEGORIES, UNSCORED_KEYS } from "./categories";
 
 /** Calificaciones de indicadores tipo estrella: item key -> score (1-5). */
 export type Ratings = Record<string, number>;
@@ -33,7 +33,11 @@ export function categoryScores(ratings: Ratings, flags: Flags = {}): CategorySco
       return { key: cat.key, label: cat.label, average, count: values.length };
     }
 
-    const boolKeys = cat.items.filter((i) => i.type === "boolean").map((i) => i.key);
+    // Solo las categorías sin estrellas (Accesibilidad, Higiene) puntúan con Sí/No; en las demás
+    // los Sí/No son informativos y no suplen estrellas faltantes.
+    if (starKeys.length > 0) return { key: cat.key, label: cat.label, average: 0, count: 0 };
+
+    const boolKeys = cat.items.filter((i) => i.type === "boolean" && !UNSCORED_KEYS.has(i.key)).map((i) => i.key);
     const boolValues = boolKeys
       .map((k) => flags[k])
       .filter((v): v is boolean => typeof v === "boolean");

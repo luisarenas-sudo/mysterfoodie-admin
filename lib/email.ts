@@ -164,7 +164,11 @@ function renderCategoryRows(categoryScores: CategoryScore[]): string {
     .map(
       (c) => `
         <tr>
-          <td style="padding: 14px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; font-weight: bold; color: #111827;">${escapeHtml(c.label)}</td>
+          <td style="padding: 14px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; font-weight: bold; color: #111827;">${escapeHtml(c.label)}${
+            c.key === "higiene"
+              ? `<br /><span style="font-size: 12px; font-weight: normal; color: #9ca3af;">Observación como cliente, inspirada en el Distintivo H</span>`
+              : ""
+          }</td>
           <td style="padding: 14px 0; border-bottom: 1px solid #eef0f3; font-size: 15px; font-weight: bold; color: #111827; text-align: right;">${c.average.toFixed(1)} / 5</td>
         </tr>
       `

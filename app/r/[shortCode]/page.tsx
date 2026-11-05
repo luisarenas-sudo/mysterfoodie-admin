@@ -467,6 +467,11 @@ export default async function ReportPage({
               </div>
             );
           })}
+          {visibleCategories.some((c) => c.key === "higiene") && (
+            <p className="col-span-2 text-center text-xs text-stone-400">
+              Higiene: observación como cliente, inspirada en el Distintivo H.
+            </p>
+          )}
         </div>
       )}
 

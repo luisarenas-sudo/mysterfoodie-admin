@@ -223,6 +223,13 @@ export const CATEGORIES: Category[] = [
 ];
 
 /**
+ * Indicadores que se registran y se muestran pero NO entran al promedio de su categoría:
+ * el Distintivo H es voluntario y de pago, y no por no tenerlo un lugar es menos higiénico;
+ * lo que puntúa son las conductas observables.
+ */
+export const UNSCORED_KEYS: ReadonlySet<string> = new Set(["higiene_distintivo_h"]);
+
+/**
  * Datos de contexto de la visita que también cuentan como indicadores (se capturan en
  * todas las visitas con el mismo protocolo, fuera de las categorías):
  *  - ocupación del lugar: primer paso de la visita (sirve para interpretar la calificación);
