@@ -79,6 +79,19 @@ export async function POST(req: NextRequest) {
           ratings: Object.fromEntries(STAR_ITEMS.map((i, n) => [i.key, 3 + (n % 3)])),
           flags: Object.fromEntries(BOOLEAN_ITEMS.map((i, n) => [i.key, n % 2 === 0])),
           menuType: "fisico_qr",
+          context: {
+            startedAt: new Date(Date.now() - 62 * 60000).toISOString(),
+            endedAt: new Date().toISOString(),
+            occupancy: "media",
+            stamps: {
+              atendido: new Date(Date.now() - 59 * 60000).toISOString(),
+              bebida: new Date(Date.now() - 52 * 60000).toISOString(),
+              platillo: new Date(Date.now() - 38 * 60000).toISOString(),
+              cuenta: new Date(Date.now() - 12 * 60000).toISOString(),
+            },
+            wouldReturn: 8,
+            invoiceOffered: "si",
+          },
           comments: "Comentarios de ejemplo del MysterFoodie: el servicio fue cálido y la comida llegó caliente; sugerimos reforzar la limpieza de baños en hora pico.",
         });
         const contactWhatsapp = process.env.ADMIN_CONTACT_WHATSAPP;

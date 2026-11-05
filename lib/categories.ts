@@ -27,8 +27,8 @@ export type Category = {
 /**
  * Estructura real de indicadores usada por MysterFoodie, tomada del
  * cuestionario que ya se usa en produccion (mysterfoodie.com/admin).
- * Se agrupa en 5 categorias; el promedio general de una visita es el
- * promedio de los 5 promedios de categoria (no un promedio plano de
+ * Se agrupa en 6 categorias; el promedio general de una visita es el
+ * promedio de los 6 promedios de categoria (no un promedio plano de
  * todos los indicadores).
  *
  * Dentro de cada categoria, los items que comparten `group` (ej. varios
@@ -113,10 +113,23 @@ export const CATEGORIES: Category[] = [
       { key: "atencion_uniformes_bonitos", label: "Bonitos", type: "star", group: "Uniformes" },
       { key: "atencion_uniformes_limpios", label: "Limpios", type: "star", group: "Uniformes" },
       { key: "atencion_uniformes_sin_arrugas", label: "Sin arrugas", type: "star", group: "Uniformes" },
+      // Limpieza de lo que llega a la mesa y seguridad visible (indicadores de nivel Distintivo H / Protección Civil).
+      { key: "atencion_vajilla_platos", label: "Platos", type: "star", group: "Limpieza del servicio" },
+      { key: "atencion_vajilla_cubiertos", label: "Cubiertos", type: "star", group: "Limpieza del servicio" },
+      { key: "atencion_vajilla_vasos", label: "Vasos", type: "star", group: "Limpieza del servicio" },
+      { key: "atencion_seguridad_senaletica", label: "Señalética visible", type: "boolean", group: "Seguridad" },
+      { key: "atencion_seguridad_extintor", label: "Extintor a la vista", type: "boolean", group: "Seguridad" },
+      { key: "atencion_seguridad_salida", label: "Salida de emergencia señalizada", type: "boolean", group: "Seguridad" },
       { key: "atencion_gerente_visito_mesa", label: "Gerente: visitó la mesa", type: "star" },
       { key: "atencion_pago_rapidez", label: "Rapidez de cuenta", type: "star", group: "Pago" },
       { key: "atencion_pago_cuenta_clara", label: "Cuenta clara", type: "star", group: "Pago" },
       { key: "atencion_pago_tarjetas", label: "Tarjetas de crédito", type: "star", group: "Pago" },
+      {
+        key: "atencion_pago_venta_sugerida",
+        label: "El mesero sugirió postre, especialidades de la casa o recomendados",
+        type: "boolean",
+        group: "Pago",
+      },
     ],
   },
   {
@@ -165,7 +178,94 @@ export const CATEGORIES: Category[] = [
       { key: "accesibilidad_menu_braille", label: "Menú en braile", type: "boolean" },
     ],
   },
+  {
+    // Lo que un cliente puede observar sentado en el comedor de los criterios de higiene del
+    // Distintivo H (Sectur). No es una auditoría ni otorga ni sustituye el distintivo.
+    key: "higiene",
+    label: "Higiene",
+    items: [
+      { key: "higiene_personal_cabello", label: "Cabello recogido o cubierto", type: "boolean", group: "Personal" },
+      { key: "higiene_personal_unas", label: "Uñas cortas y limpias", type: "boolean", group: "Personal" },
+      { key: "higiene_personal_joyeria", label: "Sin anillos, pulseras ni reloj al servir", type: "boolean", group: "Personal" },
+      {
+        key: "higiene_personal_conducta",
+        label: "Sin comer, fumar ni masticar chicle frente al cliente",
+        type: "boolean",
+        group: "Personal",
+      },
+      {
+        key: "higiene_manejo_vajilla",
+        label: "Vajilla y cubiertos tomados sin tocar donde se come o bebe",
+        type: "boolean",
+        group: "Manejo de alimentos y bebidas",
+      },
+      { key: "higiene_manejo_hielo", label: "Hielo servido con pinzas o cucharón", type: "boolean", group: "Manejo de alimentos y bebidas" },
+      {
+        key: "higiene_manejo_pinzas",
+        label: "Alimentos listos para comer, con pinzas o guantes",
+        type: "boolean",
+        group: "Manejo de alimentos y bebidas",
+      },
+      {
+        key: "higiene_manejo_quimicos",
+        label: "Sin químicos de limpieza junto a alimentos o bebidas",
+        type: "boolean",
+        group: "Manejo de alimentos y bebidas",
+      },
+      { key: "higiene_banos_lavabo", label: "Agua, jabón y toallas o secador", type: "boolean", group: "Sanitarios del cliente" },
+      { key: "higiene_banos_cartel", label: "Cartel de lavado de manos", type: "boolean", group: "Sanitarios del cliente" },
+      { key: "higiene_banos_bote", label: "Bote de basura con tapa", type: "boolean", group: "Sanitarios del cliente" },
+      { key: "higiene_plagas", label: "Sin plagas a la vista (moscas, cucarachas, roedores)", type: "boolean", group: "Plagas y basura" },
+      { key: "higiene_basura", label: "Botes de basura tapados y sin desbordar", type: "boolean", group: "Plagas y basura" },
+      { key: "higiene_distintivo_h", label: "Distintivo H vigente a la vista", type: "boolean", group: "Distintivo" },
+    ],
+  },
 ];
+
+/**
+ * Datos de contexto de la visita que también cuentan como indicadores (se capturan en
+ * todas las visitas con el mismo protocolo, fuera de las categorías):
+ *  - ocupación del lugar: primer paso de la visita (sirve para interpretar la calificación);
+ *  - facturación: junto a la carga del ticket de consumo;
+ *  - «¿volverías?» de 1 a 10: último paso (no entra al promedio de categorías).
+ */
+export const CONTEXT_SELECT_ITEMS: CategoryItem[] = [
+  {
+    key: "contexto_ocupacion",
+    label: "¿Qué tan lleno estaba el lugar?",
+    type: "select",
+    options: [
+      { value: "vacio", label: "Casi vacío" },
+      { value: "poca", label: "Poca gente" },
+      { value: "media", label: "Medio lleno" },
+      { value: "llena", label: "Lleno" },
+      { value: "espera", label: "Lleno y con espera" },
+    ],
+  },
+];
+export const OCCUPANCY_LABEL: Record<string, string> = Object.fromEntries(
+  (CONTEXT_SELECT_ITEMS[0].options ?? []).map((o) => [o.value, o.label])
+);
+
+/** ¿Facturan? Se contesta junto a la foto del ticket de consumo. */
+export const INVOICE_OPTIONS: SelectOption[] = [
+  { value: "si", label: "Sí facturan" },
+  { value: "no", label: "No facturan" },
+  { value: "no_ofrecio", label: "No me lo ofrecieron" },
+];
+export const INVOICE_LABEL: Record<string, string> = Object.fromEntries(INVOICE_OPTIONS.map((o) => [o.value, o.label]));
+
+/** Hitos de servicio con sello de hora (se marcan con un toque durante la visita). */
+export const SERVICE_STAMPS = [
+  { key: "atendido", label: "Me atendieron", short: "Atención", emoji: "👋" },
+  { key: "bebida", label: "Llegó la bebida", short: "Bebida", emoji: "🥤" },
+  { key: "platillo", label: "Llegó el platillo", short: "Platillo", emoji: "🍽️" },
+  { key: "cuenta", label: "Llegó la cuenta", short: "Cuenta", emoji: "🧾" },
+] as const;
+export type ServiceStampKey = (typeof SERVICE_STAMPS)[number]["key"];
+
+/** Indicadores fuera de las categorías: ocupación, facturación y «¿volverías?». */
+export const EXTRA_INDICATOR_COUNT = CONTEXT_SELECT_ITEMS.length + 2;
 
 export const STAR_ITEMS = CATEGORIES.flatMap((c) =>
   c.items
@@ -186,7 +286,7 @@ export const SELECT_ITEMS = CATEGORIES.flatMap((c) =>
 );
 
 export const TOTAL_ITEM_COUNT =
-  STAR_ITEMS.length + BOOLEAN_ITEMS.length + SELECT_ITEMS.length;
+  STAR_ITEMS.length + BOOLEAN_ITEMS.length + SELECT_ITEMS.length + EXTRA_INDICATOR_COUNT;
 
 export const BUSINESS_TYPES = [
   { value: "restaurante", label: "Restaurante" },

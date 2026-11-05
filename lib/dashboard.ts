@@ -146,6 +146,10 @@ export type ClientDetail = {
   hasGoogleBusiness: boolean;
   hasProfessionalPhotos: boolean;
   hasReels: boolean;
+  /** Servicio a domicilio: por teléfono, por WhatsApp y/o por app móvil. */
+  deliveryPhone: boolean;
+  deliveryWhatsapp: boolean;
+  deliveryApp: boolean;
   autoEmailEnabled: boolean;
   visits: VisitDetail[];
   improvementKeywords: ImprovementKeyword[];
@@ -195,7 +199,7 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
   const { data: client } = await db
     .from("clients")
     .select(
-      "id, name, type, city, instagram_handle, email, phone, contact_name, created_by, has_website, has_google_business, has_professional_photos, has_reels, auto_email_enabled"
+      "id, name, type, city, instagram_handle, email, phone, contact_name, created_by, has_website, has_google_business, has_professional_photos, has_reels, delivery_phone, delivery_whatsapp, delivery_app, auto_email_enabled"
     )
     .eq("id", id)
     .maybeSingle();
@@ -256,6 +260,9 @@ export async function getClientDetail(id: string): Promise<ClientDetail | null> 
     hasGoogleBusiness: Boolean(client.has_google_business),
     hasProfessionalPhotos: Boolean(client.has_professional_photos),
     hasReels: Boolean(client.has_reels),
+    deliveryPhone: Boolean(client.delivery_phone),
+    deliveryWhatsapp: Boolean(client.delivery_whatsapp),
+    deliveryApp: Boolean(client.delivery_app),
     autoEmailEnabled: client.auto_email_enabled ?? true,
     visits,
     improvementKeywords: extractImprovementKeywords(visits.map((v) => v.comments)),
@@ -291,6 +298,8 @@ export type VisitFullDetail = {
   ticketUploadedAt: string | null;
   ticketEmailSentAt: string | null;
   consumptionTotal: number | null;
+  /** ¿Facturan?: si | no | no_ofrecio (se contesta junto al ticket). */
+  invoiceOffered: string | null;
   partySize: number | null;
   /** El negocio ya tiene el reporte completo (pagado o de plan): el aviso del ticket no lleva oferta. */
   reportUnlocked: boolean;
@@ -313,7 +322,7 @@ export async function getVisitDetail(
   let query = db
     .from("forms")
     .select(
-      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments, created_by, ticket_photo_path, ticket_uploaded_at, ticket_email_sent_at, consumption_total, party_size, report_unlocked_at, plan_id"
+      "id, client_id, short_code, report_url, overall_score, created_at, shopper_name, waiter_name, comments, created_by, ticket_photo_path, ticket_uploaded_at, ticket_email_sent_at, consumption_total, party_size, invoice_offered, report_unlocked_at, plan_id"
     )
     .eq("id", formId);
   // Un agente/sibarita solo puede ver el detalle de visitas que él mismo
@@ -401,6 +410,7 @@ export async function getVisitDetail(
     ticketUploadedAt: form.ticket_uploaded_at ?? null,
     ticketEmailSentAt: form.ticket_email_sent_at ?? null,
     consumptionTotal: form.consumption_total != null ? Number(form.consumption_total) : null,
+    invoiceOffered: (form.invoice_offered as string | null) ?? null,
     partySize: form.party_size ?? null,
     reportUnlocked: Boolean(form.report_unlocked_at || form.plan_id),
   };

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { INVOICE_OPTIONS } from "@/lib/categories";
 
 /**
  * Total del consumo (MXN) y cuántas personas fueron en la visita. Se captura antes de subir la foto del ticket.
- * PATCH { consumptionTotal: number | null, partySize: number | null }. Lo puede tocar el Master Chef o quien levantó la visita.
+ * PATCH { consumptionTotal?: number | null, partySize?: number | null, invoiceOffered?: "si" | "no" | "no_ofrecio" | null }. Lo puede tocar el Master Chef o quien levantó la visita.
  */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ formId: string }> }) {
   const { formId } = await params;
@@ -15,10 +16,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ fo
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const body = (await req.json().catch(() => null)) as { consumptionTotal?: unknown; partySize?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { consumptionTotal?: unknown; partySize?: unknown; invoiceOffered?: unknown } | null;
   if (!body) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
 
-  const patch: Record<string, number | null> = {};
+  const patch: Record<string, number | string | null> = {};
+  if ("invoiceOffered" in body) {
+    if (body.invoiceOffered === null || body.invoiceOffered === "") patch.invoice_offered = null;
+    else if (INVOICE_OPTIONS.some((o) => o.value === body.invoiceOffered)) patch.invoice_offered = body.invoiceOffered as string;
+    else return NextResponse.json({ error: "Opción de facturación inválida." }, { status: 400 });
+  }
   if ("consumptionTotal" in body) {
     if (body.consumptionTotal === null || body.consumptionTotal === "") patch.consumption_total = null;
     else {

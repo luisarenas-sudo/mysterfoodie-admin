@@ -1,6 +1,7 @@
 import { getSupabaseServiceClient } from "./supabase";
 import { categoryScores, overallScore, type Ratings } from "./scoring";
 import { buildReportPdf } from "./reportPdf";
+import { buildVisitContext, VISIT_CONTEXT_COLUMNS } from "./visitContext";
 import { fullReportSubject, sendFullReportEmail, sendPaymentReceiptEmail, receiptSubject, type SendEmailOutcome } from "./email";
 import { FULL_REPORT_PRICE_MXN } from "./mercadopago";
 import { TOTAL_ITEM_COUNT } from "./categories";
@@ -78,7 +79,7 @@ export async function deliverFullReportEmail(
   const score = form.overall_score || overallScore(ratings, flags);
 
   // Si la visita ya tiene foto del ticket de consumo, va como página del PDF.
-  const { data: ticketRow } = await db.from("forms").select("ticket_photo_path, menu_type, comments").eq("id", form.id).maybeSingle();
+  const { data: ticketRow } = await db.from("forms").select(`ticket_photo_path, menu_type, comments, ${VISIT_CONTEXT_COLUMNS}`).eq("id", form.id).maybeSingle();
   const ticketImage = await downloadTicket(db, ticketRow?.ticket_photo_path ?? null);
 
   const pdfBuffer = await buildReportPdf({
@@ -94,6 +95,7 @@ export async function deliverFullReportEmail(
     flags,
     menuType: ticketRow?.menu_type ?? null,
     comments: ticketRow?.comments ?? null,
+    context: buildVisitContext(ticketRow as Record<string, unknown> | null),
     demo: opts.demo,
   });
 

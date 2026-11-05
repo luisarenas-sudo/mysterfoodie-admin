@@ -9,6 +9,8 @@ import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import ShareResultButton from "@/components/ShareResultButton";
 import ReportLeadEmail from "@/components/ReportLeadEmail";
 import { CATEGORIES, TOTAL_ITEM_COUNT, groupCategoryItems, type CategoryItem } from "@/lib/categories";
+import { HIGIENE_NOTE, type VisitContext } from "@/lib/visitContext";
+import VisitContextCard from "@/components/VisitContextCard";
 import type { Ratings } from "@/lib/scoring";
 import ActivityRing from "./ActivityRing";
 import FlancoCredit from "@/components/FlancoCredit";
@@ -68,6 +70,7 @@ function FullDetail({
   menuType,
   comments,
   ticketHref,
+  context,
 }: {
   ratings: Ratings;
   flags: Record<string, boolean>;
@@ -75,15 +78,22 @@ function FullDetail({
   comments: string | null;
   /** Foto del ticket de consumo (solo se pasa si la visita la tiene). */
   ticketHref?: string | null;
+  context?: VisitContext | null;
 }) {
   return (
     <div className="px-5 pb-8 pt-2">
+      <VisitContextCard context={context ?? null} variant="mobile" />
       {CATEGORIES.map((cat) => (
         <div key={cat.key} className="mb-5">
           <div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>
             <span>{CATEGORY_EMOJI[cat.key] ?? "⭐"}</span>
             {cat.label}
           </div>
+          {cat.key === "higiene" && (
+            <p className="mb-2 text-[11.5px] leading-snug" style={{ color: "rgba(60,60,67,0.5)" }}>
+              {HIGIENE_NOTE}
+            </p>
+          )}
           <div className="card overflow-hidden px-4">
             {groupCategoryItems(cat.items).flatMap((block) =>
               block.kind === "standalone"
@@ -155,11 +165,13 @@ export default function MobileReportePublico({
   menuType,
   comments,
   hasTicket = false,
+  visitContext = null,
   teaser = null,
   askEmail = false,
 }: {
   /** La visita tiene foto del ticket de consumo. */
   hasTicket?: boolean;
+  visitContext?: VisitContext | null;
   /** Adelanto concreto de la visita (solo texto) mientras el reporte está bloqueado. */
   teaser?: { emoji: string; title: string; detail: string } | null;
   /** Pedir el correo del negocio («Recibe tu resumen por correo») mientras el reporte está bloqueado. */
@@ -309,7 +321,7 @@ export default function MobileReportePublico({
       )}
 
       {unlocked ? (
-        <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} />
+        <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} context={visitContext} />
       ) : requested ? (
         <>
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>

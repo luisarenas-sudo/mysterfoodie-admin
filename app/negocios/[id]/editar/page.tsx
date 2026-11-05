@@ -38,6 +38,9 @@ export default async function EditarNegocioPage({ params }: { params: Promise<{ 
           hasGoogleBusiness: client.hasGoogleBusiness,
           hasProfessionalPhotos: client.hasProfessionalPhotos,
           hasReels: client.hasReels,
+          deliveryPhone: client.deliveryPhone,
+          deliveryWhatsapp: client.deliveryWhatsapp,
+          deliveryApp: client.deliveryApp,
         }}
       />
 

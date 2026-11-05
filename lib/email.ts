@@ -215,7 +215,7 @@ export function renderEmailHtml(params: SendResultEmailParams): string {
           ? "Su calificación y el resumen por categoría los esperan en su reporte."
           : `Este resumen muestra solo las ${rated} categorías generales.`
       }
-      El estudio completo evalúa <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, etc.)
+      El estudio completo evalúa <strong>${TOTAL_ITEM_COUNT} indicadores detallados</strong> (tiempos de atención, temperatura, limpieza, higiene, etc.), indicadores líderes en el mercado basados en distintivos y certificaciones actuales además de la metodología de Flanco Izquierdo®,
       y ${
         params.requested
           ? `ahí mismo pueden programar su visita ($${FULL_REPORT_PRICE_MXN} MXN + el consumo de la visita; si necesitan factura, el total con IVA es $${FULL_REPORT_PRICE_WITH_IVA_MXN} MXN) o conocer nuestros paquetes.`

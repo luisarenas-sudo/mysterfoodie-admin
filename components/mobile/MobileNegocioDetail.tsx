@@ -372,6 +372,20 @@ export default function MobileNegocioDetail({
 
         {!ownerView && <ContactCard client={client} canEdit={canEdit} />}
 
+        {!ownerView && (
+          <div className="card mx-5 mt-3 flex items-center gap-3 p-4">
+            <div className="flex-shrink-0"><Pix e="🛵" size={24} /></div>
+            <div className="min-w-0">
+              <div className="text-[14.5px] font-semibold">Servicio a domicilio</div>
+              <div className="mt-0.5 text-[12.5px]" style={{ color: "rgba(60,60,67,0.55)" }}>
+                {[client.deliveryPhone && "Teléfono", client.deliveryWhatsapp && "WhatsApp", client.deliveryApp && "App móvil"]
+                  .filter(Boolean)
+                  .join(" · ") || "Sin servicio a domicilio registrado"}
+              </div>
+            </div>
+          </div>
+        )}
+
         {bitacoraSlot && <div className="mx-5 mb-4 mt-4">{bitacoraSlot}</div>}
 
         {canDelete && (

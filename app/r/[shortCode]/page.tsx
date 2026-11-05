@@ -25,6 +25,8 @@ import { getShareData, starsText } from "@/lib/reportShare";
 import { isRequestedVisit } from "@/lib/visitRequests";
 import { PACKAGES_URL, PROGRAM_VISIT_URL } from "@/lib/links";
 import { buildTeaser } from "@/lib/reportTeaser";
+import { buildVisitContext, VISIT_CONTEXT_COLUMNS, HIGIENE_NOTE, type VisitContext } from "@/lib/visitContext";
+import VisitContextCard from "@/components/VisitContextCard";
 import ShareResultButton from "@/components/ShareResultButton";
 import ReportLeadEmail from "@/components/ReportLeadEmail";
 
@@ -40,7 +42,7 @@ async function loadReport(shortCode: string) {
 
   const { data: form } = await db
     .from("forms")
-    .select("id, overall_score, created_at, client_id, report_unlocked_at, menu_type, comments, ticket_photo_path")
+    .select(`id, overall_score, created_at, client_id, report_unlocked_at, menu_type, comments, ticket_photo_path, ${VISIT_CONTEXT_COLUMNS}`)
     .eq("short_code", shortCode)
     .maybeSingle();
 
@@ -147,7 +149,9 @@ function FullReportDetail({
   comments,
   ticketHref,
   averages,
+  context,
 }: {
+  context?: VisitContext | null;
   averages: Record<string, number>;
   ratings: Ratings;
   flags: Record<string, boolean>;
@@ -157,6 +161,7 @@ function FullReportDetail({
 }) {
   return (
     <div className="mt-10 space-y-8">
+      <VisitContextCard context={context ?? null} variant="desktop" />
       <h2 className="heading text-xl text-ink">Detalle completo por indicador</h2>
       {CATEGORIES.map((cat) => (
         <div key={cat.key}>
@@ -172,6 +177,7 @@ function FullReportDetail({
               </span>
             )}
           </h3>
+          {cat.key === "higiene" && <p className="mt-2 text-xs text-stone-400">{HIGIENE_NOTE}</p>}
           <div className="mt-3 space-y-3">
             {groupCategoryItems(cat.items).map((block, blockIdx) =>
               block.kind === "standalone" ? (
@@ -357,6 +363,7 @@ export default async function ReportPage({
         menuType={unlocked ? form.menu_type : null}
         comments={unlocked ? form.comments : null}
         hasTicket={Boolean(form.ticket_photo_path)}
+        visitContext={unlocked ? buildVisitContext(form as Record<string, unknown>) : null}
         teaser={askEmail ? null : teaser}
         askEmail={askEmail}
       />
@@ -489,6 +496,7 @@ export default async function ReportPage({
           menuType={form.menu_type}
           comments={form.comments}
           ticketHref={form.ticket_photo_path ? `/r/${shortCode}/ticket` : null}
+          context={buildVisitContext(form as Record<string, unknown>)}
           averages={Object.fromEntries(visibleCategories.map((c) => [c.key, c.average]))}
         />
       ) : requested ? (

@@ -41,12 +41,15 @@ cuentas" mas abajo.
 
 1. Un agente o admin inicia sesion y se captura el negocio (nombre, tipo, usuario de
    Instagram, correo opcional, ciudad, etc.)
-2. Se recorre un wizard con barra de progreso, dividido en 5 categorias reales del
-   cuestionario (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad; 52 indicadores en total:
-   46 tipo estrella, 5 Si/No y 1 selector de tipo de menu), mas un paso final de
-   comentarios libres opcionales. Ver `lib/categories.ts` para el detalle exacto.
-3. El promedio general de la visita es el promedio de los 5 promedios de categoria (no
-   un promedio plano de los 52 indicadores) - ver `lib/scoring.ts`.
+2. Se recorre un wizard con barra de progreso, dividido en 6 categorias reales del
+   cuestionario (Fachada, Ambiente, Atencion, Alimentos, Accesibilidad, Higiene; 76 indicadores en total:
+   49 tipo estrella, 23 Si/No, 1 selector de tipo de menu y 3 de contexto de la visita: ocupacion,
+   facturan y volverias 1-10), mas un paso inicial "Tu visita" (fecha, hora de llegada, ocupacion y
+   sellos de hora del servicio) y un paso final de comentarios libres. Son "indicadores lideres en el
+   mercado (basados en distintivos y certificaciones actuales ademas de la metodologia de Flanco
+   Izquierdo(R))". Ver `lib/categories.ts` para el detalle exacto.
+3. El promedio general de la visita es el promedio de los 6 promedios de categoria (no
+   un promedio plano de los 76 indicadores) - ver `lib/scoring.ts`.
 4. Al enviar: se guarda en Supabase (`clients`, `forms`, `form_ratings`, `form_flags`), se
    calcula el promedio, se intenta enviar el correo (`email_confirmations` guarda el
    resultado del envio), y se muestra en pantalla:

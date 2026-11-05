@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.33.0",
+    date: "2026-11-05",
+    title: "76 indicadores líderes en el mercado",
+    emoji: "🧼",
+    highlights: [
+      "Nueva categoría Higiene, con criterios observables inspirados en el Distintivo H, y en Atención: limpieza de platos, cubiertos y vasos, señalética, extintor, salida de emergencia y venta sugerida.",
+      "Tu visita arranca con un paso nuevo: fecha, hora de llegada, qué tan lleno estaba el lugar y sellos de hora de atención, bebida, platillo y cuenta.",
+      "Al final se califica del 1 al 10 si volverías, y junto al ticket se marca si facturan.",
+      "Al dar de alta un negocio se registra si tiene servicio a domicilio por teléfono, WhatsApp o app móvil.",
+      "El PDF y el reporte en línea muestran el contexto de la visita y la nota de Higiene (observación como cliente, no es auditoría ni el Distintivo H).",
+    ],
+  },
+  {
     version: "0.32.0",
     date: "2026-11-03",
     title: "Guardar la visita, al instante",

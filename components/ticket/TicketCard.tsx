@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/imageCompress";
+import { INVOICE_OPTIONS } from "@/lib/categories";
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "long", timeZone: "America/Mexico_City" });
@@ -21,6 +22,7 @@ export default function TicketCard({
   reportUnlocked,
   consumptionTotal = null,
   partySize = null,
+  invoiceOffered = null,
   variant = "mobile",
 }: {
   formId: string;
@@ -30,6 +32,7 @@ export default function TicketCard({
   reportUnlocked: boolean;
   consumptionTotal?: number | null;
   partySize?: number | null;
+  invoiceOffered?: string | null;
   variant?: "mobile" | "desktop";
 }) {
   const router = useRouter();
@@ -41,6 +44,27 @@ export default function TicketCard({
   const [total, setTotal] = useState(consumptionTotal != null ? String(consumptionTotal) : "");
   const [people, setPeople] = useState(partySize != null ? String(partySize) : "");
   const [saved, setSaved] = useState<"idle" | "saving" | "ok">("idle");
+  const [invoice, setInvoice] = useState<string | null>(invoiceOffered);
+
+  // ¿Facturan? Se guarda con un toque (sin botón aparte).
+  async function saveInvoice(value: string | null) {
+    const previous = invoice;
+    setInvoice(value);
+    setError(null);
+    try {
+      const res = await fetch(`/api/visits/${formId}/consumo`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceOffered: value }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo guardar.");
+      router.refresh();
+    } catch (e) {
+      setInvoice(previous);
+      setError(e instanceof Error ? e.message : "No se pudo guardar.");
+    }
+  }
 
   const dirty =
     total.trim() !== (consumptionTotal != null ? String(consumptionTotal) : "") ||
@@ -167,6 +191,31 @@ export default function TicketCard({
             style={{ background: "#F2F2F7", border: "1px solid rgba(60,60,67,0.1)" }}
           />
         </label>
+      </div>
+      <div className="mt-3">
+        <span className="text-[12px] font-semibold" style={muted}>¿Facturan?</span>
+        <div className="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-label="¿Facturan?">
+          {INVOICE_OPTIONS.map((o) => {
+            const on = invoice === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => saveInvoice(on ? null : o.value)}
+                className="rounded-full px-3.5 py-2 text-[13.5px] font-semibold"
+                style={{
+                  background: on ? "#1C1C1E" : "#F2F2F7",
+                  color: on ? "#fff" : "rgba(60,60,67,0.8)",
+                  border: "1px solid rgba(60,60,67,0.1)",
+                }}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {(dirty || saved === "ok") && (
         <button

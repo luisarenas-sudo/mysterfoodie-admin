@@ -4,7 +4,8 @@ import path from "path";
 import { getVerdict, VERDICT_BANDS } from "./verdict";
 import type { CategoryScore, Ratings, Flags } from "./scoring";
 import { TOTAL_ITEM_COUNT, CATEGORIES, BUSINESS_TYPES, groupCategoryItems, type CategoryItem } from "./categories";
-import { FOODIE_PROFILE, PALABRA_FOODIE_QUOTE } from "./brand";
+import { FOODIE_PROFILE, PALABRA_FOODIE_QUOTE, LEADING_INDICATORS_CLAIM } from "./brand";
+import { contextRows, HIGIENE_NOTE, type VisitContext } from "./visitContext";
 
 export type ReportPdfParams = {
   businessName: string;
@@ -23,6 +24,8 @@ export type ReportPdfParams = {
   comments?: string | null;
   /** Demo gratis (sin pago): marca de agua "GRATIS" muy clara en todas las páginas, a manera de sello CONFIDENCIAL. */
   demo?: boolean;
+  /** Contexto de la visita (hora, ocupación, tiempos de servicio, facturan, volvería). Visitas anteriores no lo tienen. */
+  context?: VisitContext | null;
 };
 
 const RED = "#F24444";
@@ -39,9 +42,11 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   ambiente:
     "Limpieza de salón, barra, terraza y baños; mobiliario, orden, ventilación y música ambiental.",
   atencion:
-    "Desempeño del mesero (presentación, conocimiento del menú, atención y acompañamiento a la mesa), uniformes, visita del gerente y rapidez/claridad del pago.",
+    "Desempeño del mesero (presentación, conocimiento del menú, atención y acompañamiento a la mesa), uniformes, limpieza de vajilla, seguridad (señalética, extintor y salida de emergencia), visita del gerente, venta sugerida y claridad del pago.",
   alimentos: "Tiempo de entrega, temperatura, presentación y sabor de lo que se ordenó.",
   accesibilidad: "Sillas altas para niños, rampas, baño para sillas de ruedas y menú en braille.",
+  higiene:
+    "Lo observable como cliente de los criterios de higiene del Distintivo H: aseo del personal, manejo de alimentos y vajilla, sanitarios, plagas y basura.",
 };
 
 /** Ruta del logo (versión ligera de 420 px). Se pasa como ruta, no como Buffer, para que pdfkit lo incruste una sola vez aunque salga en todas las páginas. */
@@ -405,7 +410,33 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
           .text("Esta visita no registró indicadores calificados por categoría.", PAGE_MARGIN, rowY);
       }
 
-      // ---------- Detalle por indicador (los 52) + comentarios ----------
+      // ---------- Contexto de la visita ----------
+      const ctxRows = params.context ? contextRows(params.context) : [];
+      if (ctxRows.length > 0) {
+        doc.addPage();
+        drawHeader(doc, logo);
+        doc.fontSize(18).fillColor(INK).text("Contexto de la visita", PAGE_MARGIN, 150);
+        doc
+          .fontSize(10.5)
+          .fillColor(MUTED)
+          .text(
+            "Cuándo fue, qué tan lleno estaba el lugar y cuánto tardó cada momento del servicio, medido con la hora real de la visita.",
+            PAGE_MARGIN,
+            doc.y + 6,
+            { width: contentWidth, lineGap: 3 }
+          );
+        let cy = doc.y + 18;
+        for (const r of ctxRows) {
+          doc.fontSize(10).fillColor(MUTED).text(r.label, PAGE_MARGIN + 8, cy + 2, { width: contentWidth * 0.5, lineBreak: false });
+          doc.font("Helvetica-Bold").fontSize(10.5).fillColor(INK).text(r.value, PAGE_MARGIN, cy + 2, { width: contentWidth - 8, align: "right", lineBreak: false });
+          doc.font("Helvetica");
+          doc.moveTo(PAGE_MARGIN, cy + 20).lineTo(PAGE_MARGIN + contentWidth, cy + 20).lineWidth(0.5).strokeColor("#EEEAE7").stroke();
+          cy += 26;
+        }
+        doc.fontSize(9).fillColor(LIGHT_MUTED).text("Los tiempos se cuentan desde la llegada del MysterFoodie al negocio.", PAGE_MARGIN, cy + 10, { width: contentWidth });
+      }
+
+      // ---------- Detalle por indicador (todos) + comentarios ----------
       if (ratings) {
         const rowH = 20;
         const limit = doc.page.height - 72;
@@ -429,6 +460,10 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
           if (y + 70 > limit) startPage("Detalle por indicador");
           doc.fontSize(11).fillColor(RED).text(cat.label.toUpperCase(), PAGE_MARGIN, y, { characterSpacing: 1 });
           y += 22;
+          if (cat.key === "higiene") {
+            doc.fontSize(8.5).fillColor(LIGHT_MUTED).text(HIGIENE_NOTE, PAGE_MARGIN + 8, y - 2, { width: contentWidth - 16, lineGap: 2 });
+            y = doc.y + 8;
+          }
 
           for (const row of flattenItems(cat.items)) {
             const need = rowH + (row.heading ? 20 : 0);
@@ -505,6 +540,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
       const methodologyParagraphs = [
         `MysterFoodie evalúa negocios de alimentos y bebidas a través de visitas anónimas realizadas por MysterFoodies: ${FOODIE_PROFILE}. Visitan el negocio como clientes reales, pagando su cuenta con propina incluida, sin que el personal sepa que está siendo evaluado.`,
         `Cada visita califica ${TOTAL_ITEM_COUNT} indicadores agrupados en ${CATEGORIES.length} categorías: ${CATEGORIES.slice(0, -1).map((c) => c.label).join(", ")} y ${CATEGORIES[CATEGORIES.length - 1].label}. La calificación general de la visita es el promedio de las calificaciones por categoría (no un promedio plano de todos los indicadores), para que ninguna categoría con muchos indicadores pese más que otra.`,
+        `${LEADING_INDICATORS_CLAIM} Higiene se observa como cliente, a la manera de los criterios del Distintivo H, sin ser una auditoría ni el distintivo.`,
         "Con la calificación general se asigna un veredicto:",
       ];
 

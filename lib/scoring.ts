@@ -47,8 +47,8 @@ export function categoryScores(ratings: Ratings, flags: Flags = {}): CategorySco
 }
 
 /**
- * Promedio general de la visita: promedio de los 5 promedios de
- * categoria (no un promedio plano de los ~50 indicadores).
+ * Promedio general de la visita: promedio de los promedios de las 6
+ * categorias (no un promedio plano de todos los indicadores).
  */
 export function overallScore(ratings: Ratings, flags: Flags = {}): number {
   const scores = categoryScores(ratings, flags).filter((c) => c.count > 0);

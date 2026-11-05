@@ -15,12 +15,17 @@ export const PALABRA_FOODIE_QUOTE =
 export const FOODIE_PROFILE =
   "profesionales de la industria restaurantera (alimentos, restauración y entretenimiento) con experiencia en servicio, capacitación, ventas y comunicación";
 
+/** Frase de posicionamiento de los indicadores (web, app, reportes y correos). */
+export const LEADING_INDICATORS_CLAIM =
+  "Indicadores líderes en el mercado, basados en distintivos y certificaciones actuales además de la metodología de Flanco Izquierdo®.";
+
 /** Párrafo de confianza que acompaña a Palabra MysterFoodie en el reporte público. */
 export function foodieTrustText(totalItems: number): string {
   return (
     `Nuestros MysterFoodies son ${FOODIE_PROFILE}, con el ` +
     "poder adquisitivo de un cliente real. Visitan el negocio de incógnito, pagan su cuenta y califican " +
-    `${totalItems} indicadores de servicio, sabor, limpieza y experiencia — con total honestidad, Palabra MysterFoodie.`
+    `${totalItems} indicadores de servicio, sabor, limpieza y experiencia — con total honestidad, Palabra MysterFoodie. ` +
+    LEADING_INDICATORS_CLAIM
   );
 }
 

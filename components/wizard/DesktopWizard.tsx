@@ -1,6 +1,7 @@
 "use client";
 
 import FreeSendButton from "./FreeSendButton";
+import { ContextStep, StampsBar, WouldReturnScale, type Stamps } from "./VisitContext";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
@@ -13,8 +14,10 @@ import {
   CATEGORIES,
   BUSINESS_TYPES,
   groupCategoryItems,
+  CONTEXT_SELECT_ITEMS,
   type Category,
   type CategoryItem,
+  type ServiceStampKey,
 } from "@/lib/categories";
 import { friendlyError } from "@/lib/friendlyError";
 
@@ -79,6 +82,10 @@ type WizardDraft = {
   tagsGood?: string[];
   tagsImprove?: string[];
   notes?: Record<string, string>;
+  /** Contexto de la visita (nov 2026): borradores anteriores no lo traen. */
+  startedAt?: string;
+  stamps?: Stamps;
+  wouldReturn?: number | null;
   step: number;
   savedAt: number;
   /** Ruta de la visita y total de pasos: los usa Pendientes del Inicio para avisar y llevar de vuelta. */
@@ -118,12 +125,14 @@ type SubmitResult = {
 
 type StepDef =
   | { kind: "business" }
+  | { kind: "context" }
   | { kind: "category"; category: Category }
   | { kind: "comments" }
   | { kind: "review" };
 
 const STEPS: StepDef[] = [
   { kind: "business" },
+  { kind: "context" },
   ...CATEGORIES.map((category) => ({ kind: "category" as const, category })),
   { kind: "comments" },
   { kind: "review" },
@@ -131,6 +140,7 @@ const STEPS: StepDef[] = [
 
 function stepLabel(step: StepDef): string {
   if (step.kind === "business") return "Negocio";
+  if (step.kind === "context") return "Tu visita";
   if (step.kind === "category") return step.category.label;
   if (step.kind === "comments") return "Comentarios";
   return "Revisar";
@@ -149,6 +159,10 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
   const [flags, setFlags] = useState<Record<string, boolean>>({});
   const [na, setNa] = useState<Record<string, boolean>>({});
   const [selects, setSelects] = useState<Record<string, string>>({});
+  // Contexto de la visita: cuándo empezó, sellos de hora del servicio y «¿volverías?».
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [stamps, setStamps] = useState<Stamps>({});
+  const [wouldReturn, setWouldReturn] = useState<number | null>(null);
   const [comments, setComments] = useState("");
   const [tagsGood, setTagsGood] = useState<string[]>([]);
   const [tagsImprove, setTagsImprove] = useState<string[]>([]);
@@ -180,9 +194,13 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
       setTagsGood(draft.tagsGood ?? []);
       setTagsImprove(draft.tagsImprove ?? []);
       setNotes(draft.notes ?? {});
+      setStamps(draft.stamps ?? {});
+      setWouldReturn(draft.wouldReturn ?? null);
       setStep(Math.min(draft.step, steps.length - 1));
       setDraftRestored(true);
     }
+    // La visita "empieza" cuando se abre el formulario (o cuando se abrió el borrador recuperado).
+    setStartedAt(draft?.startedAt ?? new Date().toISOString());
     draftLoadedRef.current = true;
     // Solo al montar: cada ruta es una visita distinta.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -190,13 +208,13 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
 
   useEffect(() => {
     if (!draftLoadedRef.current || result) return;
-    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now(), href: window.location.pathname, totalSteps: steps.length };
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, startedAt: startedAt ?? undefined, stamps, wouldReturn, step, savedAt: Date.now(), href: window.location.pathname, totalSteps: steps.length };
     if (draftHasContent(draft)) {
       saveWizardDraft(draftId, draft);
     } else {
       clearWizardDraft(draftId);
     }
-  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, result]);
+  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, startedAt, stamps, wouldReturn, step, result]);
 
   function discardDraft() {
     clearWizardDraft(draftId);
@@ -212,6 +230,9 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
     setTagsGood([]);
     setTagsImprove([]);
     setNotes({});
+    setStamps({});
+    setWouldReturn(null);
+    setStartedAt(new Date().toISOString());
     setStep(0);
   }
 
@@ -236,8 +257,14 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
 
   function canAdvance() {
     if (current.kind === "business") return Boolean(business.name.trim());
+    if (current.kind === "context") return Boolean(selects[CONTEXT_SELECT_ITEMS[0].key]);
+    if (current.kind === "comments") return Boolean(wouldReturn);
     if (current.kind === "category") return categoryComplete(current.category);
     return true;
+  }
+
+  function stampNow(key: ServiceStampKey) {
+    setStamps((prev) => (prev[key] ? prev : { ...prev, [key]: new Date().toISOString() }));
   }
 
   function goBack() {
@@ -267,7 +294,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true, freeCode } : payload),
+        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true, freeCode } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -302,6 +329,9 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
     setTagsGood([]);
     setTagsImprove([]);
     setNotes({});
+    setStamps({});
+    setWouldReturn(null);
+    setStartedAt(new Date().toISOString());
     setWaiterName("");
     setResult(null);
     setSubmitError(null);
@@ -441,7 +471,25 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
         <p className="mt-2 text-xs text-stone-500">
           Paso {step + 1} de {steps.length} — {stepLabel(current)}
         </p>
+        {current.kind !== "business" && current.kind !== "context" && (
+          <div className="mt-3 max-w-md">
+            <StampsBar stamps={stamps} onStamp={stampNow} />
+          </div>
+        )}
       </div>
+
+      {current.kind === "context" && (
+        <div className="mt-8 max-w-xl">
+          <ContextStep
+            startedAt={startedAt}
+            setStartedAt={setStartedAt}
+            stamps={stamps}
+            setStamps={setStamps}
+            selects={selects}
+            setSelects={setSelects}
+          />
+        </div>
+      )}
 
       {current.kind === "business" && (
         <div className="mt-8 max-w-xl space-y-4">
@@ -592,6 +640,9 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
 
       {current.kind === "comments" && (
         <div className="mt-8 max-w-xl space-y-6">
+          <div className="card p-4">
+            <WouldReturnScale value={wouldReturn} onChange={setWouldReturn} />
+          </div>
           <div className="space-y-3">
             <p className="text-sm font-medium text-ink">¿Cómo te fue?</p>
             <p className="text-xs text-stone-500">Marca lo que aplique. Todo es opcional.</p>

@@ -22,6 +22,7 @@ const EJEMPLOS: Record<string, string> = {
   atencion: "conocimiento del menú, atención a la mesa, uniformes y claridad de la cuenta",
   alimentos: "tiempo y temperatura, sabor y textura, propuesta y precio, órdenes correctas",
   accesibilidad: "sillas altas, rampas, baño accesible y menú en braille",
+  higiene: "aseo del personal, manejo de alimentos y vajilla, sanitarios, plagas y basura (criterios del Distintivo H)",
 };
 
 /** Nombre de la categoría tal como lo ve el negocio en mysterfoodie.com. */

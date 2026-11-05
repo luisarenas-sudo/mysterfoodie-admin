@@ -17,6 +17,9 @@ type PatchBody = {
   hasGoogleBusiness?: boolean;
   hasProfessionalPhotos?: boolean;
   hasReels?: boolean;
+  deliveryPhone?: boolean;
+  deliveryWhatsapp?: boolean;
+  deliveryApp?: boolean;
 };
 
 /**
@@ -82,6 +85,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       has_google_business: Boolean(body.hasGoogleBusiness),
       has_professional_photos: Boolean(body.hasProfessionalPhotos),
       has_reels: Boolean(body.hasReels),
+      delivery_phone: Boolean(body.deliveryPhone),
+      delivery_whatsapp: Boolean(body.deliveryWhatsapp),
+      delivery_app: Boolean(body.deliveryApp),
     })
     .eq("id", id);
 

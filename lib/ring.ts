@@ -45,4 +45,5 @@ export const CATEGORY_EMOJI: Record<string, string> = {
   atencion: "🙋",
   alimentos: "🍽️",
   accesibilidad: "♿",
+  higiene: "🧼",
 };

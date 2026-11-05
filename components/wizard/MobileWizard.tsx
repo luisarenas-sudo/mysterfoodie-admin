@@ -2,6 +2,7 @@
 
 import { Pix } from "@/components/ui/Pix";
 import FreeSendButton from "./FreeSendButton";
+import { ContextStep, StampsBar, WouldReturnScale, type Stamps } from "./VisitContext";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import EmailStatusPanel, { useEmailStatus } from "@/components/EmailStatusPanel";
@@ -13,7 +14,9 @@ import {
   BUSINESS_TYPES,
   groupCategoryItems,
   type Category,
+  CONTEXT_SELECT_ITEMS,
   type CategoryItem,
+  type ServiceStampKey,
 } from "@/lib/categories";
 import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
@@ -83,6 +86,10 @@ type WizardDraft = {
   tagsGood?: string[];
   tagsImprove?: string[];
   notes?: Record<string, string>;
+  /** Contexto de la visita (nov 2026): borradores anteriores no lo traen. */
+  startedAt?: string;
+  stamps?: Stamps;
+  wouldReturn?: number | null;
   step: number;
   savedAt: number;
   /** Ruta de la visita y total de pasos: los usa Pendientes del Inicio para avisar y llevar de vuelta. */
@@ -120,10 +127,11 @@ type SubmitResult = {
   profileLink: string | null;
 };
 
-type StepDef = { kind: "business" } | { kind: "category"; category: Category } | { kind: "comments" };
+type StepDef = { kind: "business" } | { kind: "context" } | { kind: "category"; category: Category } | { kind: "comments" };
 
 const STEPS: StepDef[] = [
   { kind: "business" },
+  { kind: "context" },
   ...CATEGORIES.map((category) => ({ kind: "category" as const, category })),
   { kind: "comments" },
 ];
@@ -290,6 +298,10 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
   const [tagsGood, setTagsGood] = useState<string[]>([]);
   const [tagsImprove, setTagsImprove] = useState<string[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  // Contexto de la visita: cuándo empezó, sellos de hora del servicio y «¿volverías?».
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [stamps, setStamps] = useState<Stamps>({});
+  const [wouldReturn, setWouldReturn] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -315,9 +327,13 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
       setTagsGood(draft.tagsGood ?? []);
       setTagsImprove(draft.tagsImprove ?? []);
       setNotes(draft.notes ?? {});
+      setStamps(draft.stamps ?? {});
+      setWouldReturn(draft.wouldReturn ?? null);
       setStep(Math.min(draft.step, steps.length - 1));
       setDraftRestored(true);
     }
+    // La visita "empieza" cuando se abre el formulario (o cuando se abrió el borrador recuperado).
+    setStartedAt(draft?.startedAt ?? new Date().toISOString());
     draftLoadedRef.current = true;
     // Solo al montar: cada ruta es una visita distinta.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -325,13 +341,13 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
 
   useEffect(() => {
     if (!draftLoadedRef.current || result) return;
-    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, savedAt: Date.now(), href: window.location.pathname, totalSteps: steps.length };
+    const draft: WizardDraft = { business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, startedAt: startedAt ?? undefined, stamps, wouldReturn, step, savedAt: Date.now(), href: window.location.pathname, totalSteps: steps.length };
     if (draftHasContent(draft)) {
       saveWizardDraft(draftId, draft);
     } else {
       clearWizardDraft(draftId);
     }
-  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, step, result]);
+  }, [draftId, business, shopperName, waiterName, ratings, flags, na, selects, comments, tagsGood, tagsImprove, notes, startedAt, stamps, wouldReturn, step, result]);
 
   function discardDraft() {
     clearWizardDraft(draftId);
@@ -347,6 +363,9 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
     setTagsGood([]);
     setTagsImprove([]);
     setNotes({});
+    setStamps({});
+    setWouldReturn(null);
+    setStartedAt(new Date().toISOString());
     setStep(0);
   }
 
@@ -370,6 +389,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
 
   function canAdvance() {
     if (current.kind === "business") return Boolean(business.name.trim());
+    if (current.kind === "context") return Boolean(selects[CONTEXT_SELECT_ITEMS[0].key]);
     if (current.kind === "category") return categoryComplete(current.category);
     return true;
   }
@@ -380,6 +400,10 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
       if (item.type === "boolean") return typeof flags[item.key] === "boolean" || Boolean(na[item.key]);
       return Boolean(selects[item.key]);
     }).length;
+  }
+
+  function stampNow(key: ServiceStampKey) {
+    setStamps((prev) => (prev[key] ? prev : { ...prev, [key]: new Date().toISOString() }));
   }
 
   function toggleTag(list: string[], setList: React.Dispatch<React.SetStateAction<string[]>>, tag: string) {
@@ -419,7 +443,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(freeDemo ? { ...payload, freeDemo: true, freeCode } : payload),
+        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true, freeCode } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -444,6 +468,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
 
   function stepTitle(): string {
     if (current.kind === "business") return "Negocio";
+    if (current.kind === "context") return "Tu visita";
     if (current.kind === "category") return current.category.label;
     return "Comentarios";
   }
@@ -630,6 +655,11 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
             style={{ background: ACCENT, width: `${progressPct}%` }}
           />
         </div>
+        {current.kind !== "business" && current.kind !== "context" && (
+          <div className="px-4 pb-2.5">
+            <StampsBar stamps={stamps} onStamp={stampNow} />
+          </div>
+        )}
       </div>
 
       <div ref={scrollRef} className="mf-scroll flex-1 overflow-y-auto px-5 pb-6 pt-[18px]">
@@ -718,6 +748,17 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
               />
             </MobileField>
           </div>
+        )}
+
+        {current.kind === "context" && (
+          <ContextStep
+            startedAt={startedAt}
+            setStartedAt={setStartedAt}
+            stamps={stamps}
+            setStamps={setStamps}
+            selects={selects}
+            setSelects={setSelects}
+          />
         )}
 
         {current.kind === "category" && (
@@ -825,6 +866,9 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
 
         {current.kind === "comments" && (
           <div className="space-y-5">
+            <div className="card px-4 py-4">
+              <WouldReturnScale value={wouldReturn} onChange={setWouldReturn} />
+            </div>
             <div>
               <div className="heading mb-1 text-[22px] font-bold">¿Cómo te fue?</div>
               <div className="mb-3 text-[13.5px]" style={{ color: "rgba(60,60,67,0.6)" }}>
@@ -844,7 +888,12 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
               />
             </MobileField>
             {submitError && <p className="text-sm text-red-600">{submitError}</p>}
-            {canSendFree && <FreeSendButton onConfirm={(code) => handleSubmit(true, code)} disabled={submitting} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
+            {!wouldReturn && (
+              <p className="text-[12.5px]" style={{ color: "#B45309" }}>
+                Marca del 1 al 10 si volverías para poder guardar la visita.
+              </p>
+            )}
+            {canSendFree && <FreeSendButton onConfirm={(code) => handleSubmit(true, code)} disabled={submitting || !wouldReturn} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
           </div>
         )}
       </div>
@@ -881,7 +930,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
           <button
             type="button"
             onClick={() => handleSubmit()}
-            disabled={submitting}
+            disabled={submitting || !wouldReturn}
             className="mf-tap flex-[2] rounded-2xl py-3.5 text-center text-[15.5px] font-bold text-white disabled:opacity-50"
             style={{ background: ACCENT }}
           >

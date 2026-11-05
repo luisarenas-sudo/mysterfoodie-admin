@@ -4,7 +4,7 @@ import type { Ratings } from "./scoring";
 /**
  * Adelanto concreto del candado del reporte (antes del pago): cuántos indicadores
  * de ESA visita salieron bajos, sin decir cuáles. Solo cuenta los indicadores con
- * estrellas (46 de los 52). Se calcula en el servidor y a la página solo viaja el
+ * estrellas (49 de los 76). Se calcula en el servidor y a la página solo viaja el
  * texto, nunca las calificaciones por indicador.
  */
 export type ReportTeaser = {

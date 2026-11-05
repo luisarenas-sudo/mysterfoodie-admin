@@ -5,7 +5,7 @@ import { NextRequest, NextResponse, after } from "next/server";
 import { nanoid } from "nanoid";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { requireRole } from "@/lib/auth";
-import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, fullItemLabel, businessTypePhrase } from "@/lib/categories";
+import { STAR_ITEMS, BOOLEAN_ITEMS, SELECT_ITEMS, CONTEXT_SELECT_ITEMS, fullItemLabel, businessTypePhrase } from "@/lib/categories";
 import { overallScore, categoryScores, type Ratings } from "@/lib/scoring";
 import { buildDmMessage, buildInstagramDmLink, buildInstagramProfileLink } from "@/lib/instagram";
 import { sendResultEmail, fullReportSubject } from "@/lib/email";
@@ -41,7 +41,24 @@ type Body = {
   freeDemo?: boolean;
   /** Checkout simulado del demo: hay que haber escrito GRATIS (mayúsculas o minúsculas). */
   freeCode?: string;
+  /** Contexto de la visita: cuándo empezó (ISO) y sellos de hora de los hitos del servicio. */
+  startedAt?: string;
+  stamps?: Record<string, string>;
+  /** «¿Volverías?» de 1 a 10. */
+  wouldReturn?: number;
 };
+
+const STAMP_KEYS = ["atendido", "bebida", "platillo", "cuenta"];
+
+/** Fecha ISO razonable (no futura más de 10 min ni de hace más de 2 días); si no, null. */
+function cleanIso(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const t = Date.parse(v);
+  if (!Number.isFinite(t)) return null;
+  const now = Date.now();
+  if (t > now + 10 * 60_000 || t < now - 2 * 24 * 3600_000) return null;
+  return new Date(t).toISOString();
+}
 
 export async function POST(req: NextRequest) {
   let profile;
@@ -260,6 +277,20 @@ export async function POST(req: NextRequest) {
 
   const menuTipo = SELECT_ITEMS.length > 0 ? body.selects?.[SELECT_ITEMS[0].key] || null : null;
 
+  // Contexto de la visita (opcional para no romper borradores viejos; la pantalla sí lo pide).
+  const occupancyItem = CONTEXT_SELECT_ITEMS[0];
+  const occupancyRaw = body.selects?.[occupancyItem.key];
+  const occupancy = occupancyItem.options?.some((o) => o.value === occupancyRaw) ? (occupancyRaw as string) : null;
+  const stamps: Record<string, string> = {};
+  for (const k of STAMP_KEYS) {
+    const iso = cleanIso(body.stamps?.[k]);
+    if (iso) stamps[k] = iso;
+  }
+  const wouldReturn =
+    Number.isInteger(body.wouldReturn) && (body.wouldReturn as number) >= 1 && (body.wouldReturn as number) <= 10
+      ? (body.wouldReturn as number)
+      : null;
+
   const { data: form, error: formError } = await db
     .from("forms")
     .insert({
@@ -274,6 +305,11 @@ export async function POST(req: NextRequest) {
       menu_type: menuTipo,
       comments: body.comments?.trim() || null,
       waiter_name: body.waiterName?.trim() || null,
+      visit_started_at: cleanIso(body.startedAt),
+      visit_ended_at: new Date().toISOString(),
+      service_stamps: Object.keys(stamps).length > 0 ? stamps : null,
+      occupancy,
+      would_return: wouldReturn,
       // Visita de plan: queda ligada al plan y con el reporte completo ya abierto.
       ...(planId ? { plan_id: planId, report_unlocked_at: new Date().toISOString() } : {}),
       ...(freeDemo ? { free_demo: true, report_unlocked_at: new Date().toISOString() } : {}),

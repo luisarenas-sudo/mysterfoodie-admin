@@ -31,7 +31,7 @@ export async function getShareData(shortCode: string): Promise<ShareData | null>
       verdictLabel: v.label,
       verdictColor: v.color,
       verdictSummary: v.summary,
-      cats: [mk("Fachada", 4.6), mk("Ambiente", 4.1), mk("Atención", 4.4), mk("Alimentos y bebidas", 4.5), mk("Accesibilidad", 3.2)],
+      cats: [mk("Fachada", 4.6), mk("Ambiente", 4.1), mk("Atención", 4.4), mk("Alimentos y bebidas", 4.5), mk("Accesibilidad", 3.2), mk("Higiene", 4.0)],
     };
   }
   try {

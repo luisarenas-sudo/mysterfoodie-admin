@@ -135,6 +135,7 @@ export default async function VisitaDetailPage({
             emailSentAt={visit.ticketEmailSentAt}
             consumptionTotal={visit.consumptionTotal}
             partySize={visit.partySize}
+            invoiceOffered={visit.invoiceOffered}
             reportUnlocked={visit.reportUnlocked}
           />
         </div>

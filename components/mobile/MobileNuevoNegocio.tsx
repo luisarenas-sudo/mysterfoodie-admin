@@ -104,6 +104,15 @@ const OPPORTUNITY_ITEMS = [
 
 type OpportunityKey = (typeof OPPORTUNITY_ITEMS)[number]["key"];
 
+/** Servicio a domicilio del negocio (se pregunta al darlo de alta; en un próximo build se integra a nuevos servicios). */
+const DELIVERY_ITEMS = [
+  { key: "deliveryPhone", label: "A domicilio por teléfono" },
+  { key: "deliveryWhatsapp", label: "A domicilio por WhatsApp" },
+  { key: "deliveryApp", label: "A domicilio por app móvil", desc: "Uber Eats, Rappi, DiDi Food o una app propia" },
+] as const;
+
+type DeliveryKey = (typeof DELIVERY_ITEMS)[number]["key"];
+
 export type NegocioFormInitial = {
   id: string;
   name: string;
@@ -118,6 +127,9 @@ export type NegocioFormInitial = {
   hasGoogleBusiness: boolean;
   hasProfessionalPhotos: boolean;
   hasReels: boolean;
+  deliveryPhone?: boolean;
+  deliveryWhatsapp?: boolean;
+  deliveryApp?: boolean;
 };
 
 /**
@@ -140,6 +152,11 @@ export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormI
     hasGoogleBusiness: initial?.hasGoogleBusiness ?? false,
     hasProfessionalPhotos: initial?.hasProfessionalPhotos ?? false,
     hasReels: initial?.hasReels ?? false,
+  });
+  const [delivery, setDelivery] = useState<Record<DeliveryKey, boolean>>({
+    deliveryPhone: initial?.deliveryPhone ?? false,
+    deliveryWhatsapp: initial?.deliveryWhatsapp ?? false,
+    deliveryApp: initial?.deliveryApp ?? false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -167,6 +184,7 @@ export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormI
           email,
           autoEmailEnabled,
           ...opportunities,
+          ...delivery,
           ...(force ? { force: true } : {}),
         }),
       });
@@ -340,6 +358,22 @@ export default function MobileNuevoNegocio({ initial }: { initial?: NegocioFormI
               value={opportunities[item.key]}
               onChange={(v) => setOpportunities((prev) => ({ ...prev, [item.key]: v }))}
               last={idx === OPPORTUNITY_ITEMS.length - 1}
+            />
+          ))}
+        </div>
+
+        <div className="mb-1.5 mt-5 text-[12px] font-semibold uppercase tracking-wide" style={{ color: "rgba(60,60,67,0.5)" }}>
+          Servicio a domicilio
+        </div>
+        <div className="card px-4">
+          {DELIVERY_ITEMS.map((item, idx) => (
+            <ToggleRow
+              key={item.key}
+              label={item.label}
+              desc={"desc" in item ? item.desc : undefined}
+              value={delivery[item.key]}
+              onChange={(v) => setDelivery((prev) => ({ ...prev, [item.key]: v }))}
+              last={idx === DELIVERY_ITEMS.length - 1}
             />
           ))}
         </div>
