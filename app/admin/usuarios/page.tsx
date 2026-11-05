@@ -57,12 +57,17 @@ export default async function UsuariosPage() {
     (authUsers.data?.users ?? []).filter((u) => !u.last_sign_in_at).map((u) => u.id)
   );
 
+  // Constancia de aceptación de los términos (si aún no se corre supabase/terminos_aceptacion.sql, simplemente no hay datos).
+  const { data: termsRows } = await db.from("profiles").select("id, terms_accepted_at");
+  const termsById = new Map((termsRows || []).map((t) => [t.id as string, (t.terms_accepted_at as string | null) ?? null]));
+
   const clientNameById = new Map((clients || []).map((c) => [c.id, c.name as string]));
 
-  const rows: (ProfileRow & { client_name: string | null; pending: boolean })[] = (profiles || []).map((p) => ({
+  const rows: (ProfileRow & { client_name: string | null; pending: boolean; terms_at: string | null })[] = (profiles || []).map((p) => ({
     ...p,
     client_name: p.client_id ? clientNameById.get(p.client_id) ?? null : null,
     pending: neverSignedIn.has(p.id),
+    terms_at: termsById.get(p.id) ?? null,
   }));
 
   return (
@@ -137,6 +142,9 @@ export default async function UsuariosPage() {
                     {r.pending && (
                       <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Por activar</span>
                     )}
+                    {r.terms_at && (
+                      <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800" title={`Aceptó los términos el ${new Date(r.terms_at).toLocaleDateString("es-MX")}`}>Términos ✓</span>
+                    )}
                   </td>
                   <td className="px-4 py-2">{r.full_name || "-"}</td>
                   <td className="px-4 py-2">
@@ -171,6 +179,9 @@ export default async function UsuariosPage() {
                 {r.email}
                 {r.pending && (
                   <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Por activar</span>
+                )}
+                {r.terms_at && (
+                  <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">Términos ✓</span>
                 )}
               </p>
               {r.full_name && <p className="mt-0.5 text-sm text-stone-500">{r.full_name}</p>}

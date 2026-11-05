@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { safeNextPath } from "@/lib/safeNext";
 import { checkToken, consumeAccessToken } from "@/lib/accessTokens";
+import { needsTermsAcceptance, recordTermsAcceptance } from "@/lib/terms";
 
 /**
  * Callback de OAuth (Google Sign-In). Supabase redirige aquí con un
@@ -86,12 +87,24 @@ export async function GET(req: NextRequest) {
   let boundToInvite = false;
   const isFreshStray = createdMsAgo < 10 * 60 * 1000 && (!gProfile || (gProfile.role === "cliente" && !gProfile.client_id));
 
+  const termsParam = req.nextUrl.searchParams.get("terms") === "1";
+
   if (inviteToken) {
     const check = await checkToken(adminDb, inviteToken);
+    // Aceptar los términos y condiciones es obligatorio para unirse con una invitación.
+    if (check.ok && check.row.purpose === "invite" && !termsParam && (await needsTermsAcceptance(adminDb, check.row.user_id))) {
+      if (isFreshStray && check.row.user_id !== data.user.id) await adminDb.auth.admin.deleteUser(data.user.id);
+      await supabase.auth.signOut();
+      await clearStaleCodeVerifierCookies();
+      return NextResponse.redirect(
+        new URL(`/set-password?t=${encodeURIComponent(inviteToken)}&error=terminos`, baseUrl)
+      );
+    }
     if (check.ok && check.row.purpose === "invite") {
       const invitedId = check.row.user_id;
       if (invitedId === data.user.id) {
         await consumeAccessToken(adminDb, check.row.id); // mismo correo: Supabase ya la vinculó
+        if (termsParam) await recordTermsAcceptance(adminDb, data.user.id, "google");
       } else if (isFreshStray) {
         const { data: invitedAuth } = await adminDb.auth.admin.getUserById(invitedId);
         const { data: invitedProfile } = await adminDb
@@ -109,6 +122,7 @@ export async function GET(req: NextRequest) {
           });
           await adminDb.auth.admin.deleteUser(invitedId); // el perfil provisional se va en cascada
           await consumeAccessToken(adminDb, check.row.id);
+          if (termsParam) await recordTermsAcceptance(adminDb, data.user.id, "google");
           boundToInvite = true;
         }
       }

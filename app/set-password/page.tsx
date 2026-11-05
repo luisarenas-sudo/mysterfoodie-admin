@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import TermsCheckbox from "@/components/auth/TermsCheckbox";
+import { TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -15,6 +17,9 @@ export default function SetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Términos y condiciones: quien aún no los ha aceptado (invitación nueva) debe marcar la casilla.
+  const [needsTerms, setNeedsTerms] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // Acceso propio (link ?t=... o código de 6 dígitos): vigente 5 días y no se
   // gasta al abrir el link, solo al guardar la contraseña. Ver lib/accessTokens.ts.
@@ -61,6 +66,7 @@ export default function SetPasswordPage() {
       const code = url.searchParams.get("code");
       const emailFromLink = url.searchParams.get("email");
       if (emailFromLink) setOtpEmail(emailFromLink);
+      if (url.searchParams.get("error") === "terminos") setError(TERMS_REQUIRED_MESSAGE);
 
       // Link propio de MysterFoodie (?t=...).
       const ownT = url.searchParams.get("t");
@@ -78,6 +84,7 @@ export default function SetPasswordPage() {
             setOwnToken(ownT);
             setOwnEmail(data.email);
             setOtpEmail(data.email);
+            setNeedsTerms(Boolean(data.needsTerms));
             setReady(true);
           } else {
             settled = true;
@@ -133,6 +140,21 @@ export default function SetPasswordPage() {
     };
   }, []);
 
+  // Sesiones de Supabase (links anteriores): se pregunta al servidor si falta aceptar los términos.
+  useEffect(() => {
+    if (!ready || ownToken || ownCode) return;
+    let cancelled = false;
+    fetch("/api/auth/terminos")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d) setNeedsTerms(Boolean(d.needed));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, ownToken, ownCode]);
+
   async function handleVerifyOtp(e: FormEvent) {
     e.preventDefault();
     setOtpError(null);
@@ -159,6 +181,7 @@ export default function SetPasswordPage() {
       if (res.ok && data.ok) {
         setOwnCode(otpCode.trim());
         setOwnEmail(data.email);
+        setNeedsTerms(Boolean(data.needsTerms));
         setOwnToken(null);
         setOtpVerifying(false);
         setInvalid(false);
@@ -228,6 +251,11 @@ export default function SetPasswordPage() {
       return;
     }
 
+    if (needsTerms && !acceptTerms) {
+      setError(TERMS_REQUIRED_MESSAGE);
+      return;
+    }
+
     setSaving(true);
     const supabase = await createSupabaseBrowserClient();
 
@@ -235,7 +263,7 @@ export default function SetPasswordPage() {
       const res = await fetch("/api/auth/acceso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password }),
+        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password, acceptTerms }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -251,6 +279,18 @@ export default function SetPasswordPage() {
         return;
       }
     } else {
+      if (needsTerms) {
+        const t = await fetch("/api/auth/terminos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accept: true }),
+        }).catch(() => null);
+        if (!t || !t.ok) {
+          setSaving(false);
+          setError("No pudimos registrar tu aceptación de los términos. Intenta de nuevo.");
+          return;
+        }
+      }
       const { error: updateError } = await supabase.auth.updateUser({ password });
       setSaving(false);
       if (updateError) {
@@ -368,6 +408,7 @@ export default function SetPasswordPage() {
             />
           </label>
           <p className="text-xs text-stone-400">Mínimo 8 caracteres.</p>
+          {needsTerms && <TermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} />}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
@@ -393,7 +434,16 @@ export default function SetPasswordPage() {
             <span className="h-px flex-1 bg-stone-200" />
           </div>
           <div className="mt-4">
-            <GoogleSignInButton invite={ownToken} label={ownToken ? "Crear cuenta con Google" : "Continuar con Google"} />
+            <GoogleSignInButton
+              invite={ownToken}
+              termsAccepted={ownToken && needsTerms ? acceptTerms : null}
+              label={ownToken ? "Crear cuenta con Google" : "Continuar con Google"}
+            />
+            {ownToken && needsTerms && !acceptTerms && (
+              <p className="mt-2 text-xs font-medium text-brand-600">
+                Para continuar con Google, marca antes la casilla de aceptación de los términos y condiciones del servicio.
+              </p>
+            )}
             <p className="mt-2 text-xs leading-relaxed text-stone-400">
               {ownToken
                 ? "Con Google no necesitas contraseña. Puedes usar cualquier cuenta de Google: quedará ligada a esta invitación con tu mismo rol."

@@ -8,7 +8,18 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
  * Google" funciona aunque la cuenta de Google tenga un correo distinto al de la invitación:
  * el callback liga esa cuenta a la invitación (rol y negocio incluidos).
  */
-export default function GoogleSignInButton({ next, invite, label }: { next?: string; invite?: string | null; label?: string }) {
+export default function GoogleSignInButton({
+  next,
+  invite,
+  label,
+  termsAccepted = null,
+}: {
+  next?: string;
+  invite?: string | null;
+  label?: string;
+  /** null: no aplica; false: bloquea el botón hasta que se acepten los términos; true: se manda al callback. */
+  termsAccepted?: boolean | null;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +31,7 @@ export default function GoogleSignInButton({ next, invite, label }: { next?: str
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (next) redirectTo.searchParams.set("next", next);
       if (invite) redirectTo.searchParams.set("invite", invite);
+      if (termsAccepted) redirectTo.searchParams.set("terms", "1");
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -44,7 +56,7 @@ export default function GoogleSignInButton({ next, invite, label }: { next?: str
       <button
         type="button"
         onClick={handleClick}
-        disabled={loading}
+        disabled={loading || termsAccepted === false}
         className="flex w-full items-center justify-center gap-2.5 rounded-md border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-stone-50 disabled:opacity-60"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">

@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.0",
+    date: "2026-11-05",
+    title: "Aceptar los términos para unirte",
+    emoji: "📝",
+    highlights: [
+      "Al aceptar una invitación (negocios y MysterFoodies de cualquier rango) hay que marcar la casilla «Acepto los términos y condiciones del servicio» antes de crear la contraseña o continuar con Google.",
+      "Queda constancia de cuándo, con qué versión y por qué vía se aceptaron; en Usuarios se ve la marca «Términos ✓».",
+      "El correo de invitación avisa que hay que aceptarlos, y las Condiciones del Servicio y el Aviso de Privacidad de la web se actualizaron.",
+    ],
+  },
+  {
     version: "0.33.1",
     date: "2026-11-05",
     title: "Higiene y contexto, afinados",
