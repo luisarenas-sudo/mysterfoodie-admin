@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { needsTermsAcceptance, recordTermsAcceptance } from "@/lib/terms";
+import { ADULT_REQUIRED_MESSAGE, needsTermsAcceptance, recordTermsAcceptance } from "@/lib/terms";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +27,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const userId = await currentUserId();
   if (!userId) return NextResponse.json({ error: "Sin sesión" }, { status: 401 });
-  const body = (await req.json().catch(() => null)) as { accept?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { accept?: unknown; confirmAdult?: unknown } | null;
   if (body?.accept !== true) {
     return NextResponse.json({ error: "Debes aceptar los términos y condiciones del servicio." }, { status: 400 });
+  }
+  if (body.confirmAdult !== true) {
+    return NextResponse.json({ error: ADULT_REQUIRED_MESSAGE }, { status: 400 });
   }
   const ok = await recordTermsAcceptance(getSupabaseServiceClient(), userId, "sesion");
   return NextResponse.json({ ok });

@@ -2,9 +2,30 @@
 
 import { PRIVACY_URL, TERMS_URL } from "@/lib/terms";
 
-/** Casilla obligatoria para unirse a la plataforma. */
-export default function TermsCheckbox({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+/** Casillas obligatorias para unirse a la plataforma: ser mayor de 18 años y aceptar los términos. */
+export default function TermsCheckbox({
+  checked,
+  onChange,
+  adult,
+  onAdultChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  adult: boolean;
+  onAdultChange: (v: boolean) => void;
+}) {
   return (
+    <div className="space-y-2">
+    <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-stone-200 bg-white p-3 text-sm leading-snug text-ink">
+      <input
+        type="checkbox"
+        required
+        checked={adult}
+        onChange={(e) => onAdultChange(e.target.checked)}
+        className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[#f24444]"
+      />
+      <span>Confirmo que soy mayor de 18 años.</span>
+    </label>
     <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-stone-200 bg-white p-3 text-sm leading-snug text-ink">
       <input
         type="checkbox"
@@ -25,5 +46,6 @@ export default function TermsCheckbox({ checked, onChange }: { checked: boolean;
         .
       </span>
     </label>
+    </div>
   );
 }

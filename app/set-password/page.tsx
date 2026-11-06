@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import TermsCheckbox from "@/components/auth/TermsCheckbox";
-import { TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
+import { ADULT_REQUIRED_MESSAGE, TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export default function SetPasswordPage() {
   // Términos y condiciones: quien aún no los ha aceptado (invitación nueva) debe marcar la casilla.
   const [needsTerms, setNeedsTerms] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptAdult, setAcceptAdult] = useState(false);
 
   // Acceso propio (link ?t=... o código de 6 dígitos): vigente 5 días y no se
   // gasta al abrir el link, solo al guardar la contraseña. Ver lib/accessTokens.ts.
@@ -66,7 +67,7 @@ export default function SetPasswordPage() {
       const code = url.searchParams.get("code");
       const emailFromLink = url.searchParams.get("email");
       if (emailFromLink) setOtpEmail(emailFromLink);
-      if (url.searchParams.get("error") === "terminos") setError(TERMS_REQUIRED_MESSAGE);
+      if (url.searchParams.get("error") === "terminos") setError("Marca las casillas de mayoría de edad (18 años) y de aceptación de los términos y condiciones del servicio.");
 
       // Link propio de MysterFoodie (?t=...).
       const ownT = url.searchParams.get("t");
@@ -251,6 +252,10 @@ export default function SetPasswordPage() {
       return;
     }
 
+    if (needsTerms && !acceptAdult) {
+      setError(ADULT_REQUIRED_MESSAGE);
+      return;
+    }
     if (needsTerms && !acceptTerms) {
       setError(TERMS_REQUIRED_MESSAGE);
       return;
@@ -263,7 +268,7 @@ export default function SetPasswordPage() {
       const res = await fetch("/api/auth/acceso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password, acceptTerms }),
+        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password, acceptTerms, confirmAdult: acceptAdult }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -283,7 +288,7 @@ export default function SetPasswordPage() {
         const t = await fetch("/api/auth/terminos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accept: true }),
+          body: JSON.stringify({ accept: true, confirmAdult: acceptAdult }),
         }).catch(() => null);
         if (!t || !t.ok) {
           setSaving(false);
@@ -408,7 +413,7 @@ export default function SetPasswordPage() {
             />
           </label>
           <p className="text-xs text-stone-400">Mínimo 8 caracteres.</p>
-          {needsTerms && <TermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} />}
+          {needsTerms && <TermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} adult={acceptAdult} onAdultChange={setAcceptAdult} />}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
@@ -436,12 +441,12 @@ export default function SetPasswordPage() {
           <div className="mt-4">
             <GoogleSignInButton
               invite={ownToken}
-              termsAccepted={ownToken && needsTerms ? acceptTerms : null}
+              termsAccepted={ownToken && needsTerms ? acceptTerms && acceptAdult : null}
               label={ownToken ? "Crear cuenta con Google" : "Continuar con Google"}
             />
-            {ownToken && needsTerms && !acceptTerms && (
+            {ownToken && needsTerms && !(acceptTerms && acceptAdult) && (
               <p className="mt-2 text-xs font-medium text-brand-600">
-                Para continuar con Google, marca antes la casilla de aceptación de los términos y condiciones del servicio.
+                Para continuar con Google, marca antes las casillas de mayoría de edad (18 años) y de aceptación de los términos y condiciones del servicio.
               </p>
             )}
             <p className="mt-2 text-xs leading-relaxed text-stone-400">

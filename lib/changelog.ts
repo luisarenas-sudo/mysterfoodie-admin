@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.3",
+    date: "2026-11-06",
+    title: "Casilla de mayoría de edad al registrarse",
+    emoji: "🔞",
+    highlights: [
+      "Quien se une a la plataforma (negocios y MysterFoodies de cualquier rango) debe confirmar que es mayor de 18 años.",
+      "La casilla va junto a la de términos y condiciones, también con Google, y queda registrada con la misma fecha.",
+    ],
+  },
+  {
     version: "0.34.2",
     date: "2026-11-06",
     title: "Enviar GRATIS: reporte completo de regalo",
