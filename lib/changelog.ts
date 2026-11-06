@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.5",
+    date: "2026-11-06",
+    title: "Enviar GRATIS en dos toques",
+    emoji: "🎁",
+    highlights: [
+      "Ya no hay que escribir GRATIS ni tocar PAGAR: el botón «Enviar GRATIS» se confirma con un segundo toque.",
+      "El segundo toque guarda la visita y manda el reporte gratis en un solo paso.",
+    ],
+  },
+  {
     version: "0.34.4",
     date: "2026-11-06",
     title: "Acuerdo de colaboración para el equipo",

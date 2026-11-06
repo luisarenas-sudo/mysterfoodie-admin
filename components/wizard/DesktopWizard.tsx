@@ -281,7 +281,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
     }
   }
 
-  async function handleSubmit(freeDemo = false, freeCode = "") {
+  async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -294,7 +294,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true, freeCode } : {}) }),
+        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -687,7 +687,7 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
             )}
           </div>
           {submitError && <p className="text-sm text-red-600">{submitError}</p>}
-          {canSendFree && <FreeSendButton variant="desktop" onConfirm={(code) => handleSubmit(true, code)} disabled={submitting} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
+          {canSendFree && <FreeSendButton variant="desktop" onConfirm={() => handleSubmit(true)} disabled={submitting} />}
         </div>
       )}
 

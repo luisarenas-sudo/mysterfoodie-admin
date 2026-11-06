@@ -39,8 +39,6 @@ type Body = {
   waiterName?: string;
   /** Demo gratis: el reporte se entrega abierto (sin link de pago) y el PDF lleva marca de agua. */
   freeDemo?: boolean;
-  /** Checkout simulado del demo: hay que haber escrito GRATIS (mayúsculas o minúsculas). */
-  freeCode?: string;
   /** Contexto de la visita: cuándo empezó (ISO) y sellos de hora de los hitos del servicio. */
   startedAt?: string;
   stamps?: Record<string, string>;
@@ -90,10 +88,6 @@ export async function POST(req: NextRequest) {
 
   if (body.freeDemo && profile.role === "agente") {
     return NextResponse.json({ error: "Solo un Master Chef o un Sibarita puede enviar un demo gratis" }, { status: 403 });
-  }
-
-  if (body.freeDemo && String(body.freeCode ?? "").trim().toUpperCase() !== "GRATIS") {
-    return NextResponse.json({ error: "Para enviar el demo escribe la palabra GRATIS y toca PAGAR" }, { status: 400 });
   }
 
   let db;

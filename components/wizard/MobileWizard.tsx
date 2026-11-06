@@ -430,7 +430,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
     }
   }
 
-  async function handleSubmit(freeDemo = false, freeCode = "") {
+  async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -443,7 +443,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
       const res = await fetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true, freeCode } : {}) }),
+        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -893,7 +893,7 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
                 Marca del 1 al 10 si volverías para poder guardar la visita.
               </p>
             )}
-            {canSendFree && <FreeSendButton onConfirm={(code) => handleSubmit(true, code)} disabled={submitting || !wouldReturn} price={freePrice} businessName={boundAssignment?.client.name || business.name} />}
+            {canSendFree && <FreeSendButton onConfirm={() => handleSubmit(true)} disabled={submitting || !wouldReturn} />}
           </div>
         )}
       </div>
