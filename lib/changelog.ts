@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.4",
+    date: "2026-11-06",
+    title: "Acuerdo de colaboración para el equipo",
+    emoji: "🤝",
+    highlights: [
+      "Shoppers, Sibaritas y Master Chefs aceptan su Acuerdo de colaboración al unirse (los negocios no).",
+      "Las condiciones públicas son más cortas: los detalles de pago y de lo que se registra viven en el acuerdo.",
+      "Queda constancia de la fecha y la versión aceptada.",
+    ],
+  },
+  {
     version: "0.34.3",
     date: "2026-11-06",
     title: "Casilla de mayoría de edad al registrarse",

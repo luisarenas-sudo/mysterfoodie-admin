@@ -1,4 +1,4 @@
-import { TERMS_URL, PRIVACY_URL } from "./terms";
+import { COLLAB_URL, TERMS_URL, PRIVACY_URL } from "./terms";
 import { BRAND_RED, escapeHtml, renderButton, renderEmailShell, sendHtmlEmail, sendTemplatedEmail, type SendEmailOutcome } from "./email";
 import { annotateFirst, GLOSARIO_EQUIPO, GLOSARIO_NEGOCIO } from "./glosario";
 import { inviteContentForRole } from "./inviteContent";
@@ -94,7 +94,7 @@ export function renderInviteHtml(p: {
 
     <div style="margin: 24px 0 0;">${renderButton(p.url, "Crear mi contraseña")}</div>
     <p style="margin: 10px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">También puedes continuar con tu cuenta de Google desde esa pantalla.</p>
-    <p style="margin: 6px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">Para unirte tendrás que aceptar los <a href="${TERMS_URL}" style="color: #9ca3af; text-decoration: underline;">términos y condiciones del servicio</a> y el <a href="${PRIVACY_URL}" style="color: #9ca3af; text-decoration: underline;">Aviso de Privacidad</a>.</p>
+    <p style="margin: 6px 0 0; text-align: center; font-size: 12.5px; color: #9ca3af;">Para unirte tendrás que confirmar que eres mayor de 18 años y aceptar los <a href="${TERMS_URL}" style="color: #9ca3af; text-decoration: underline;">términos y condiciones del servicio</a>, el <a href="${PRIVACY_URL}" style="color: #9ca3af; text-decoration: underline;">Aviso de Privacidad</a>${p.role === "cliente" ? "" : ` y el <a href="${COLLAB_URL}" style="color: #9ca3af; text-decoration: underline;">Acuerdo de colaboración</a>`}.</p>
 
     <div style="margin: 24px 0 0; border: 1px dashed #d1d5db; border-radius: 16px; padding: 16px 18px; text-align: center;">
       <p style="margin: 0 0 6px; font-size: 13px; line-height: 1.55; color: #6b7280;">¿El botón no abre? Entra a <strong>${esc(host)}/set-password</strong>, escribe tu correo y este código:</p>
@@ -122,7 +122,7 @@ export async function sendInviteEmail(p: {
     c.can.map((i) => `- ${i.title}: ${i.text}`).join("\n") +
     (c.goal ? `\n\n${c.goal.title}\n${c.goal.body}\n${c.goal.footnote}` : "") +
     `\n\nCrea tu contraseña aquí:\n${p.url}\n\n` +
-    `Para unirte tendrás que aceptar los términos y condiciones del servicio (${TERMS_URL}) y el Aviso de Privacidad (${PRIVACY_URL}).\n\n` +
+    `Para unirte tendrás que confirmar que eres mayor de 18 años y aceptar los términos y condiciones del servicio (${TERMS_URL}), el Aviso de Privacidad (${PRIVACY_URL})${p.role === "cliente" ? "" : ` y el Acuerdo de colaboración (${COLLAB_URL})`}.\n\n` +
     codeBlock(p.baseUrl, p.code) +
     `\n\nSaludos,\nMysterFoodie`;
   return sendHtmlEmail({

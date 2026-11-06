@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabaseBrowser";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import TermsCheckbox from "@/components/auth/TermsCheckbox";
-import { ADULT_REQUIRED_MESSAGE, TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
+import { ADULT_REQUIRED_MESSAGE, COLLAB_REQUIRED_MESSAGE, TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -21,6 +21,8 @@ export default function SetPasswordPage() {
   const [needsTerms, setNeedsTerms] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptAdult, setAcceptAdult] = useState(false);
+  const [isTeam, setIsTeam] = useState(false);
+  const [acceptCollab, setAcceptCollab] = useState(false);
 
   // Acceso propio (link ?t=... o código de 6 dígitos): vigente 5 días y no se
   // gasta al abrir el link, solo al guardar la contraseña. Ver lib/accessTokens.ts.
@@ -67,7 +69,7 @@ export default function SetPasswordPage() {
       const code = url.searchParams.get("code");
       const emailFromLink = url.searchParams.get("email");
       if (emailFromLink) setOtpEmail(emailFromLink);
-      if (url.searchParams.get("error") === "terminos") setError("Marca las casillas de mayoría de edad (18 años) y de aceptación de los términos y condiciones del servicio.");
+      if (url.searchParams.get("error") === "terminos") setError("Marca las casillas de mayoría de edad (18 años), de aceptación de los términos y, si eres del equipo, del Acuerdo de colaboración.");
 
       // Link propio de MysterFoodie (?t=...).
       const ownT = url.searchParams.get("t");
@@ -86,6 +88,7 @@ export default function SetPasswordPage() {
             setOwnEmail(data.email);
             setOtpEmail(data.email);
             setNeedsTerms(Boolean(data.needsTerms));
+            setIsTeam(Boolean(data.isTeam));
             setReady(true);
           } else {
             settled = true;
@@ -148,7 +151,10 @@ export default function SetPasswordPage() {
     fetch("/api/auth/terminos")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!cancelled && d) setNeedsTerms(Boolean(d.needed));
+        if (!cancelled && d) {
+          setNeedsTerms(Boolean(d.needed));
+          setIsTeam(Boolean(d.isTeam));
+        }
       })
       .catch(() => {});
     return () => {
@@ -183,6 +189,7 @@ export default function SetPasswordPage() {
         setOwnCode(otpCode.trim());
         setOwnEmail(data.email);
         setNeedsTerms(Boolean(data.needsTerms));
+            setIsTeam(Boolean(data.isTeam));
         setOwnToken(null);
         setOtpVerifying(false);
         setInvalid(false);
@@ -260,6 +267,10 @@ export default function SetPasswordPage() {
       setError(TERMS_REQUIRED_MESSAGE);
       return;
     }
+    if (needsTerms && isTeam && !acceptCollab) {
+      setError(COLLAB_REQUIRED_MESSAGE);
+      return;
+    }
 
     setSaving(true);
     const supabase = await createSupabaseBrowserClient();
@@ -268,7 +279,7 @@ export default function SetPasswordPage() {
       const res = await fetch("/api/auth/acceso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password, acceptTerms, confirmAdult: acceptAdult }),
+        body: JSON.stringify({ action: "accept", token: ownToken ?? undefined, email: ownEmail, code: ownCode ?? undefined, password, acceptTerms, confirmAdult: acceptAdult, acceptCollab }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -288,7 +299,7 @@ export default function SetPasswordPage() {
         const t = await fetch("/api/auth/terminos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accept: true, confirmAdult: acceptAdult }),
+          body: JSON.stringify({ accept: true, confirmAdult: acceptAdult, acceptCollab }),
         }).catch(() => null);
         if (!t || !t.ok) {
           setSaving(false);
@@ -413,7 +424,7 @@ export default function SetPasswordPage() {
             />
           </label>
           <p className="text-xs text-stone-400">Mínimo 8 caracteres.</p>
-          {needsTerms && <TermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} adult={acceptAdult} onAdultChange={setAcceptAdult} />}
+          {needsTerms && <TermsCheckbox checked={acceptTerms} onChange={setAcceptTerms} adult={acceptAdult} onAdultChange={setAcceptAdult} collab={acceptCollab} onCollabChange={isTeam ? setAcceptCollab : undefined} />}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
@@ -441,12 +452,12 @@ export default function SetPasswordPage() {
           <div className="mt-4">
             <GoogleSignInButton
               invite={ownToken}
-              termsAccepted={ownToken && needsTerms ? acceptTerms && acceptAdult : null}
+              termsAccepted={ownToken && needsTerms ? acceptTerms && acceptAdult && (!isTeam || acceptCollab) : null}
               label={ownToken ? "Crear cuenta con Google" : "Continuar con Google"}
             />
-            {ownToken && needsTerms && !(acceptTerms && acceptAdult) && (
+            {ownToken && needsTerms && !(acceptTerms && acceptAdult && (!isTeam || acceptCollab)) && (
               <p className="mt-2 text-xs font-medium text-brand-600">
-                Para continuar con Google, marca antes las casillas de mayoría de edad (18 años) y de aceptación de los términos y condiciones del servicio.
+                Para continuar con Google, marca antes las casillas de mayoría de edad (18 años), de aceptación de los términos y condiciones del servicio y, si eres del equipo, del Acuerdo de colaboración.
               </p>
             )}
             <p className="mt-2 text-xs leading-relaxed text-stone-400">

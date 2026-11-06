@@ -7,7 +7,7 @@ import {
   consumeAccessToken,
   type AccessCheck,
 } from "@/lib/accessTokens";
-import { ADULT_REQUIRED_MESSAGE, needsTermsAcceptance, recordTermsAcceptance, TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
+import { ADULT_REQUIRED_MESSAGE, COLLAB_REQUIRED_MESSAGE, isTeamAccount, needsTermsAcceptance, recordTermsAcceptance, TERMS_REQUIRED_MESSAGE } from "@/lib/terms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +15,11 @@ export const dynamic = "force-dynamic";
  * Pública (la usa /set-password). Tres acciones:
  *  - validate {token}: ¿el link sigue vigente? Devuelve el correo.
  *  - verify {email, code}: ¿el código de 6 dígitos es correcto?
- *  - accept {token | email+code, password, acceptTerms, confirmAdult}: guarda la contraseña y gasta el token.
+ *  - accept {token | email+code, password, acceptTerms, confirmAdult, acceptCollab (equipo)}: guarda la contraseña y gasta el token.
  * Quien aún no ha aceptado los términos y condiciones debe marcar la casilla (acceptTerms: true).
  * Después de aceptar, la pantalla inicia sesión con correo + contraseña.
  */
-type Body = { action?: string; token?: string; email?: string; code?: string; password?: string; acceptTerms?: boolean; confirmAdult?: boolean };
+type Body = { action?: string; token?: string; email?: string; code?: string; password?: string; acceptTerms?: boolean; confirmAdult?: boolean; acceptCollab?: boolean };
 
 function failure(check: Extract<AccessCheck, { ok: false }>) {
   const status = check.reason === "locked" ? 429 : 400;
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       email: check.row.email,
       purpose: check.row.purpose,
       needsTerms: await needsTermsAcceptance(db, check.row.user_id),
+      isTeam: await isTeamAccount(db, check.row.user_id),
     });
   }
 
@@ -72,6 +73,9 @@ export async function POST(req: NextRequest) {
     const mustAcceptTerms = await needsTermsAcceptance(db, check.row.user_id);
     if (mustAcceptTerms && body.confirmAdult !== true) {
       return NextResponse.json({ ok: false, reason: "adult", error: ADULT_REQUIRED_MESSAGE }, { status: 400 });
+    }
+    if (mustAcceptTerms && (await isTeamAccount(db, check.row.user_id)) && body.acceptCollab !== true) {
+      return NextResponse.json({ ok: false, reason: "collab", error: COLLAB_REQUIRED_MESSAGE }, { status: 400 });
     }
     if (mustAcceptTerms && body.acceptTerms !== true) {
       return NextResponse.json({ ok: false, reason: "terms", error: TERMS_REQUIRED_MESSAGE }, { status: 400 });
