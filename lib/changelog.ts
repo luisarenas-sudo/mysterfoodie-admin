@@ -19,6 +19,17 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.2",
+    date: "2026-11-06",
+    title: "Enviar GRATIS: reporte completo de regalo",
+    emoji: "🎁",
+    highlights: [
+      "Al usar «Enviar GRATIS», el negocio recibe la experiencia completa sin pasar por Mercado Pago.",
+      "Un solo botón grande: «Descarga GRATIS tu reporte aquí», en el enlace público y en el correo.",
+      "El mensaje para Instagram/WhatsApp ahora es de regalo, con el enlace directo a la descarga.",
+    ],
+  },
+  {
     version: "0.34.1",
     date: "2026-11-06",
     title: "Por qué confiar en los indicadores, antes de pagar",

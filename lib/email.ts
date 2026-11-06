@@ -438,6 +438,8 @@ export type SendFullReportEmailParams = {
   demo?: boolean;
   /** Primer contacto o demo gratis: aclaración entre paréntesis de las palabras de la marca. */
   glosario?: GlosarioKey[];
+  /** Demo gratis: link de descarga del PDF (botón grande «Descarga GRATIS tu reporte aquí»). */
+  downloadUrl?: string | null;
 };
 
 function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
@@ -464,7 +466,12 @@ function renderFullReportEmailHtml(params: SendFullReportEmailParams): string {
     ${renderGuaranteeBlock()}
 
     ${params.glosario ? `<div style="margin: 0 0 12px;">${renderSecondaryButton(METODOLOGIA_URL, METODOLOGIA_BOTON)}</div>` : ""}
-    ${renderButton(reportUrl, "Ver el reporte en línea")}
+    ${
+      params.demo && params.downloadUrl && !planProgress
+        ? `<div style="margin: 0 0 12px;">${renderButton(params.downloadUrl, "Descarga GRATIS tu reporte aquí")}</div>
+    <p style="margin: 0 0 12px; text-align: center; font-size: 14px;"><a href="${reportUrl}" style="color: #6b7280; text-decoration: underline;">o ver el reporte en línea</a></p>`
+        : renderButton(reportUrl, "Ver el reporte en línea")
+    }
     ${whatsappLink ? `<div style="margin-top: 12px;">${renderButton(whatsappLink, "¿Dudas? Platiquemos por WhatsApp", "#25D366")}</div>` : ""}
   `);
 }

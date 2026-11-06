@@ -482,6 +482,7 @@ export async function POST(req: NextRequest) {
       reportUrl,
       waiterName,
       tipoNegocio: businessTypePhrase(business.type) || "negocio",
+      freeGift: freeDemo,
     },
     dmAutomation?.enabled && dmAutomation.bodyTemplate ? dmAutomation.bodyTemplate : undefined
   );

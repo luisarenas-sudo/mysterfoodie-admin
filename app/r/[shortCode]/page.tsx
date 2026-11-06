@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { foodieTrustText } from "@/lib/brand";
 import IndicatorsAuthority from "@/components/IndicatorsAuthority";
+import FreeReportDownload from "@/components/FreeReportDownload";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import {
@@ -43,7 +44,7 @@ async function loadReport(shortCode: string) {
 
   const { data: form } = await db
     .from("forms")
-    .select(`id, overall_score, created_at, client_id, report_unlocked_at, menu_type, comments, ticket_photo_path, ${VISIT_CONTEXT_COLUMNS}`)
+    .select(`id, overall_score, created_at, client_id, report_unlocked_at, free_demo, menu_type, comments, ticket_photo_path, ${VISIT_CONTEXT_COLUMNS}`)
     .eq("short_code", shortCode)
     .maybeSingle();
 
@@ -354,6 +355,7 @@ export default async function ReportPage({
         overallScore={form.overall_score}
         categories={askEmail ? [] : visibleCategories}
         unlocked={unlocked}
+        freeDemo={Boolean(form.free_demo)}
         requested={requested}
         price={FULL_REPORT_PRICE_MXN}
         mercadopagoConfigured={mercadopagoConfigured}
@@ -444,6 +446,8 @@ export default async function ReportPage({
           </div>
         </div>
       )}
+
+      {unlocked && Boolean(form.free_demo) && <FreeReportDownload shortCode={shortCode} variant="desktop" />}
 
       {!askEmail && visibleCategories.length > 0 && (
         <div className="mt-6 grid grid-cols-2 gap-3">

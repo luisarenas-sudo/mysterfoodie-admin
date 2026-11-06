@@ -18,6 +18,66 @@ export type UnlockedForm = {
   created_at: string;
 };
 
+/**
+ * Arma el PDF del reporte completo de una visita (el mismo que se adjunta al correo y que se descarga
+ * desde el link público del demo gratis).
+ */
+export async function buildFormReportPdf(
+  db: ReturnType<typeof getSupabaseServiceClient>,
+  form: UnlockedForm,
+  opts: { demo?: boolean } = {},
+  knownClient?: { name?: string | null; type?: string | null; city?: string | null } | null
+): Promise<{ pdf: Buffer; businessName: string; score: number }> {
+  const client =
+    knownClient ??
+    (await db.from("clients").select("name, type, city").eq("id", form.client_id).maybeSingle()).data;
+
+  const { data: ratingRows } = await db
+    .from("form_ratings")
+    .select("category_key, score")
+    .eq("form_id", form.id);
+
+  const ratings: Ratings = {};
+  for (const row of ratingRows ?? []) {
+    if (typeof row.score === "number") ratings[row.category_key as string] = row.score;
+  }
+
+  const { data: flagRows } = await db
+    .from("form_flags")
+    .select("flag_key, flag_value")
+    .eq("form_id", form.id);
+
+  const flags: Record<string, boolean> = {};
+  for (const row of flagRows ?? []) {
+    flags[row.flag_key as string] = Boolean(row.flag_value);
+  }
+
+  const catScores = categoryScores(ratings, flags);
+  const score = form.overall_score || overallScore(ratings, flags);
+
+  // Si la visita ya tiene foto del ticket de consumo, va como página del PDF.
+  const { data: ticketRow } = await db.from("forms").select(`ticket_photo_path, menu_type, comments, ${VISIT_CONTEXT_COLUMNS}`).eq("id", form.id).maybeSingle();
+  const ticketImage = await downloadTicket(db, ticketRow?.ticket_photo_path ?? null);
+
+  const pdf = await buildReportPdf({
+    businessName: client?.name || "Negocio",
+    clientType: client?.type ?? null,
+    city: client?.city ?? null,
+    visitDate: new Date(form.created_at),
+    overallScore: score,
+    categoryScores: catScores,
+    shortCode: form.short_code,
+    ticketImage,
+    ratings,
+    flags,
+    menuType: ticketRow?.menu_type ?? null,
+    comments: ticketRow?.comments ?? null,
+    context: buildVisitContext(ticketRow as Record<string, unknown> | null),
+    demo: opts.demo,
+  });
+  return { pdf, businessName: client?.name || "Negocio", score };
+}
+
 /** Genera el PDF del reporte completo y lo manda por correo al
  * comprador (o, si MercadoPago no entregó su correo, al correo del
  * negocio ya registrado), con el link al reporte en línea y el botón
@@ -55,49 +115,9 @@ export async function deliverFullReportEmail(
     return { status: "skipped_no_email", to: null };
   }
 
-  const { data: ratingRows } = await db
-    .from("form_ratings")
-    .select("category_key, score")
-    .eq("form_id", form.id);
-
-  const ratings: Ratings = {};
-  for (const row of ratingRows ?? []) {
-    if (typeof row.score === "number") ratings[row.category_key as string] = row.score;
-  }
-
-  const { data: flagRows } = await db
-    .from("form_flags")
-    .select("flag_key, flag_value")
-    .eq("form_id", form.id);
-
-  const flags: Record<string, boolean> = {};
-  for (const row of flagRows ?? []) {
-    flags[row.flag_key as string] = Boolean(row.flag_value);
-  }
-
-  const catScores = categoryScores(ratings, flags);
-  const score = form.overall_score || overallScore(ratings, flags);
-
-  // Si la visita ya tiene foto del ticket de consumo, va como página del PDF.
-  const { data: ticketRow } = await db.from("forms").select(`ticket_photo_path, menu_type, comments, ${VISIT_CONTEXT_COLUMNS}`).eq("id", form.id).maybeSingle();
-  const ticketImage = await downloadTicket(db, ticketRow?.ticket_photo_path ?? null);
-
-  const pdfBuffer = await buildReportPdf({
-    businessName: client?.name || "Negocio",
-    clientType: client?.type ?? null,
-    city: client?.city ?? null,
-    visitDate: new Date(form.created_at),
-    overallScore: score,
-    categoryScores: catScores,
-    shortCode: form.short_code,
-    ticketImage,
-    ratings,
-    flags,
-    menuType: ticketRow?.menu_type ?? null,
-    comments: ticketRow?.comments ?? null,
-    context: buildVisitContext(ticketRow as Record<string, unknown> | null),
-    demo: opts.demo,
-  });
+  const built = await buildFormReportPdf(db, form, { demo: opts.demo }, client);
+  const pdfBuffer = built.pdf;
+  const score = built.score;
 
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://app.mysterfoodie.com";
   const reportUrl = form.report_url || `${baseUrl}/r/${form.short_code}`;
@@ -119,6 +139,7 @@ export async function deliverFullReportEmail(
     pdfFilename: `reporte-completo-${form.short_code}.pdf`,
     planProgress: opts.planProgress,
     demo: opts.demo,
+    downloadUrl: opts.demo ? `${baseUrl.replace(/\/$/, "")}/r/${form.short_code}/pdf` : null,
     // Visita suelta (compra o demo): muchas veces es el primer correo largo que el negocio recibe de nosotros.
     glosario: opts.planProgress ? undefined : GLOSARIO_NEGOCIO,
   });

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { foodieTrustText } from "@/lib/brand";
 import IndicatorsAuthority from "@/components/IndicatorsAuthority";
+import FreeReportDownload from "@/components/FreeReportDownload";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import ShareResultButton from "@/components/ShareResultButton";
@@ -154,6 +155,7 @@ export default function MobileReportePublico({
   overallScore,
   categories,
   unlocked,
+  freeDemo = false,
   requested = false,
   price,
   mercadopagoConfigured,
@@ -188,6 +190,8 @@ export default function MobileReportePublico({
   overallScore: number;
   categories: { key: string; label: string; average: number; count: number }[];
   unlocked: boolean;
+  /** Demo GRATIS: el reporte se entrega abierto con un botón para descargar el PDF. */
+  freeDemo?: boolean;
   /** La visita se hizo por una solicitud del negocio: no se vende el reporte, se invita a programar una visita o ver paquetes. */
   requested?: boolean;
   price: number;
@@ -293,6 +297,8 @@ export default function MobileReportePublico({
           </div>
         </div>
       )}
+
+      {unlocked && freeDemo && <FreeReportDownload shortCode={shortCode} variant="mobile" />}
 
       {categories.length > 0 && (
         <div className="px-5 pt-4">

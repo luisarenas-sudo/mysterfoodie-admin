@@ -15,11 +15,23 @@ export function buildDmMessage(
     waiterName?: string | null;
     /** "cafetería", "restaurante"… (ver businessTypePhrase). */
     tipoNegocio?: string;
+    /** Demo GRATIS: se les regala el reporte completo y el link lleva el botón de descarga. */
+    freeGift?: boolean;
   },
   customTemplate?: string
 ): string {
   const { businessName, score, reportUrl, waiterName } = params;
   const tipo = params.tipoNegocio?.trim() || "negocio";
+
+  // Demo GRATIS: mensaje de regalo (sin calificación ni plantilla editable; el link abre el botón de descarga).
+  if (params.freeGift) {
+    const w = waiterName?.trim() ? ` Lo atendió ${waiterName.trim()}.` : "";
+    return (
+      `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
+      `y calificó de forma independiente la experiencia real.${w} ` +
+      `Les regalamos su reporte completo, sin ningún costo. Descarga GRATIS tu reporte aquí: ${reportUrl}`
+    );
+  }
 
   // Nota baja: sin la calificación en el primer mensaje y con enfoque de ayuda (ignora la plantilla editable, que la menciona).
   if (isLowScore(score)) {
