@@ -2,6 +2,7 @@ import { getVipStatus } from "@/lib/salesJourney";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { foodieTrustText } from "@/lib/brand";
+import IndicatorsAuthority from "@/components/IndicatorsAuthority";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { categoryScores, type Ratings } from "@/lib/scoring";
 import {
@@ -493,6 +494,8 @@ export default async function ReportPage({
           <p className="mt-1 text-sm text-stone-500">{teaser.detail}</p>
         </div>
       )}
+
+      {!unlocked && <IndicatorsAuthority variant="desktop" />}
 
       {unlocked ? (
         <FullReportDetail

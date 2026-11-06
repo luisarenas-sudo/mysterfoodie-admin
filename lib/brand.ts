@@ -19,6 +19,11 @@ export const FOODIE_PROFILE =
 export const LEADING_INDICATORS_CLAIM =
   "Indicadores líderes en el mercado, basados en distintivos y certificaciones actuales además de la metodología de Flanco Izquierdo®.";
 
+/** Bloque de autoridad que se muestra antes del pago en el reporte público (y lo que respalda a los indicadores). */
+export const LEADING_INDICATORS_BASIS =
+  "Basados en distintivos y certificaciones actuales (como el Distintivo H de Sectur), además de la metodología de Flanco Izquierdo®.";
+export const HIGIENE_DISCLAIMER_SHORT = "Higiene es una observación como cliente, inspirada en el Distintivo H: no es una auditoría ni lo sustituye.";
+
 /** Párrafo de confianza que acompaña a Palabra MysterFoodie en el reporte público. */
 export function foodieTrustText(totalItems: number): string {
   return (

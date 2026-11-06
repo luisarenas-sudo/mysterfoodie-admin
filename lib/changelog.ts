@@ -19,6 +19,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.34.1",
+    date: "2026-11-06",
+    title: "Por qué confiar en los indicadores, antes de pagar",
+    emoji: "🏅",
+    highlights: [
+      "En el link público del negocio, antes del apartado de pago, un bloque explica que los 76 indicadores se basan en distintivos y certificaciones, están calificados por líderes del sector restaurantero y miran la atención a cliente y los centros de consumo.",
+      "El correo del resultado dice lo mismo, y la nota de Higiene (observación como cliente, inspirada en el Distintivo H) acompaña al bloque.",
+    ],
+  },
+  {
     version: "0.34.0",
     date: "2026-11-05",
     title: "Aceptar los términos para unirte",

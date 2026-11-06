@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
 import { foodieTrustText } from "@/lib/brand";
+import IndicatorsAuthority from "@/components/IndicatorsAuthority";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
 import ShareResultButton from "@/components/ShareResultButton";
@@ -324,6 +325,8 @@ export default function MobileReportePublico({
           )}
         </div>
       )}
+
+      {!unlocked && <IndicatorsAuthority variant="mobile" />}
 
       {unlocked ? (
         <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} context={visitContext} />
