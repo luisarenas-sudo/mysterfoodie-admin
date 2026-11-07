@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ScoreSelector from "@/components/ScoreSelector";
 import TriState, { type TriValue } from "@/components/wizard/TriState";
-import { QUICK_TAGS, composeComments, commentPartsHaveContent } from "@/lib/visitComments";
+import { QUICK_TAGS, composeComments } from "@/lib/visitComments";
 import SelectChips from "@/components/SelectChips";
 import EmailStatusPanel from "@/components/EmailStatusPanel";
 import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
@@ -19,109 +19,19 @@ import {
   type CategoryItem,
   type ServiceStampKey,
 } from "@/lib/categories";
-import { friendlyError } from "@/lib/friendlyError";
 
-type Business = {
-  name: string;
-  type: string;
-  contactName: string;
-  phone: string;
-  instagramHandle: string;
-  email: string;
-  address: string;
-  city: string;
-};
+import {
+  EMPTY_BUSINESS,
+  businessFromAssignment,
+  draftHasContent,
+  submitVisit,
+  type Business,
+  type BoundAssignment,
+  type SubmitResult,
+  type WizardDraft,
+} from "./wizardShared";
 
-const EMPTY_BUSINESS: Business = {
-  name: "",
-  type: "restaurante",
-  contactName: "",
-  phone: "",
-  instagramHandle: "",
-  email: "",
-  address: "",
-  city: "",
-};
-
-export type BoundAssignment = {
-  /** Presente cuando la visita viene de una asignación de Shopper; ausente cuando admin/sibarita visitan un negocio directamente. */
-  assignmentId?: string;
-  client: {
-    id: string;
-    name: string;
-    type: string;
-    instagramHandle: string | null;
-    email: string | null;
-    city: string | null;
-  };
-};
-
-function businessFromAssignment(a: BoundAssignment): Business {
-  return {
-    name: a.client.name,
-    type: a.client.type,
-    contactName: "",
-    phone: "",
-    instagramHandle: a.client.instagramHandle || "",
-    email: a.client.email || "",
-    address: "",
-    city: a.client.city || "",
-  };
-}
-
-type WizardDraft = {
-  business: Business;
-  shopperName: string;
-  waiterName: string;
-  ratings: Record<string, number>;
-  flags: Record<string, boolean>;
-  selects: Record<string, string>;
-  comments: string;
-  /** Opcionales: borradores anteriores no los traen. */
-  na?: Record<string, boolean>;
-  tagsGood?: string[];
-  tagsImprove?: string[];
-  notes?: Record<string, string>;
-  /** Contexto de la visita (nov 2026): borradores anteriores no lo traen. */
-  startedAt?: string;
-  stamps?: Stamps;
-  wouldReturn?: number | null;
-  step: number;
-  savedAt: number;
-  /** Ruta de la visita y total de pasos: los usa Pendientes del Inicio para avisar y llevar de vuelta. */
-  href?: string;
-  totalSteps?: number;
-};
-
-function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName" | "na" | "tagsGood" | "tagsImprove" | "notes">) {
-  return (
-    Object.keys(d.na ?? {}).length > 0 ||
-    commentPartsHaveContent({ good: d.tagsGood ?? [], improve: d.tagsImprove ?? [], notes: d.notes ?? {}, free: "" }) ||
-    Boolean(d.business.name.trim()) ||
-    Boolean(d.shopperName.trim()) ||
-    Boolean(d.waiterName.trim()) ||
-    Boolean(d.comments.trim()) ||
-    Object.keys(d.ratings).length > 0 ||
-    Object.keys(d.flags).length > 0 ||
-    Object.keys(d.selects).length > 0
-  );
-}
-
-type CategoryScoreResult = { key: string; label: string; average: number; count: number };
-
-type EmailOutcome = { status: string; error?: string; to?: string | null; expected?: number };
-
-type SubmitResult = {
-  formId: string;
-  shortCode: string;
-  reportUrl: string;
-  overallScore: number;
-  categoryScores: CategoryScoreResult[];
-  email: EmailOutcome | null;
-  dmMessage: string;
-  dmLink: string | null;
-  profileLink: string | null;
-};
+export type { BoundAssignment };
 
 type StepDef =
   | { kind: "business" }
@@ -284,30 +194,15 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
   async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
-    try {
-      const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
-      const payload = boundAssignment
-        ? boundAssignment.assignmentId
-          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
-          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
-        : { business, shopperName, ratings, flags, selects, comments: finalComments, waiterName };
-      const res = await fetch("/api/visits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true } : {}) }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(data.error || "No se pudo guardar la evaluación");
-        return;
-      }
+    const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
+    const out = await submitVisit({ boundAssignment, business, shopperName, waiterName, ratings, flags, selects, finalComments, startedAt, stamps, wouldReturn, freeDemo, device: "equipo" });
+    if (out.ok) {
       clearWizardDraft(draftId);
-      setResult(data);
-    } catch (err) {
-      setSubmitError(friendlyError(err, { offline: "Sin conexión. Tu avance está guardado en este equipo: vuelve a intentar cuando tengas internet." }));
-    } finally {
-      setSubmitting(false);
+      setResult(out.data);
+    } else {
+      setSubmitError(out.error);
     }
+    setSubmitting(false);
   }
 
   function copyToClipboard(text: string, label: string) {
@@ -357,7 +252,24 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
             ))}
         </div>
 
-        <div className="mt-6">
+        {result.plan && (
+          <div className="mt-6 card flex items-center gap-3 p-4">
+            <span aria-hidden className="inline-flex gap-1">
+              {Array.from({ length: result.plan.total }, (_, i) => (
+                <span
+                  key={i}
+                  className="inline-block h-3 w-3 rounded-full"
+                  style={{ background: i < result.plan!.done ? "#34C759" : "rgba(60,60,67,0.18)" }}
+                />
+              ))}
+            </span>
+            <p className="text-sm font-semibold text-ink">
+              Plan {result.plan.planName}: visita {result.plan.done} de {result.plan.total} de {result.plan.monthLabel.toLowerCase()}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-4">
           <EmailStatusPanel formId={result.formId} initialStatus={result.email} />
         </div>
 
@@ -379,44 +291,46 @@ export default function DesktopWizard({ boundAssignment, defaultShopperName, can
           </div>
         </div>
 
-        <div className="mt-4 card p-5">
-          <p className="text-sm font-medium text-stone-700">
-            Texto para enviar por DM de Instagram a la cuenta del negocio
-          </p>
-          <p className="mt-1 text-xs text-stone-500">
-            Instagram no permite pre-llenar el mensaje desde un link, así que copia el texto y
-            pégalo dentro del DM al abrirlo.
-          </p>
-          <textarea
-            readOnly
-            value={result.dmMessage}
-            rows={5}
-            className="mt-2 w-full rounded-md border border-stone-300 bg-stone-50 px-3 py-2 text-sm"
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => copyToClipboard(result.dmMessage, "dm")}
-              className="btn-primary text-sm"
-            >
-              {copied === "dm" ? "Copiado" : "Copiar mensaje"}
-            </button>
-            {result.dmLink ? (
-              <a
-                href={result.dmLink}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-md border border-brand-500 px-3 py-2 text-sm text-brand-600 hover:bg-brand-50"
+        {!result.plan && (
+          <div className="mt-4 card p-5">
+            <p className="text-sm font-medium text-stone-700">
+              Texto para enviar por DM de Instagram a la cuenta del negocio
+            </p>
+            <p className="mt-1 text-xs text-stone-500">
+              Instagram no permite pre-llenar el mensaje desde un link, así que copia el texto y
+              pégalo dentro del DM al abrirlo.
+            </p>
+            <textarea
+              readOnly
+              value={result.dmMessage}
+              rows={5}
+              className="mt-2 w-full rounded-md border border-stone-300 bg-stone-50 px-3 py-2 text-sm"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => copyToClipboard(result.dmMessage, "dm")}
+                className="btn-primary text-sm"
               >
-                Abrir DM en Instagram
-              </a>
-            ) : (
-              <p className="self-center text-xs text-stone-500">
-                Agrega el usuario de Instagram del negocio para generar el link directo.
-              </p>
-            )}
+                {copied === "dm" ? "Copiado" : "Copiar mensaje"}
+              </button>
+              {result.dmLink ? (
+                <a
+                  href={result.dmLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-md border border-brand-500 px-3 py-2 text-sm text-brand-600 hover:bg-brand-50"
+                >
+                  Abrir DM en Instagram
+                </a>
+              ) : (
+                <p className="self-center text-xs text-stone-500">
+                  Agrega el usuario de Instagram del negocio para generar el link directo.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {boundAssignment ? (
           <button

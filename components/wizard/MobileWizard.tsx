@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import EmailStatusPanel, { useEmailStatus } from "@/components/EmailStatusPanel";
 import SelectChips from "@/components/SelectChips";
 import TriState, { type TriValue } from "@/components/wizard/TriState";
-import { QUICK_TAGS, composeComments, commentPartsHaveContent } from "@/lib/visitComments";
+import { QUICK_TAGS, composeComments } from "@/lib/visitComments";
 import {
   CATEGORIES,
   BUSINESS_TYPES,
@@ -22,110 +22,21 @@ import { getVerdict } from "@/lib/verdict";
 import { CATEGORY_EMOJI } from "@/lib/ring";
 import ActivityRing from "@/components/mobile/ActivityRing";
 import { loadWizardDraft, saveWizardDraft, clearWizardDraft } from "@/lib/wizardDraft";
-import { friendlyError } from "@/lib/friendlyError";
 import { BrandLoaderOverlay } from "@/components/BrandLoader";
 
-type Business = {
-  name: string;
-  type: string;
-  contactName: string;
-  phone: string;
-  instagramHandle: string;
-  email: string;
-  address: string;
-  city: string;
-};
+import {
+  EMPTY_BUSINESS,
+  businessFromAssignment,
+  draftHasContent,
+  submitVisit,
+  type Business,
+  type BoundAssignment,
+  type EmailOutcome,
+  type SubmitResult,
+  type WizardDraft,
+} from "./wizardShared";
 
-const EMPTY_BUSINESS: Business = {
-  name: "",
-  type: "restaurante",
-  contactName: "",
-  phone: "",
-  instagramHandle: "",
-  email: "",
-  address: "",
-  city: "",
-};
-
-export type BoundAssignment = {
-  /** Presente cuando la visita viene de una asignación de Shopper; ausente cuando admin/sibarita visitan un negocio directamente. */
-  assignmentId?: string;
-  client: {
-    id: string;
-    name: string;
-    type: string;
-    instagramHandle: string | null;
-    email: string | null;
-    city: string | null;
-  };
-};
-
-function businessFromAssignment(a: BoundAssignment): Business {
-  return {
-    name: a.client.name,
-    type: a.client.type,
-    contactName: "",
-    phone: "",
-    instagramHandle: a.client.instagramHandle || "",
-    email: a.client.email || "",
-    address: "",
-    city: a.client.city || "",
-  };
-}
-
-type WizardDraft = {
-  business: Business;
-  shopperName: string;
-  waiterName: string;
-  ratings: Record<string, number>;
-  flags: Record<string, boolean>;
-  selects: Record<string, string>;
-  comments: string;
-  /** Opcionales: borradores guardados antes de esta versión no los traen. */
-  na?: Record<string, boolean>;
-  tagsGood?: string[];
-  tagsImprove?: string[];
-  notes?: Record<string, string>;
-  /** Contexto de la visita (nov 2026): borradores anteriores no lo traen. */
-  startedAt?: string;
-  stamps?: Stamps;
-  wouldReturn?: number | null;
-  step: number;
-  savedAt: number;
-  /** Ruta de la visita y total de pasos: los usa Pendientes del Inicio para avisar y llevar de vuelta. */
-  href?: string;
-  totalSteps?: number;
-};
-
-function draftHasContent(d: Pick<WizardDraft, "business" | "shopperName" | "ratings" | "flags" | "selects" | "comments" | "waiterName" | "na" | "tagsGood" | "tagsImprove" | "notes">) {
-  return (
-    Object.keys(d.na ?? {}).length > 0 ||
-    commentPartsHaveContent({ good: d.tagsGood ?? [], improve: d.tagsImprove ?? [], notes: d.notes ?? {}, free: "" }) ||
-    Boolean(d.business.name.trim()) ||
-    Boolean(d.shopperName.trim()) ||
-    Boolean(d.waiterName.trim()) ||
-    Boolean(d.comments.trim()) ||
-    Object.keys(d.ratings).length > 0 ||
-    Object.keys(d.flags).length > 0 ||
-    Object.keys(d.selects).length > 0
-  );
-}
-
-type CategoryScoreResult = { key: string; label: string; average: number; count: number };
-type EmailOutcome = { status: string; error?: string; to?: string | null; expected?: number };
-type SubmitResult = {
-  formId: string;
-  shortCode: string;
-  reportUrl: string;
-  overallScore: number;
-  categoryScores: CategoryScoreResult[];
-  email: EmailOutcome | null;
-  /** Visita de un plan mensual: avance del mes (el reporte ya se envió completo). */
-  plan: { done: number; total: number; monthLabel: string; planName: string } | null;
-  dmMessage: string;
-  dmLink: string | null;
-  profileLink: string | null;
-};
+export type { BoundAssignment };
 
 type StepDef = { kind: "business" } | { kind: "context" } | { kind: "category"; category: Category } | { kind: "comments" };
 
@@ -433,30 +344,15 @@ export default function MobileWizard({ boundAssignment, canSendFree, freePrice }
   async function handleSubmit(freeDemo = false) {
     setSubmitting(true);
     setSubmitError(null);
-    try {
-      const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
-      const payload = boundAssignment
-        ? boundAssignment.assignmentId
-          ? { assignmentId: boundAssignment.assignmentId, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
-          : { clientId: boundAssignment.client.id, shopperName, ratings, flags, selects, comments: finalComments, waiterName }
-        : { business, shopperName, ratings, flags, selects, comments: finalComments, waiterName };
-      const res = await fetch("/api/visits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, startedAt: startedAt ?? undefined, stamps, wouldReturn, ...(freeDemo ? { freeDemo: true } : {}) }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(data.error || "No se pudo guardar la evaluación");
-        return;
-      }
+    const finalComments = composeComments({ good: tagsGood, improve: tagsImprove, notes, free: comments });
+    const out = await submitVisit({ boundAssignment, business, shopperName, waiterName, ratings, flags, selects, finalComments, startedAt, stamps, wouldReturn, freeDemo, device: "teléfono" });
+    if (out.ok) {
       clearWizardDraft(draftId);
-      setResult(data);
-    } catch (err) {
-      setSubmitError(friendlyError(err, { offline: "Sin conexión. Tu avance está guardado en este teléfono: vuelve a intentar cuando tengas internet." }));
-    } finally {
-      setSubmitting(false);
+      setResult(out.data);
+    } else {
+      setSubmitError(out.error);
     }
+    setSubmitting(false);
   }
 
   function copyToClipboard(text: string, label: string) {
