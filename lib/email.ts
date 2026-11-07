@@ -144,7 +144,7 @@ export function renderGuaranteeBlock(): string {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: separate; margin: 24px 0;">
       <tr>
-        <td align="center" style="background-color: #1c1c1e; border-radius: 18px; padding: 24px 24px 26px; text-align: center;">
+        <td align="center" style="background-color: #2c2c2e; border-radius: 18px; padding: 24px 24px 26px; text-align: center;">
           <img src="${baseUrl}/palabra-escudo.png" width="44" height="44" alt="" style="display: block; margin: 0 auto 10px; width: 44px; height: 44px; border: 0;" />
           <p style="margin: 0 0 10px; font-size: 18px; font-weight: bold; letter-spacing: 0.06em; color: #ffffff; text-transform: uppercase; text-align: center;">
             Palabra MysterFoodie

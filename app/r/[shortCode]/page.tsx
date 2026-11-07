@@ -1,8 +1,9 @@
 import { getVipStatus } from "@/lib/salesJourney";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
-import { foodieTrustText } from "@/lib/brand";
+import { foodieTrustPoints } from "@/lib/brand";
 import IndicatorsAuthority from "@/components/IndicatorsAuthority";
+import IncludesAdvisory from "@/components/IncludesAdvisory";
 import FreeReportDownload from "@/components/FreeReportDownload";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { categoryScores, type Ratings } from "@/lib/scoring";
@@ -499,8 +500,6 @@ export default async function ReportPage({
         </div>
       )}
 
-      {!unlocked && <IndicatorsAuthority variant="desktop" />}
-
       {unlocked ? (
         <FullReportDetail
           ratings={ratings}
@@ -531,18 +530,17 @@ export default async function ReportPage({
           </p>
         </div>
       ) : (
-        <div className="mt-4 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
-          <p className="font-medium text-ink">{isLowScore(form.overall_score) ? "Este es un resumen por categoría. El reporte completo te muestra por dónde empezar." : "Este es un resumen por categoría."}</p>
-          <p className="mt-2 font-medium text-ink">
-            El reporte completo incluye el detalle de los {TOTAL_ITEM_COUNT} indicadores
-            evaluados dentro de cada categoría y los comentarios del MysterFoodie
-            {form.ticket_photo_path ? ", además del ticket de consumo de la visita" : ""}.
+        <section className="mt-6 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+            {isLowScore(form.overall_score) ? "Mira por dónde empezar" : "Este es un resumen por categoría"}
           </p>
-          {agendaIncluded && (
-            <p className="mt-2 text-sm text-stone-600">
-              Incluye una asesoría gratuita de 20 minutos para platicar qué mover primero.
-            </p>
-          )}
+          <h2 className="heading mt-2 text-2xl leading-tight text-ink sm:text-3xl">
+            Obtén el reporte completo con los {TOTAL_ITEM_COUNT} indicadores líderes en el mercado
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-stone-600">
+            Todo el detalle de cada categoría y los comentarios del MysterFoodie
+            {form.ticket_photo_path ? ", además del ticket de consumo de la visita" : ""}, en PDF y en línea.
+          </p>
           {mercadopagoConfigured ? (
             <CheckoutPayerForm shortCode={shortCode} price={FULL_REPORT_PRICE_MXN} />
           ) : whatsappFallbackLink ? (
@@ -559,8 +557,11 @@ export default async function ReportPage({
               Para solicitar el reporte completo, contacta a MysterFoodie.
             </p>
           )}
-        </div>
+          {agendaIncluded && <IncludesAdvisory variant="desktop" />}
+        </section>
       )}
+
+      {!unlocked && <IndicatorsAuthority variant="desktop" />}
 
       {agendaHref && (
         <div className="mt-8 rounded-lg border border-stone-200 bg-white p-5 text-center">
@@ -578,7 +579,7 @@ export default async function ReportPage({
       )}
 
 
-      <PalabraFoodieCard className="mt-6">{foodieTrustText(TOTAL_ITEM_COUNT)}</PalabraFoodieCard>
+      <PalabraFoodieCard className="mt-6" points={foodieTrustPoints(TOTAL_ITEM_COUNT)} />
 
       <p className="mt-6 text-center">
         <FlancoCredit className="text-xs" color="#a8a29e" />

@@ -80,7 +80,7 @@ function drawPalabraFoodie(doc: PDFKit.PDFDocument, x: number, y: number, width:
   const iconD = 34;
   const height = pad + iconD + 10 + 14 + 8 + quoteH + pad;
 
-  doc.save().roundedRect(x, y, width, height, 14).fill("#1C1C1E").restore();
+  doc.save().roundedRect(x, y, width, height, 14).fill("#2C2C2E").restore();
   const cx = x + width / 2;
   const cy = y + pad + iconD / 2;
   doc.save().fillOpacity(0.18).circle(cx, cy, iconD / 2).fill("#F24444").restore();

@@ -34,6 +34,17 @@ export function foodieTrustText(totalItems: number): string {
   );
 }
 
+/** Lo mismo que foodieTrustText, pero en puntos cortos para la tarjeta Palabra MysterFoodie (se lee más fácil que un párrafo). */
+export function foodieTrustPoints(totalItems: number): string[] {
+  return [
+    "Profesionales de la industria restaurantera (alimentos, restauración y entretenimiento).",
+    "Con experiencia en servicio, capacitación, ventas y comunicación.",
+    "Con el poder adquisitivo de un cliente real: visitan de incógnito y pagan su cuenta.",
+    `Califican ${totalItems} indicadores de servicio, sabor, limpieza y experiencia, con total honestidad.`,
+    "Indicadores líderes en el mercado, basados en distintivos y certificaciones actuales, además de la metodología de Flanco Izquierdo®.",
+  ];
+}
+
 /**
  * Nombre visible de cada rol. El valor interno (admin/agente/sibarita/
  * cliente) no cambia: es el que usan middleware, requireRole() y la base

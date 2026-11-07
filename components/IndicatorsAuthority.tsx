@@ -1,14 +1,14 @@
-import { HIGIENE_DISCLAIMER_SHORT, LEADING_INDICATORS_BASIS } from "@/lib/brand";
+import { HIGIENE_DISCLAIMER_SHORT } from "@/lib/brand";
 import { TOTAL_ITEM_COUNT } from "@/lib/categories";
 
 const POINTS = [
-  { emoji: "🏅", title: "Distintivos y certificaciones", text: LEADING_INDICATORS_BASIS },
-  { emoji: "🍽️", title: "Líderes del sector restaurantero", text: "Calificados por líderes del sector restaurantero." },
-  { emoji: "🙋", title: "Atención a cliente y consumo", text: "Con experiencia en atención a cliente y en centros de consumo." },
+  { emoji: "🏅", title: "Distintivos y certificaciones", text: "Basados en distintivos y certificaciones actuales, como el Distintivo H de Sectur." },
+  { emoji: "🍽️", title: "Líderes del sector restaurantero", text: "Calificados por líderes del sector restaurantero, con la metodología de Flanco Izquierdo®." },
+  { emoji: "🙋", title: "Atención a cliente y consumo", text: "Con experiencia en atención a cliente y en centros de consumo de alimentos y bebidas." },
 ];
 
 /**
- * Por qué confiar en los indicadores. Se muestra en el reporte público ANTES del apartado de pago
+ * Por qué confiar en los indicadores. Se muestra en el reporte público DESPUÉS de la oferta y el botón de pago
  * (variante "mobile" = app del celular; "desktop" = página web).
  */
 export default function IndicatorsAuthority({ variant }: { variant: "mobile" | "desktop" }) {

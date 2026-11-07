@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { getVerdict, isLowScore, isShareableScore } from "@/lib/verdict";
-import { foodieTrustText } from "@/lib/brand";
+import { foodieTrustPoints } from "@/lib/brand";
 import IndicatorsAuthority from "@/components/IndicatorsAuthority";
+import IncludesAdvisory from "@/components/IncludesAdvisory";
 import FreeReportDownload from "@/components/FreeReportDownload";
 import PalabraFoodieCard from "@/components/PalabraFoodieCard";
 import { CATEGORY_EMOJI, avatarColorFor, initialsFor } from "@/lib/ring";
@@ -332,8 +333,6 @@ export default function MobileReportePublico({
         </div>
       )}
 
-      {!unlocked && <IndicatorsAuthority variant="mobile" />}
-
       {unlocked ? (
         <FullDetail ratings={ratings} flags={flags} menuType={menuType} comments={comments} ticketHref={hasTicket ? `/r/${shortCode}/ticket` : null} context={visitContext} />
       ) : requested ? (
@@ -379,20 +378,15 @@ export default function MobileReportePublico({
       ) : (
         <>
           <div className={`px-6 pb-1.5 text-center ${categories.length > 0 ? "pt-5" : "pt-4"}`}>
-            <div className="mb-1.5 text-[21px] font-bold">{isLowScore(overallScore) ? "Mira por dónde empezar" : "Obtén el reporte completo"}</div>
+            <div className="mb-1 text-[11.5px] font-bold uppercase tracking-wide" style={{ color: "#F24444" }}>
+              {isLowScore(overallScore) ? "Mira por dónde empezar" : "Este es un resumen por categoría"}
+            </div>
+            <div className="mb-2 text-[21px] font-bold leading-tight">
+              Obtén el reporte completo con los {TOTAL_ITEM_COUNT} indicadores líderes en el mercado
+            </div>
             <div className="text-[14px] leading-snug" style={{ color: "rgba(60,60,67,0.6)" }}>
-              <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>{TOTAL_ITEM_COUNT} indicadores</span> detallados:
-              tiempos de atención, presentación, limpieza por zona y las recomendaciones de nuestro MysterFoodie.
-              {hasTicket && (
-                <>
-                  {" "}Incluye también el <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>ticket de consumo</span> de la visita.
-                </>
-              )}
-              {agendaIncluded && (
-                <>
-                  {" "}Y una <span className="font-bold" style={{ color: "rgba(60,60,67,0.85)" }}>asesoría gratuita de 20 minutos</span> para platicar qué mover primero.
-                </>
-              )}
+              Todo el detalle de cada categoría y los comentarios de nuestro MysterFoodie
+              {hasTicket ? ", además del ticket de consumo de la visita" : ""}, en PDF y en línea.
             </div>
           </div>
 
@@ -486,6 +480,7 @@ export default function MobileReportePublico({
                 </div>
               </>
             )}
+            {agendaIncluded && <IncludesAdvisory variant="mobile" />}
           </div>
 
           {whatsappFallbackLink && mercadopagoConfigured && (
@@ -508,6 +503,8 @@ export default function MobileReportePublico({
         </>
       )}
 
+      {!unlocked && <IndicatorsAuthority variant="mobile" />}
+
       {agendaHref && (
         <div className="card mx-5 mt-6 p-5 text-center">
           <div className="text-[16px] font-bold">¿Quieres mejorar tu calificación?</div>
@@ -524,7 +521,7 @@ export default function MobileReportePublico({
         </div>
       )}
 
-      <PalabraFoodieCard className="mx-5 mt-6">{foodieTrustText(TOTAL_ITEM_COUNT)}</PalabraFoodieCard>
+      <PalabraFoodieCard className="mx-5 mt-6" points={foodieTrustPoints(TOTAL_ITEM_COUNT)} />
 
       <div className="px-6 pb-9 pt-5 text-center">
         <FlancoCredit />
