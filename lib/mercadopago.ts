@@ -122,3 +122,30 @@ export async function getPayment(paymentId: string): Promise<MercadoPagoPayment 
     return null;
   }
 }
+
+/**
+ * Cobro estándar de MysterFoodie: arma las ligas de regreso (`?pago=exitoso|fallido|pendiente`) y la notificación
+ * al webhook a partir de una sola liga `backUrl`. Lo usan los tres cobros (reporte, visita programada y perfil anónimo)
+ * para que se comporten igual; cada ruta solo decide qué cobra y qué guarda.
+ */
+export async function createStandardCheckout(opts: {
+  title: string;
+  price: number;
+  externalReference: string;
+  /** Página a la que regresa la persona (el resultado se agrega como ?pago=...). */
+  backUrl: string;
+  /** Origen de la app, para la notificación al webhook. */
+  baseUrl: string;
+  payer?: { name?: string; email?: string };
+}): Promise<CreatePreferenceResult> {
+  return createPaymentPreference({
+    title: opts.title,
+    price: opts.price,
+    externalReference: opts.externalReference,
+    successUrl: `${opts.backUrl}?pago=exitoso`,
+    failureUrl: `${opts.backUrl}?pago=fallido`,
+    pendingUrl: `${opts.backUrl}?pago=pendiente`,
+    notificationUrl: `${opts.baseUrl}/api/mercadopago/webhook`,
+    payer: opts.payer,
+  });
+}

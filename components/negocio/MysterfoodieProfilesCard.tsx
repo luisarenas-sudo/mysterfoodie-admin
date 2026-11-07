@@ -8,8 +8,8 @@ const fmt = (iso: string) =>
   new Date(iso).toLocaleDateString("es-MX", { day: "numeric", month: "long", timeZone: "America/Mexico_City" });
 
 function action(p: BuyableProfile): { text: string; color: string } {
-  if (p.owned === "passport") return { text: "Ver perfil", color: "#1E8E4E" };
-  if (p.owned === "id") return { text: p.passportAvailable ? "Ver · mejorar a 👑 Passport" : "Ver perfil", color: p.passportAvailable ? "#5856D6" : "#1E8E4E" };
+  if (p.owned === "passport") return { text: "Ver perfil", color: "#248A3D" };
+  if (p.owned === "id") return { text: p.passportAvailable ? "Ver · mejorar a 👑 Passport" : "Ver perfil", color: p.passportAvailable ? "#5856D6" : "#248A3D" };
   return { text: p.passportAvailable ? "Destapar 👑" : "Destapar", color: p.passportAvailable ? "#5856D6" : "#F24444" };
 }
 

@@ -534,7 +534,7 @@ export function buildReportPdf(params: ReportPdfParams): Promise<Buffer> {
       // ---------- Página 3: metodología ----------
       doc.addPage();
       drawHeader(doc, logo);
-      doc.fontSize(18).fillColor(INK).text("¿Cómo funciona Mystery Shopper?", PAGE_MARGIN, 150);
+      doc.fontSize(18).fillColor(INK).text("¿Cómo funciona MysterFoodie?", PAGE_MARGIN, 150);
 
       const methodologyParagraphs = [
         `MysterFoodie evalúa negocios de alimentos y bebidas a través de visitas anónimas realizadas por MysterFoodies: ${FOODIE_PROFILE}. Visitan el negocio como clientes reales, pagando su cuenta con propina incluida, sin que el personal sepa que está siendo evaluado.`,

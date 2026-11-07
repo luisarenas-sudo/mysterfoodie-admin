@@ -95,7 +95,7 @@ export default function SalesJourneyBar({ journey, variant, className = "" }: { 
                 <ul className="mt-1.5 space-y-1.5">
                   {s.steps.map((st) => (
                     <li key={st.label} className="flex items-start gap-2 text-[13.5px] leading-snug" style={{ color: st.done ? "#1C1C1E" : "rgba(60,60,67,0.55)" }}>
-                      <span aria-hidden="true" className="mt-px w-4 flex-shrink-0 text-center font-bold" style={{ color: st.done ? "#1E8E4E" : "rgba(60,60,67,0.35)" }}>{st.done ? "✓" : "○"}</span>
+                      <span aria-hidden="true" className="mt-px w-4 flex-shrink-0 text-center font-bold" style={{ color: st.done ? "#248A3D" : "rgba(60,60,67,0.35)" }}>{st.done ? "✓" : "○"}</span>
                       <span>
                         {st.label}
                         {st.at && <span style={{ color: "rgba(60,60,67,0.55)" }}> · {when(st.at)}</span>}

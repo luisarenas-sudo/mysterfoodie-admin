@@ -283,7 +283,7 @@ export default function MobileNegocioDetail({
                 </div>
               </ActivityRing>
               <div
-                className="mt-2 rounded-[10px] px-3 py-1 text-[13px] font-bold"
+                className="mt-2 rounded-[12px] px-3 py-1 text-[13px] font-bold"
                 style={{ color: verdict.color, background: `${verdict.color}1F` }}
               >
                 {verdict.label}

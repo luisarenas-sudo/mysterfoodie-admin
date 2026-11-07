@@ -130,7 +130,7 @@ function BlockSteps({
         return null; // todavía no toca: aparece cuando se conteste la anterior
       })}
       {editing === null && fields.length > 0 && (
-        <p className="mt-3 text-[13px] font-semibold" style={{ color: "#1E8E4E" }}>✓ Sección lista</p>
+        <p className="mt-3 text-[13px] font-semibold" style={{ color: "#248A3D" }}>✓ Sección lista</p>
       )}
     </div>
   );
@@ -318,7 +318,7 @@ export default function AnonProfileForm({
                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.round((listos / blocks.length) * 100)}%`, background: listos === blocks.length ? "#34C759" : ui.color }} />
                 </div>
                 <div className="mt-1.5 flex items-center justify-between gap-2 text-[12.5px] font-semibold">
-                  <span style={{ color: listos === blocks.length ? "#1E8E4E" : "rgba(60,60,67,0.7)" }}>
+                  <span style={{ color: listos === blocks.length ? "#248A3D" : "rgba(60,60,67,0.7)" }}>
                     {listos === blocks.length ? "✓ " : ""}{listos} de {blocks.length} secciones listas
                   </span>
                   <span className="flex flex-shrink-0 items-center gap-1" style={{ color: ui.color }}>
@@ -339,7 +339,7 @@ export default function AnonProfileForm({
                 >
                   <span className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all" style={{ left: on ? 22 : 2 }} />
                 </button>
-                <span className="text-[10.5px] font-semibold" style={{ color: on ? "#1E8E4E" : "rgba(60,60,67,0.5)" }}>{on ? "Compartes" : "Apagado"}</span>
+                <span className="text-[10.5px] font-semibold" style={{ color: on ? "#248A3D" : "rgba(60,60,67,0.5)" }}>{on ? "Compartes" : "Apagado"}</span>
               </div>
             </div>
 
@@ -371,7 +371,7 @@ export default function AnonProfileForm({
                           <span className="block text-[15px] font-bold">{b.label}</span>
                           <span className="block text-[12px]" style={{ color: "rgba(60,60,67,0.6)" }}>+{moneyS((b.pct / 100) * TIER_INCREMENT[b.tier])} por venta</span>
                         </span>
-                        <span className="rounded-full px-2.5 py-1 text-[11.5px] font-bold" style={st.ok ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "#F2F2F7", color: "rgba(60,60,67,0.7)" }}>{st.text}</span>
+                        <span className="rounded-full px-2.5 py-1 text-[11.5px] font-bold" style={st.ok ? { background: "#E8F7EE", color: "#248A3D" } : { background: "#F2F2F7", color: "rgba(60,60,67,0.7)" }}>{st.text}</span>
                         <Chevron open={isSec} />
                       </button>
                       {isSec && <div className="mf-slide-in pb-4 pl-1">{sectionBody(b.key)}</div>}
@@ -385,7 +385,7 @@ export default function AnonProfileForm({
       })}
 
       {msg && (
-        <p className="mb-3 rounded-[12px] px-3.5 py-2.5 text-[13.5px] font-medium" style={msg.ok ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>
+        <p className="mb-3 rounded-[12px] px-3.5 py-2.5 text-[13.5px] font-medium" style={msg.ok ? { background: "#E8F7EE", color: "#248A3D" } : { background: "rgba(255,59,48,0.1)", color: "#C7301E" }}>
           {msg.text}
         </p>
       )}

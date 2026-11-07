@@ -50,7 +50,7 @@ export default async function PerfilMysterfoodiePage({
   const profile = best ? await buildMysterfoodieProfile(form.created_by, { tier: best }) : null;
 
   const aviso = pago ? AVISOS[pago] : null;
-  const tone = { ok: ["#E8F7EE", "#1E8E4E"], warn: ["#FFF6E0", "#9A6A00"], bad: ["rgba(255,59,48,0.1)", "#C7301E"] };
+  const tone = { ok: ["#E8F7EE", "#248A3D"], warn: ["#FFF6E0", "#9A6A00"], bad: ["rgba(255,59,48,0.1)", "#C7301E"] };
 
   const buy = (tier: TierKey, label: string) => (
     <a

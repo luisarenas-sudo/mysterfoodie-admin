@@ -1,7 +1,7 @@
 import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
+import { createStandardCheckout, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 import { isRequestedVisit } from "@/lib/visitRequests";
 import { markCheckoutClick } from "@/lib/reportTracking";
 
@@ -71,14 +71,12 @@ export async function GET(req: NextRequest) {
   // Si MercadoPago o la base fallan a mitad del camino, la persona vuelve al
   // reporte con un aviso claro en vez de ver una pantalla de error cruda.
   try {
-    const preference = await createPaymentPreference({
-      title: `Reporte completo Mystery Shopper - ${client?.name ?? "negocio"}`,
+    const preference = await createStandardCheckout({
+      title: `Reporte completo MysterFoodie - ${client?.name ?? "negocio"}`,
       price: FULL_REPORT_PRICE_MXN,
       externalReference: form.id,
-      successUrl: `${reportUrl}?pago=exitoso`,
-      failureUrl: `${reportUrl}?pago=fallido`,
-      pendingUrl: `${reportUrl}?pago=pendiente`,
-      notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
+      backUrl: reportUrl,
+      baseUrl,
       payer: { name: payerName, email: payerEmail },
     });
 

@@ -42,7 +42,7 @@ function VisitRows({ visits, role, userId, pending }: { visits: PaidVisit[]; rol
               <div className="text-[15px] font-bold">{formatMxn(myShare(role, userId, v))}</div>
               <span
                 className="rounded-full px-2 py-0.5 text-[10.5px] font-bold"
-                style={pending ? { background: "#FFF3D6", color: "#946200" } : { background: "#E8F8EC", color: "#248A3D" }}
+                style={pending ? { background: "#FFF3D6", color: "#946200" } : { background: "#E8F7EE", color: "#248A3D" }}
               >
                 {pending ? "Por cobrar" : "Ya cuenta"}
               </span>
@@ -213,12 +213,12 @@ export default async function PlanesPage() {
                       <div className="flex flex-shrink-0 flex-col items-end gap-1">
                         <span
                           className="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
-                          style={r.paid ? { background: "#E8F8EC", color: "#248A3D" } : { background: "#FFF3D6", color: "#946200" }}
+                          style={r.paid ? { background: "#E8F7EE", color: "#248A3D" } : { background: "#FFF3D6", color: "#946200" }}
                         >
                           {r.paid ? "Cobrado" : "Por cobrar"}
                         </span>
                         {r.unassigned > 0 && r.status === "activo" && (
-                          <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
+                          <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C7301E" }}>
                             {r.unassigned} sin Shopper
                           </span>
                         )}

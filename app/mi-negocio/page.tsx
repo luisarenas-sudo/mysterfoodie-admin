@@ -73,7 +73,7 @@ export default async function MiNegocioPage() {
           <h1 className="heading text-3xl text-brand-500">{client.name}</h1>
           <p className="mt-2 text-sm text-stone-500">
             Aún no hay visitas registradas para tu negocio. En cuanto se realice la primera
-            evaluación Mystery Shopper, la verás aquí.
+            evaluación MysterFoodie, la verás aquí.
           </p>
           <div className="mt-6 max-w-3xl space-y-4">{journeySlot}</div>
         </main>

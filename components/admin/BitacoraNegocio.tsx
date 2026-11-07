@@ -58,7 +58,7 @@ export default function BitacoraNegocio({ entries }: { entries: BitacoraEntry[] 
   return (
     <details className="card group overflow-hidden" aria-label="Bitácora del negocio">
       <summary className="mf-tap flex min-h-[64px] cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[10px]" style={{ background: "#8E8E93" }} aria-hidden="true">
+        <span className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[12px]" style={{ background: "#8E8E93" }} aria-hidden="true">
           <Pix e="📜" size={24} />
         </span>
         <span className="min-w-0 flex-1">

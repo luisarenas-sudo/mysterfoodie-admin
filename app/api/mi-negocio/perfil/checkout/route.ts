@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { createPaymentPreference } from "@/lib/mercadopago";
+import { createStandardCheckout } from "@/lib/mercadopago";
 import { getProfileOffer } from "@/lib/mysterfoodieProfile";
 import { PLATFORM_FEE_PCT, TIERS, platformFee, priceWithFee, type TierKey } from "@/lib/personaCatalog";
 import { blocksForPurchase, getOwnedTiers, priceFor } from "@/lib/profilePurchases";
@@ -66,14 +66,12 @@ export async function GET(req: NextRequest) {
       .single();
     if (error || !purchase) return NextResponse.redirect(`${back}?pago=error`);
 
-    const preference = await createPaymentPreference({
+    const preference = await createStandardCheckout({
       title: `Perfil ${TIERS[tier].label} de ${offer.alias} - MysterFoodie (incluye ${PLATFORM_FEE_PCT}% de cargo por uso de la plataforma)`,
       price: total,
       externalReference: `perfil:${purchase.id}`,
-      successUrl: `${back}?pago=exitoso`,
-      failureUrl: `${back}?pago=fallido`,
-      pendingUrl: `${back}?pago=pendiente`,
-      notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
+      backUrl: back,
+      baseUrl,
       payer: { email: profile.email },
     });
     if (!preference.ok) return NextResponse.redirect(`${back}?pago=error`);

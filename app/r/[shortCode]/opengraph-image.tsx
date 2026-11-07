@@ -10,7 +10,7 @@ import { getShareData } from "@/lib/reportShare";
  * Solo datos parciales (los mismos de la vista gratuita).
  */
 export const runtime = "nodejs";
-export const alt = "Resultado de la evaluación Mystery Shopper de MysterFoodie";
+export const alt = "Resultado de la evaluación de MysterFoodie";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -98,7 +98,7 @@ export default async function Image({ params }: { params: Promise<{ shortCode: s
           color: "#6b7280",
         }}
       >
-        Resultado de visita Mystery Shopper
+        Resultado de visita MysterFoodie
       </div>
     </div>
   );
@@ -122,7 +122,7 @@ export default async function Image({ params }: { params: Promise<{ shortCode: s
           {header}
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#222222", lineHeight: 1.1 }}>
-              Evaluaciones Mystery Shopper
+              Evaluaciones MysterFoodie
             </div>
             <div style={{ display: "flex", fontSize: 34, fontWeight: 500, color: "#6b7280", marginTop: 14 }}>
               para restaurantes y bares

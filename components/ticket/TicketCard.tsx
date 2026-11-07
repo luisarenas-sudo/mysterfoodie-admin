@@ -223,7 +223,7 @@ export default function TicketCard({
           disabled={saved === "saving" || !dirty}
           onClick={saveConsumo}
           className="mt-2 w-full rounded-2xl py-3 text-[14px] font-bold disabled:opacity-60"
-          style={{ background: saved === "ok" && !dirty ? "#E8F7EE" : "#1C1C1E", color: saved === "ok" && !dirty ? "#1E8E4E" : "#fff" }}
+          style={{ background: saved === "ok" && !dirty ? "#E8F7EE" : "#1C1C1E", color: saved === "ok" && !dirty ? "#248A3D" : "#fff" }}
         >
           {saved === "saving" ? "Guardando…" : saved === "ok" && !dirty ? "Guardado" : "Guardar total y personas"}
         </button>

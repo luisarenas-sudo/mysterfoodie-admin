@@ -60,7 +60,7 @@ export async function sendTicketForPlan(db: Db, plan: PlanRow, opts: { to?: stri
     pricePerVisit: plan.pricePerVisit,
     startMonthLabel: monthLabel(plan.startMonth),
     folio: planFolio(plan.groupId ?? plan.id),
-    includes: catalog ? [...catalog.includes] : ["Visitas Mystery Shopper anónimas", "Reporte completo (PDF) de cada visita"],
+    includes: catalog ? [...catalog.includes] : ["Visitas anónimas de un MysterFoodie", "Reporte completo (PDF) de cada visita"],
     issuedAt: new Date(),
     whatsappLink,
   });

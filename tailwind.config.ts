@@ -18,6 +18,16 @@ const config: Config = {
           700: "#b32e2e",
           orange: "#f25631",
         },
+        // Paleta de avisos única de la app: "fill" para relleno/puntos/anillos y "text" para texto sobre fondo claro.
+        feedback: {
+          okFill: "#34C759",
+          okText: "#248A3D",
+          badFill: "#FF3B30",
+          badText: "#C7301E",
+          warnFill: "#FF9500",
+          warnText: "#946200",
+          info: "#007AFF",
+        },
         status: {
           excellent: "#15803d",
           good: "#ca8a04",

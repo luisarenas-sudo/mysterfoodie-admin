@@ -77,7 +77,7 @@ export default function MobileVisitasAsignadas({ assignments, pool = [] }: { ass
                         </span>
                         <span style={{ color: "rgba(60,60,67,0.6)" }}>· {a.plan.windowLabel}</span>
                         {a.plan.overdue && (
-                          <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
+                          <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C7301E" }}>
                             atrasada
                           </span>
                         )}

@@ -410,7 +410,7 @@ export default function PlanCard({
   const monthTotal = plan.visitsPerMonth * plan.pricePerVisit;
   const statusChip =
     plan.status === "activo"
-      ? { label: "Activo", bg: "#E8F8EC", color: "#248A3D" }
+      ? { label: "Activo", bg: "#E8F7EE", color: "#248A3D" }
       : { label: "En pausa", bg: "#FFF3D6", color: "#946200" };
 
   const visitRow = (v: (typeof view.visits)[number]) => (
@@ -419,7 +419,7 @@ export default function PlanCard({
         <div className="min-w-0 text-[14px]">
           <span className="font-semibold">Visita {v.seq ?? ""}</span>
           {v.overdue && (
-            <span className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C0271D" }}>
+            <span className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: "#FFE5E3", color: "#C7301E" }}>
               {v.month < view.month ? `${monthName(v.month)} · ` : ""}atrasada
             </span>
           )}

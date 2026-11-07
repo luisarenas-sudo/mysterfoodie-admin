@@ -11,7 +11,7 @@ const TONE: Record<AlertTone, { bg: string; dot: string }> = {
   urgent: { bg: "#FFE5E3", dot: "#FF3B30" },
   warn: { bg: "#FFF3D6", dot: "#FF9F0A" },
   info: { bg: "#E6F0FF", dot: "#0A84FF" },
-  ok: { bg: "#E8F8EC", dot: "#34C759" },
+  ok: { bg: "#E8F7EE", dot: "#34C759" },
 };
 
 const VISIBLE_DEFAULT = 3;

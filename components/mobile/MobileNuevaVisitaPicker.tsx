@@ -112,7 +112,7 @@ export default function MobileNuevaVisitaPicker({ clients, pool = [] }: { client
 
         <div className="px-5 pb-3.5">
           <div
-            className="flex items-center gap-2 rounded-[11px] px-3 py-[9px]"
+            className="flex items-center gap-2 rounded-[12px] px-3 py-[9px]"
             style={{ background: "rgba(118,118,128,0.12)" }}
           >
             <svg width="17" height="17" viewBox="0 0 24 24">

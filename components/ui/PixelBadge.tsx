@@ -5,7 +5,7 @@ export const PIX_TONES = {
   dark: { bg: "#1C1C1E", fg: "#FFFFFF" },
   red: { bg: "#F24444", fg: "#FFFFFF" },
   purple: { bg: "#5856D6", fg: "#FFFFFF" },
-  green: { bg: "#1E8E4E", fg: "#FFFFFF" },
+  green: { bg: "#248A3D", fg: "#FFFFFF" },
   amber: { bg: "#D97706", fg: "#FFFFFF" },
   soft: { bg: "#F2F2F7", fg: "#1C1C1E" },
   redSoft: { bg: "#FFF0EE", fg: "#F24444" },

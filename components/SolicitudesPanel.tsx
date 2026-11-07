@@ -11,9 +11,9 @@ const MUTED = "rgba(60,60,67,0.6)";
 const TYPE_LABEL: Record<string, string> = { restaurante: "Restaurante", bar: "Bar", cafeteria: "Cafetería", otro: "Negocio" };
 
 const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
-  pendiente: { label: "Por asignar", bg: "#FFE5E3", fg: "#C0271D" },
+  pendiente: { label: "Por asignar", bg: "#FFE5E3", fg: "#C7301E" },
   asignada: { label: "Asignada", bg: "#E5F0FF", fg: "#0A58C2" },
-  completada: { label: "Visitada", bg: "#E8F8EC", fg: "#248A3D" },
+  completada: { label: "Visitada", bg: "#E8F7EE", fg: "#248A3D" },
   sin_foodie: { label: "Sin Shopper", bg: "#FFF3D6", fg: "#946200" },
 };
 
@@ -105,7 +105,7 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
                   </span>
                 )}
                 {r.kind === "programada" && (
-                  <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={r.paidAt ? { background: "#E8F7EE", color: "#1E8E4E" } : { background: "#FFF3D6", color: "#8A5A00" }}>
+                  <span className="rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={r.paidAt ? { background: "#E8F7EE", color: "#248A3D" } : { background: "#FFF3D6", color: "#8A5A00" }}>
                     {r.paidAt ? `Pagada · ${fmt(r.paidAt)}` : "Pago pendiente"}
                   </span>
                 )}

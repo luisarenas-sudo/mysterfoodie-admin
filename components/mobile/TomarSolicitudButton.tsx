@@ -35,7 +35,7 @@ export default function TomarSolicitudButton({ requestId }: { requestId: string 
       >
         {busy ? "Tomando…" : "Tomar esta visita"}
       </button>
-      {error && <p className="mt-2 text-[12.5px]" style={{ color: "#C0271D" }}>{error}</p>}
+      {error && <p className="mt-2 text-[12.5px]" style={{ color: "#C7301E" }}>{error}</p>}
     </>
   );
 }

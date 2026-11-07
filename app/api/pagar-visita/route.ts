@@ -1,7 +1,7 @@
 import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
+import { createStandardCheckout, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
 
 /**
  * Pago en línea de una visita programada (mysterfoodie.com > «Solicita una visita» > «Desbloquear visita asegurada»).
@@ -32,14 +32,12 @@ export async function GET(req: NextRequest) {
   const baseUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
   try {
-    const preference = await createPaymentPreference({
+    const preference = await createStandardCheckout({
       title: `Visita con reporte completo MysterFoodie - ${client?.name ?? "negocio"}`,
       price: FULL_REPORT_PRICE_MXN,
       externalReference: `visita:${request.id}`,
-      successUrl: `${SITE}?pago=exitoso`,
-      failureUrl: `${SITE}?pago=fallido`,
-      pendingUrl: `${SITE}?pago=pendiente`,
-      notificationUrl: `${baseUrl}/api/mercadopago/webhook`,
+      backUrl: SITE,
+      baseUrl,
       payer: { name: (client?.contact_name as string | null) ?? undefined, email: (client?.email as string | null) ?? undefined },
     });
     if (!preference.ok) {
