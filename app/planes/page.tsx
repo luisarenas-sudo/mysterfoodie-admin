@@ -7,7 +7,6 @@ import { PLAN_CATALOG } from "@/lib/planCatalog";
 import { whyShare, type EarnRole } from "@/lib/earningsWhy";
 import { currentMonthCdmx, monthLabel } from "@/lib/months";
 import { PACKAGES_URL } from "@/lib/links";
-import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -132,10 +131,7 @@ export default async function PlanesPage() {
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
       </div>
       <main className="mx-auto max-w-3xl px-5 pb-8 pt-5 md:px-6 md:py-10">
-        <div className="hidden md:block">
-          <BackLink href="/perfil" label="Perfil" />
-        </div>
-        <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Planes</h1>
+        <h1 className="heading text-2xl text-brand-500 md:text-3xl">Planes</h1>
         <p className="mt-1 text-sm text-stone-500">
           {isAdmin ? "Visitas mensuales contratadas por sucursal" : "Tus visitas de plan: cuánto ganas y por qué"} · {monthLabel(month)}
         </p>

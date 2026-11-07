@@ -24,7 +24,7 @@ const NAV_BY_ROLE: Record<Role, { href: string; label: string; cta?: boolean }[]
     { href: "/perfil", label: "Perfil" },
   ],
   agente: [
-    { href: "/", label: "Nueva visita", cta: true },
+    { href: "/", label: "Inicio" },
     { href: "/mis-visitas", label: "Mis visitas" },
     { href: "/planes", label: "Planes" },
     { href: "/finanzas", label: "Finanzas" },

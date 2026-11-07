@@ -90,8 +90,8 @@ export default function MobileAsignarVisita({
         ) : foodies.length === 0 ? (
           <div className="card mt-5 p-5 text-center text-[14px]" style={{ color: "rgba(60,60,67,0.6)" }}>
             Aún no hay Shoppers invitados.
-            <Link href="/perfil" className="mt-3 block font-semibold" style={{ color: "#F24444" }}>
-              Invitar a un Shopper desde tu Perfil
+            <Link href="/perfil/invitar?tab=correo" className="mt-3 block font-semibold" style={{ color: "#F24444" }}>
+              Invitar a un Shopper
             </Link>
           </div>
         ) : (

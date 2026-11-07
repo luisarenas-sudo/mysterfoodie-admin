@@ -17,7 +17,6 @@ import { ProfileSalesAdmin, ProfileSalesPersonal } from "@/components/finanzas/P
 import { getMonthProfileSales } from "@/lib/profileSales";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import FinanzasCalculator from "@/components/admin/FinanzasCalculator";
-import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -359,10 +358,7 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
       </div>
       <main className="mx-auto max-w-3xl px-5 pb-8 pt-5 md:px-6 md:py-10">
-        <div className="hidden md:block">
-          <BackLink href="/perfil" label="Perfil" />
-        </div>
-        <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Finanzas</h1>
+        <h1 className="heading text-2xl text-brand-500 md:text-3xl">Finanzas</h1>
         <p className="mt-1 text-sm text-stone-500">
           {profile.role === "admin"
             ? "Ventas y reparto de ganancias de todos los perfiles, por mes."

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { avatarColorFor, initialsFor } from "@/lib/ring";
 import { getVerdict } from "@/lib/verdict";
+import MobileBrandMark from "@/components/mobile/MobileBrandMark";
 
 type ReportRow = {
   id: string;
@@ -20,9 +21,7 @@ export default function MobileReportesList({ visits }: { visits: ReportRow[] }) 
   return (
     <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pb-3.5 pt-5">
-        <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
-          MYSTERFOODIE
-        </div>
+        <MobileBrandMark />
         <div className="heading text-[34px] font-bold">Visitas</div>
       </div>
 

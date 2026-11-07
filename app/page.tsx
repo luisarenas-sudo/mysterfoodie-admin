@@ -8,7 +8,6 @@ import MobileHome from "@/components/mobile/MobileHome";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 import HomeInsights from "@/components/insights/HomeInsights";
 import { getHomeInsights, type HomeInsights as InsightsData } from "@/lib/homeInsights";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +64,6 @@ export default async function Page() {
           avatarUrl={profile?.avatarUrl ?? null}
           stats={stats}
           rey={rey}
-          pendingAssignments={pending ? pending.length : null}
           alerts={alerts}
           insights={insights && insightRole ? <HomeInsights data={insights} role={insightRole} variant="mobile" /> : null}
         />
@@ -95,14 +93,9 @@ export default async function Page() {
           </main>
         ) : (
           <main className="mx-auto max-w-5xl px-6 pb-16 pt-8">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
-                <h1 className="heading mt-1 text-3xl text-ink">Inicio</h1>
-              </div>
-              <Link href="/nueva-visita/libre" className="btn-primary whitespace-nowrap text-sm">
-                Nueva visita
-              </Link>
+            <div>
+              <p className="text-sm uppercase tracking-wide text-brand-600">MysterFoodie</p>
+              <h1 className="heading mt-1 text-3xl text-ink">Inicio</h1>
             </div>
             <div className="mt-5">
               <PendientesPanel alerts={alerts} />

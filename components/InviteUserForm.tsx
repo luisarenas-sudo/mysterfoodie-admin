@@ -7,11 +7,20 @@ import { friendlyError } from "@/lib/friendlyError";
 type Client = { id: string; name: string };
 type RoleOption = "admin" | "agente" | "cliente" | "sibarita";
 
-export default function InviteUserForm({ clients }: { clients: Client[] }) {
+const ROLE_CHOICES: { value: RoleOption; label: string }[] = [
+  { value: "agente", label: "Shopper" },
+  { value: "sibarita", label: "Sibarita" },
+  { value: "cliente", label: "Cliente (dueño de negocio)" },
+  { value: "admin", label: "Master Chef" },
+];
+
+/** allowedRoles: sin valor = todos los roles (Master Chef); un Sibarita solo puede invitar Shoppers (el servidor también lo valida). */
+export default function InviteUserForm({ clients, allowedRoles }: { clients: Client[]; allowedRoles?: RoleOption[] }) {
+  const roleChoices = ROLE_CHOICES.filter((r) => !allowedRoles || allowedRoles.includes(r.value));
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<RoleOption>("agente");
+  const [role, setRole] = useState<RoleOption>(roleChoices[0]?.value ?? "agente");
   const [clientId, setClientId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
@@ -73,19 +82,22 @@ export default function InviteUserForm({ clients }: { clients: Client[] }) {
           className="input mt-1"
         />
       </label>
-      <label className="block">
-        <span className="text-sm font-medium text-ink">Rol</span>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value as RoleOption)}
-          className="input mt-1"
-        >
-          <option value="agente">Shopper</option>
-          <option value="sibarita">Sibarita</option>
-          <option value="cliente">Cliente (dueño de negocio)</option>
-          <option value="admin">Master Chef</option>
-        </select>
-      </label>
+      {roleChoices.length > 1 && (
+        <label className="block">
+          <span className="text-sm font-medium text-ink">Rol</span>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as RoleOption)}
+            className="input mt-1"
+          >
+            {roleChoices.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {role === "cliente" && (
         <label className="block">
           <span className="text-sm font-medium text-ink">Negocio</span>

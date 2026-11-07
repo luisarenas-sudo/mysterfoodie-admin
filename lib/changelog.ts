@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.1",
+    date: "2026-11-07",
+    title: "Un solo lugar para invitar",
+    emoji: "📲",
+    highlights: [
+      "Invitar reúne en una pantalla lo que estaba repartido: tu QR, la invitación por correo y los aspirantes por aprobar.",
+      "Perfil ya no repite herramientas: una sola fila «Invitar» (con el aviso de aspirantes pendientes para el Master Chef).",
+      "Usuarios se queda para administrar roles y accesos; su botón «Invitar usuario» lleva a la misma pantalla.",
+      "Inicio móvil y escritorio sin botones de «Nueva visita» repetidos, y el logo completo en los encabezados del celular.",
+    ],
+  },
+  {
     version: "1.0.0",
     date: "2026-11-07",
     title: "Versión 1.0: lista para trabajar",

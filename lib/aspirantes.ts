@@ -148,7 +148,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
       bodyText:
         `${input.fullName} llenó el formulario para ser Shopper (invitó: ${inviter.alias ?? "—"}).\n\n` +
         `Ciudad y colonia: ${input.city}, ${input.colonia}\nWhatsApp: ${input.whatsapp}\nInstagram: @${input.instagram}\n\n` +
-        `Revisa su solicitud y apruébala o recházala aquí:\n${base}/admin/aspirantes`,
+        `Revisa su solicitud y apruébala o recházala aquí:\n${base}/perfil/invitar?tab=aspirantes`,
       ctaLabel: "Revisar aspirante",
     }).catch(() => null);
   }

@@ -169,6 +169,11 @@ export default async function NegocioDetailPage({
               Ver reporte público
             </Link>
             {canAssign && (
+              <Link href={`/negocios/${client.id}/asignar`} className="btn-secondary text-sm">
+                {pendingAssignment ? "Reasignar a otro Shopper" : "Asignar visita a un Shopper"}
+              </Link>
+            )}
+            {canAssign && (
               <DeleteButton
                 endpoint={`/api/clients/${client.id}`}
                 confirmText={`¿Eliminar "${client.name}" y sus ${client.visits.length} visita${client.visits.length === 1 ? "" : "s"}? Esto no se puede deshacer.`}

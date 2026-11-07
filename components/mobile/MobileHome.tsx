@@ -2,6 +2,7 @@ import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import type { HomeSummary, ReyNegocio } from "@/lib/dashboard";
 import Avatar from "@/components/Avatar";
+import MobileBrandMark from "@/components/mobile/MobileBrandMark";
 import PendientesPanel from "@/components/PendientesPanel";
 import type { HomeAlert } from "@/lib/alerts";
 
@@ -10,7 +11,6 @@ export default function MobileHome({
   avatarUrl,
   stats,
   rey,
-  pendingAssignments = null,
   alerts = [],
   insights = null,
 }: {
@@ -18,8 +18,6 @@ export default function MobileHome({
   avatarUrl?: string | null;
   stats: HomeSummary;
   rey: ReyNegocio;
-  /** Solo para un Shopper: cuántas visitas asignadas tiene pendientes (null = no aplica a este rol). */
-  pendingAssignments?: number | null;
   /** Pendientes del usuario (ya filtrados: sin los que cerró). */
   alerts?: HomeAlert[];
   /** Estadísticas del Inicio (gráficas, rachas, palabras...), ya armadas por el servidor. */
@@ -36,11 +34,7 @@ export default function MobileHome({
   return (
     <div className="md:hidden min-h-[70vh]" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pt-5 pb-2">
-        <div className="mb-1 flex items-center gap-[5px]">
-          <div className="text-[11px] font-bold tracking-[1.2px]" style={{ color: "#F24444" }}>
-            MYSTERFOODIE
-          </div>
-        </div>
+        <MobileBrandMark />
         <div className="flex items-center justify-between">
           <div className="heading text-[34px] font-bold">Inicio</div>
           <Link href="/perfil">
@@ -80,31 +74,6 @@ export default function MobileHome({
           </div>
         </Link>
       )}
-
-      <div className="px-5 pt-4">
-        <Link
-          href="/nueva-visita"
-          className="flex items-center justify-between rounded-[18px] px-5 py-[18px]"
-          style={{
-            background: "linear-gradient(180deg,#F24444 0%,#F25631 100%)",
-            boxShadow: "0 6px 16px rgba(242,68,68,0.28)",
-          }}
-        >
-          <div>
-            <div className="text-[17px] font-bold text-white">Nueva visita</div>
-            <div className="mt-0.5 text-[13px] text-white/85">
-              {pendingAssignments === null
-                ? "Levanta una evaluación ahora"
-                : pendingAssignments === 0
-                ? "No tienes visitas asignadas por ahora"
-                : `Tienes ${pendingAssignments} ${pendingAssignments === 1 ? "visita asignada" : "visitas asignadas"} esperándote`}
-            </div>
-          </div>
-          <svg width="22" height="22" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
-          </svg>
-        </Link>
-      </div>
 
       <div className="px-5 pb-2 pt-6 text-xl font-bold">Actividad reciente</div>
       {stats.actividadReciente.length === 0 ? (

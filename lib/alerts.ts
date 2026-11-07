@@ -155,7 +155,7 @@ async function applicantAlerts(db: Db): Promise<HomeAlert[]> {
       emoji: "🙋",
       title: data.length === 1 ? "1 aspirante a Shopper por aprobar" : `${data.length} aspirantes a Shopper por aprobar`,
       detail: `La más antigua llegó ${agoLabel(data[0].created_at as string)} · llegaron con un QR`,
-      href: "/admin/aspirantes",
+      href: "/perfil/invitar?tab=aspirantes",
     },
   ];
 }

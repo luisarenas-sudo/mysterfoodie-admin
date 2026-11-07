@@ -7,11 +7,11 @@ import { requireRole, createSupabaseServerClient } from "@/lib/auth";
 import { getVisitsByAgent, getAllVisits } from "@/lib/dashboard";
 import Link from "next/link";
 import ConnectGoogleButton from "@/components/auth/ConnectGoogleButton";
-import MobileInviteForm from "@/components/mobile/MobileInviteForm";
 import DeleteButton from "@/components/DeleteButton";
 import FlancoCredit from "@/components/FlancoCredit";
 import EasterEggBee from "@/components/EasterEggBee";
 import { Group, Row } from "@/components/perfil/ListRow";
+import MobileBrandMark from "@/components/mobile/MobileBrandMark";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { countPendingRequests } from "@/lib/visitRequests";
 import { countPendingApplications } from "@/lib/aspirantes";
@@ -101,78 +101,115 @@ export default async function PerfilPage({
     ? RANKS[1]
     : RANKS[2];
 
-  const herramientas = (className?: string) => (
-    <Group title="Herramientas" className={className}>
-      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-        <Row
-          href="/perfil/anonimo"
-          icon="🕶️"
-          iconBg="#E5E5EA"
-          title="Mi perfil anónimo"
-          subtitle="Código postal y gustos que ven los negocios (sin tu nombre)"
-        />
-      )}
-      {(profile.role === "admin" || profile.role === "sibarita") && (
-        <Row
-          href="/perfil/invitar"
-          icon="📲"
-          iconBg="#007AFF"
-          title="Invitar Shoppers con QR"
-          subtitle="Tu QR fijo: quien lo escanee llena su solicitud"
-        />
-      )}
-      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-        <Row
-          href="/finanzas"
-          icon="💰"
-          iconBg="#34C759"
-          title="Finanzas"
-          subtitle={profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes"}
-        />
-      )}
-      {(profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente") && (
-        <Row
-          href="/planes"
-          icon="📅"
-          iconBg="#007AFF"
-          title="Planes"
-          subtitle={profile.role === "admin" ? "Visitas mensuales por sucursal y lo que gana cada perfil" : "Tus visitas de plan: cuánto ganas y por qué"}
-          last={profile.role !== "admin"}
-        />
-      )}
-      {profile.role === "admin" && (
-        <>
-          <Row
-            href="/solicitudes"
-            icon="🎁"
-            iconBg="#F24444"
-            title="Solicitudes de visita"
-            subtitle={
-              solicitudesPendientes > 0
-                ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
-                : "Visitas gratis pedidas en la web"
-            }
-          />
-          <Row
-            href="/admin/aspirantes"
-            icon="🙋"
-            iconBg="#34C759"
-            title="Aspirantes a Shopper"
-            subtitle={aspirantesPendientes > 0 ? `${aspirantesPendientes} por aprobar · llegaron con un QR` : "Solicitudes que llegan con un QR"}
-          />
-          <Row href="/admin/ganancias-perfil" icon="💸" iconBg="#34C759" title="Ganancias de perfiles" subtitle="Lo que ganan los MysterFoodies por sus perfiles anónimos" />
-          <Row href="/admin/usuarios" icon="👥" iconBg="#5856D6" title="Usuarios" subtitle="Administra Sibaritas, Shoppers y sus roles" />
-          <Row href="/automatizaciones" icon="⚡" iconBg="#FF9500" title="Automatizaciones" subtitle="Correos automáticos y agenda de asesorías" />
-          <Row href="/admin/seguimiento" icon="📈" iconBg="#AF52DE" title="Stats" subtitle="Aperturas, clics, correos y visitas a la web" last />
-        </>
-      )}
-    </Group>
-  );
+  const isTeam = profile.role === "admin" || profile.role === "sibarita" || profile.role === "agente";
+  // En escritorio, Finanzas, Planes, Solicitudes, Usuarios y Automatizaciones ya están en el menú de arriba: aquí solo
+  // se listan las herramientas que el menú no tiene. En el celular la barra inferior es corta, así que aquí van todas.
+  const herramientas = (className?: string, desktop = false) => {
+    type Item = { show: boolean; row: Parameters<typeof Row>[0] };
+    const items: Item[] = [
+      {
+        show: isTeam,
+        row: {
+          href: "/perfil/anonimo",
+          icon: "🕶️",
+          iconBg: "#E5E5EA",
+          title: "Mi perfil anónimo",
+          subtitle: "Código postal y gustos que ven los negocios (sin tu nombre)",
+        },
+      },
+      {
+        show: profile.role === "admin" || profile.role === "sibarita",
+        row: {
+          href: "/perfil/invitar",
+          icon: "📲",
+          iconBg: "#007AFF",
+          title: "Invitar",
+          subtitle:
+            profile.role === "admin"
+              ? aspirantesPendientes > 0
+                ? `${aspirantesPendientes} aspirantes por aprobar · tu QR y por correo`
+                : "Tu QR, por correo y aspirantes por aprobar"
+              : "Tu QR y por correo para sumar Shoppers",
+        },
+      },
+      {
+        show: isTeam && !desktop,
+        row: {
+          href: "/finanzas",
+          icon: "💰",
+          iconBg: "#34C759",
+          title: "Finanzas",
+          subtitle: profile.role === "admin" ? "Ventas y ganancias de todos los perfiles, por mes" : "Tus ganancias por mes",
+        },
+      },
+      {
+        show: isTeam && !desktop,
+        row: {
+          href: "/planes",
+          icon: "📅",
+          iconBg: "#007AFF",
+          title: "Planes",
+          subtitle: profile.role === "admin" ? "Visitas mensuales por sucursal y lo que gana cada perfil" : "Tus visitas de plan: cuánto ganas y por qué",
+        },
+      },
+      {
+        show: profile.role === "admin" && !desktop,
+        row: {
+          href: "/solicitudes",
+          icon: "🎁",
+          iconBg: "#F24444",
+          title: "Solicitudes de visita",
+          subtitle:
+            solicitudesPendientes > 0
+              ? `${solicitudesPendientes} por asignar · visitas gratis pedidas en la web`
+              : "Visitas gratis pedidas en la web",
+        },
+      },
+      {
+        show: profile.role === "admin",
+        row: {
+          href: "/admin/ganancias-perfil",
+          icon: "💸",
+          iconBg: "#34C759",
+          title: "Ganancias de perfiles",
+          subtitle: "Lo que ganan los MysterFoodies por sus perfiles anónimos",
+        },
+      },
+      {
+        show: profile.role === "admin" && !desktop,
+        row: {
+          href: "/admin/usuarios",
+          icon: "👥",
+          iconBg: "#5856D6",
+          title: "Usuarios",
+          subtitle: "Roles, accesos y bajas de todo el equipo y los negocios",
+        },
+      },
+      {
+        show: profile.role === "admin" && !desktop,
+        row: { href: "/automatizaciones", icon: "⚡", iconBg: "#FF9500", title: "Automatizaciones", subtitle: "Correos automáticos y agenda de asesorías" },
+      },
+      {
+        show: profile.role === "admin",
+        row: { href: "/admin/seguimiento", icon: "📈", iconBg: "#AF52DE", title: "Stats", subtitle: "Aperturas, clics, correos y visitas a la web" },
+      },
+    ];
+    const visible = items.filter((i) => i.show);
+    if (visible.length === 0) return null;
+    return (
+      <Group title="Herramientas" className={className}>
+        {visible.map((i, idx) => (
+          <Row key={i.row.href} {...i.row} last={idx === visible.length - 1} />
+        ))}
+      </Group>
+    );
+  };
 
   return (
     <>
     <div className="md:hidden min-h-[70vh] pb-6" style={{ background: "#F2F2F7" }}>
       <div className="px-5 pb-3.5 pt-5">
+        <MobileBrandMark />
         <div className="heading text-[30px] font-bold leading-tight">
           Perfil del <span style={{ color: "#F24444" }}>MysterFoodie</span>
         </div>
@@ -308,13 +345,6 @@ export default async function PerfilPage({
         })}
       </div>
       </>
-      )}
-
-      {(profile.role === "admin" || profile.role === "sibarita") && (
-        <div className="mx-5 mb-6">
-          {profile.role === "admin" && <MobileInviteForm />}
-          {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
-        </div>
       )}
 
       {herramientas()}
@@ -487,14 +517,7 @@ export default async function PerfilPage({
         </>
       )}
 
-      {(profile.role === "admin" || profile.role === "sibarita") && (
-        <div className="mt-5">
-          {profile.role === "admin" && <MobileInviteForm />}
-          {profile.role === "sibarita" && <MobileInviteForm allowedRoles={["agente"]} />}
-        </div>
-      )}
-
-      {!isCliente && <div className="mt-8">{herramientas("mb-0")}</div>}
+      {!isCliente && herramientas("mb-0 mt-8", true)}
 
       {!isCliente && <PalabraFoodieCard className="mt-6" />}
 

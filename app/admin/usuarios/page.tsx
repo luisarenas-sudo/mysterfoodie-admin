@@ -2,11 +2,9 @@ import { Pix } from "@/components/ui/Pix";
 import { requireRole } from "@/lib/auth";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getAdminStats } from "@/lib/dashboard";
-import InviteUserForm from "@/components/InviteUserForm";
 import UserRoleEditor from "@/components/UserRoleEditor";
 import UserActions from "@/components/UserActions";
 import Link from "next/link";
-import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
 
 export const dynamic = "force-dynamic";
@@ -76,12 +74,9 @@ export default async function UsuariosPage() {
         <MobileSectionHeader backHref="/perfil" backLabel="Perfil" />
       </div>
       <main className="mx-auto max-w-4xl px-5 pb-8 pt-5 md:px-6 md:py-10">
-        <div className="hidden md:block">
-          <BackLink href="/perfil" label="Perfil" />
-        </div>
-        <h1 className="heading mt-2 text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
+        <h1 className="heading text-2xl text-brand-500 md:text-3xl">Usuarios</h1>
         <p className="mt-1 text-sm text-stone-500">
-          Invita agentes y dueños de negocio, y administra sus roles. Las invitaciones valen 5 días.
+          Administra roles, accesos y bajas. Para sumar gente nueva usa «Invitar usuario» (las invitaciones valen 5 días).
         </p>
         {pendingRemovals > 0 && (
           <Link href="/admin/bajas" className="mt-3 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -115,10 +110,9 @@ export default async function UsuariosPage() {
           />
         </div>
 
-        <div className="mt-8 card p-5">
-          <h2 className="text-sm font-semibold text-ink">Invitar usuario</h2>
-          <InviteUserForm clients={(clients || []).map((c) => ({ id: c.id, name: c.name }))} />
-        </div>
+        <Link href="/perfil/invitar?tab=correo" className="btn-primary mt-6 inline-flex text-sm text-white hover:text-white">
+          Invitar usuario
+        </Link>
 
         {/* Escritorio: tabla. Antes era la única versión y se veía
            comprimida/con scroll horizontal en celular -- en pantallas chicas

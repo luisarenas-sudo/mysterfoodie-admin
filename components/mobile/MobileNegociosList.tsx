@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { ClientSummary } from "@/lib/dashboard";
 import { avatarColorFor, initialsFor } from "@/lib/ring";
 import { getVerdict } from "@/lib/verdict";
+import MobileBrandMark from "@/components/mobile/MobileBrandMark";
 
 export default function MobileNegociosList({
   clients,
@@ -21,9 +22,7 @@ export default function MobileNegociosList({
     <div className="md:hidden mf-fade-in min-h-[70vh]" style={{ background: "#F2F2F7" }}>
       <div className="flex items-center justify-between px-5 pb-2 pt-5">
         <div>
-          <div className="mb-0.5 text-[10px] font-bold tracking-[1.1px]" style={{ color: "#F24444" }}>
-            MYSTERFOODIE
-          </div>
+          <MobileBrandMark />
           <div className="heading text-[34px] font-bold">Negocios</div>
         </div>
         <Link

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   }
   // Un Sibarita solo puede invitar Shoppers (agente); admin puede invitar
   // cualquier rol. Esto refuerza del lado del servidor lo que ya limita
-  // la UI de MobileInviteForm con su prop allowedRoles.
+  // la UI de InviteUserForm con su prop allowedRoles.
   if (requester.role === "sibarita" && role !== "agente") {
     return NextResponse.json(
       { error: "Como Sibarita solo puedes invitar Shoppers" },
