@@ -162,3 +162,9 @@ de pagos, reglas de comision, etc.):
 Las tablas de `clients` y `forms` ya quedan listas para conectarse a un panel de reportes
 mas adelante (esa parte se puede retomar del scaffold anterior descrito en la memoria del
 proyecto).
+
+---
+
+## Versión 1.0 (7 nov 2026)
+
+Notas completas del release (qué incluye, las bases de la app, qué pasa normalmente en un release y la lista de salida): ver `RELEASE-1.0.md`.

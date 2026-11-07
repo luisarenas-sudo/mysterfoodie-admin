@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.0",
+    date: "2026-11-07",
+    title: "Versión 1.0: lista para trabajar",
+    emoji: "🚀",
+    highlights: [
+      "Primera versión oficial: visitas, reportes, cobros, seguimiento por correo y control de pagos trabajan juntos en un solo sistema.",
+      "Misma experiencia en celular, escritorio y web: textos, colores y reglas alineados para negocios, Sibaritas, Shoppers y Master Chef.",
+      "Más seguridad y estabilidad: límites de intentos, cobros que no se duplican, accesos más cuidados y datos protegidos.",
+      "Cada mes llega el reporte de ventas con lo que toca depositar y el control de pagos por persona.",
+      "A partir de aquí los cambios salen por versiones: ajustes pequeños (1.0.1, 1.0.2) y mejoras nuevas (1.1, 1.2).",
+    ],
+  },
+  {
     version: "0.36.0",
     date: "2026-11-07",
     title: "Reporte de ventas mensual y control de pagos",

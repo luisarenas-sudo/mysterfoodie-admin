@@ -346,9 +346,8 @@ export default async function PerfilPage({
         </button>
       </form>
 
-      {/* Easter egg: 3 toques seguidos abren la bitácora de versiones. Solo para
-         el equipo (el dueño de un negocio no necesita ver el historial interno). */}
-      {!isCliente && <EasterEggBee />}
+      {/* Easter egg: 3 toques seguidos abren la bitácora de versiones. Solo lo ve el Master Chef (admin). */}
+      {profile.role === "admin" && <EasterEggBee />}
     </div>
 
     {/* Esta pantalla es sobre todo móvil (rango, Palabra MysterFoodie, etc.), pero
@@ -518,7 +517,7 @@ export default async function PerfilPage({
         </p>
       )}
 
-      {!isCliente && (
+      {profile.role === "admin" && (
         <div className="mt-6">
           <EasterEggBee />
         </div>
