@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -37,6 +38,8 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "academy", 10, 3600000);
+  if (limited) return limited;
   let payload: { email?: unknown; source?: unknown; website?: unknown };
   try {
     payload = await req.json();

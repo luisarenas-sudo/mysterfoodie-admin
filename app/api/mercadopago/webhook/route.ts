@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { getPayment } from "@/lib/mercadopago";
+import { createHmac, timingSafeEqual } from "crypto";
+import { FULL_REPORT_PRICE_MXN, getPayment } from "@/lib/mercadopago";
 import { deliverFullReportEmail } from "@/lib/fullReportDelivery";
 import { settleProfilePurchase } from "@/lib/profilePurchases";
 import { settleVisitPayment } from "@/lib/visitRequests";
@@ -15,6 +16,28 @@ import { settleVisitPayment } from "@/lib/visitRequests";
  * solo lo usamos para saber que payment_id consultar, y el estado real
  * se pide siempre a la API de MercadoPago con getPayment().
  */
+
+/**
+ * Firma de MercadoPago (cabecera x-signature = "ts=...,v1=..."). Si MERCADOPAGO_WEBHOOK_SECRET está configurado
+ * (clave secreta de la app en el panel de MercadoPago > Webhooks), se exige; si no, se sigue como antes porque
+ * de todos modos el estado real del pago se consulta a la API (defensa extra, no sustituye esa consulta).
+ */
+function signatureOk(req: NextRequest, dataId: string | null): boolean {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  if (!secret) return true;
+  const header = req.headers.get("x-signature") || "";
+  const parts = Object.fromEntries(header.split(",").map((p) => p.trim().split("=", 2) as [string, string]));
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1 || !dataId) return false;
+  const requestId = req.headers.get("x-request-id") || "";
+  const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${ts};`;
+  const expected = createHmac("sha256", secret).update(manifest).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(v1);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 export async function POST(req: NextRequest) {
   let paymentId: string | null = null;
 
@@ -35,6 +58,13 @@ export async function POST(req: NextRequest) {
   if (!paymentId) {
     // Notificacion de un tipo que no nos interesa (ej. merchant_order).
     return NextResponse.json({ ok: true });
+  }
+
+  // MercadoPago firma con el id que viene en la URL (data.id); si no viene ahí, con el del cuerpo.
+  const signedId = req.nextUrl.searchParams.get("data.id") || paymentId;
+  if (!signatureOk(req, signedId)) {
+    console.warn("Webhook MercadoPago: firma no válida");
+    return NextResponse.json({ error: "Firma no válida" }, { status: 401 });
   }
 
   const payment = await getPayment(paymentId);
@@ -66,14 +96,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  await db.from("report_payments").insert({
-    form_id: formId,
-    mercadopago_payment_id: String(payment.id),
-    status: payment.status,
-    amount: payment.transaction_amount ?? null,
-  });
+  // Idempotencia: MercadoPago reintenta y manda varias notificaciones del mismo pago; solo se registra cada estado una vez.
+  const { data: seen } = await db
+    .from("report_payments")
+    .select("id")
+    .eq("mercadopago_payment_id", String(payment.id))
+    .eq("status", payment.status)
+    .limit(1);
+  if (!seen?.length) {
+    await db.from("report_payments").insert({
+      form_id: formId,
+      mercadopago_payment_id: String(payment.id),
+      status: payment.status,
+      amount: payment.transaction_amount ?? null,
+    });
+  }
 
-  if (payment.status === "approved") {
+  // Solo se desbloquea si lo pagado cubre el precio del reporte (tolerancia de 50 centavos).
+  const paidEnough = (payment.transaction_amount ?? 0) >= FULL_REPORT_PRICE_MXN - 0.5;
+  if (payment.status === "approved" && !paidEnough) {
+    console.error(`Webhook MercadoPago: pago ${payment.id} aprobado por ${payment.transaction_amount} < ${FULL_REPORT_PRICE_MXN}; no se desbloquea`);
+  }
+
+  if (payment.status === "approved" && paidEnough) {
     // .is("report_unlocked_at", null) hace esto idempotente: si el
     // webhook llega más de una vez (MercadoPago reintenta), el update
     // solo afecta una fila la primera vez. select() de vuelta nos dice

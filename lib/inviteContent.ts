@@ -67,7 +67,7 @@ export function inviteContentForRole(role: string, businessName?: string | null)
       intro: "Como MysterFoodie Sibarita conviertes los lugares que ya conoces en clientes de MysterFoodie.",
       can: [
         { emoji: "🏪", title: "Das de alta negocios", text: "Los que ya frecuentas o conoces; quedan registrados a tu nombre." },
-        { emoji: "📝", title: "Visitas tú mismo", text: "Levantas visitas Mystery Shopper con libertad y compartes el resultado con el negocio." },
+        { emoji: "📝", title: "Visitas tú mismo", text: "Levantas visitas MysterFoodie con libertad y compartes el resultado con el negocio." },
         {
           emoji: "💸",
           title: "Ganas por cada reporte vendido",
@@ -117,7 +117,7 @@ export function inviteContentForRole(role: string, businessName?: string | null)
       ? `Con tu cuenta de ${businessName} ves lo que los clientes reales viven en tu negocio.`
       : "Con tu cuenta ves lo que los clientes reales viven en tu negocio.",
     can: [
-      { emoji: "⭐", title: "Tus calificaciones", text: "Cada visita Mystery Shopper con su calificación general y por categoría." },
+      { emoji: "⭐", title: "Tus calificaciones", text: "Cada visita MysterFoodie con su calificación general y por categoría." },
       { emoji: "📄", title: "Tus reportes completos", text: "Abre y descarga el estudio detallado de cada visita que adquiriste." },
       { emoji: "📈", title: "Tu avance", text: "Compara visita contra visita y mira cómo mejora tu negocio mes con mes." },
     ],

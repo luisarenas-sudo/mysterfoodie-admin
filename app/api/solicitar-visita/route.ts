@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -37,6 +38,8 @@ export async function OPTIONS(req: NextRequest) {
 const str = (v: unknown, max: number): string => (typeof v === "string" ? v.trim().replace(/\s+/g, " ").slice(0, max) : "");
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "solicitar", 10, 3600000);
+  if (limited) return limited;
   let p: Record<string, unknown>;
   try {
     p = await req.json();

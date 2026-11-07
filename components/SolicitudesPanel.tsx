@@ -1,5 +1,6 @@
 "use client";
 
+import { PRICE_MXN } from "@/lib/earningsMatrix";
 import { Pix } from "@/components/ui/Pix";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -113,7 +114,7 @@ export default function SolicitudesPanel({ rows, assignees, meId }: { rows: Soli
 
             {r.kind === "programada" && (
               <div className="mt-2 rounded-lg px-3 py-2 text-[12.5px]" style={{ background: "#FFF1F0", color: "rgba(60,60,67,0.9)" }}>
-                <strong>{r.paidAt ? "Pagó su visita asegurada ($850 + consumo)." : "Quiere asegurar su visita ($850 + consumo): pasó a pagar en línea."}</strong>
+                <strong>{r.paidAt ? `Pagó su visita asegurada ($${PRICE_MXN} + consumo).` : `Quiere asegurar su visita ($${PRICE_MXN} + consumo): pasó a pagar en línea.`}</strong>
                 {r.schedulePref ? ` Pidió: ${r.schedulePref}.` : ""}{" "}
                 {r.paidAt ? "Ya está asegurada: confirma el día y el consumo con el negocio y asígnala." : "Si no completa el pago, escríbele (le mandamos la liga por correo); en cuanto se confirme, aquí aparece como pagada."}
                 <div className="mt-1.5 flex flex-wrap gap-2">

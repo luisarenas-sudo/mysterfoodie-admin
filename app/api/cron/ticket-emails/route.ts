@@ -1,3 +1,4 @@
+import { cronAuthorized } from "@/lib/cronAuth";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { sendDueTicketEmails } from "@/lib/ticket";
@@ -9,9 +10,7 @@ import { sendDueTicketEmails } from "@/lib/ticket";
  * crons: header `x-cron-secret`.
  */
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  const provided = req.headers.get("x-cron-secret");
-  if (!secret || !provided || provided !== secret) {
+  if (!cronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
   try {

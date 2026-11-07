@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
@@ -27,6 +28,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "baja", 20, 600000);
+  if (limited) return limited;
   const code = (req.nextUrl.searchParams.get("c") || "").trim();
   if (!VALID.test(code)) return page(`<p style="font-size:17px;font-weight:700;color:#1c1c1e;margin:10px 0 0">Enlace no válido.</p>`);
   const { error } = await getSupabaseServiceClient()

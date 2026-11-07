@@ -14,7 +14,7 @@ const PRICE_OPTIONS: { value: string; label: string; price: number }[] = [
   })),
 ];
 
-const ROLE_LABEL = { admin: "Master Chef (Admin)", sibarita: "Sibarita", foodie: "Shopper" } as const;
+const ROLE_LABEL = { admin: "Master Chef", sibarita: "Sibarita", foodie: "Shopper" } as const;
 
 function mxn(n: number) {
   return `$${n.toLocaleString("es-MX")} MXN`;
@@ -110,7 +110,7 @@ export default function FinanzasCalculator() {
               <tr className="border-b border-stone-200 text-left text-stone-500">
                 <th className="px-3 py-2 font-medium">Escenario</th>
                 <th className="w-24 px-3 py-2 font-medium">Visitas</th>
-                <th className="px-3 py-2 text-right font-medium">Admin</th>
+                <th className="px-3 py-2 text-right font-medium">Master Chef</th>
                 <th className="px-3 py-2 text-right font-medium">Sibarita</th>
                 <th className="px-3 py-2 text-right font-medium">Shopper</th>
               </tr>

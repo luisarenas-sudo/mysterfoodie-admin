@@ -594,7 +594,7 @@ export function renderPlanTicketHtml(p: SendPlanTicketParams): string {
       ${row("INICIO", escapeHtml(p.startMonthLabel.toUpperCase()))}
       ${dash}
       <div style="${mono} font-size: 12px; letter-spacing: 0.1em; color: #6b7280; padding-bottom: 4px;">CANT  DESCRIPCIÓN</div>
-      ${row(`${totalVisits} &nbsp;Visitas Mystery Shopper / mes`, mxn(total))}
+      ${row(`${totalVisits} &nbsp;Visitas MysterFoodie / mes`, mxn(total))}
       <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Plan ${escapeHtml(p.planName)} (${escapeHtml(p.tagline)}) · ${branches > 1 ? `${branches} sucursales × ${p.visitsPerMonth} visitas × ` : `${p.visitsPerMonth} × `}${mxn(p.pricePerVisit)}</div>
       ${row("Consumo en cada visita", "REEMBOLSO")}
       <div style="${mono} font-size: 12px; color: #6b7280; padding: 0 0 6px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Se cubre contra ticket del consumo</div>

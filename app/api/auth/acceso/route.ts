@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import {
@@ -31,6 +32,8 @@ function failure(check: Extract<AccessCheck, { ok: false }>) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "acceso", 20, 600000);
+  if (limited) return limited;
   let body: Body;
   try {
     body = await req.json();

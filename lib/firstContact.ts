@@ -1,3 +1,4 @@
+import { escapeLike } from "@/lib/sqlLike";
 import type { getSupabaseServiceClient } from "./supabase";
 import { GLOSARIO_NEGOCIO, type GlosarioKey } from "./glosario";
 
@@ -10,7 +11,7 @@ type Db = ReturnType<typeof getSupabaseServiceClient>;
  */
 export async function glosarioIfFirstEmail(db: Db, email: string, excludeFormId?: string): Promise<GlosarioKey[] | undefined> {
   try {
-    let q = db.from("email_confirmations").select("id", { count: "exact", head: true }).ilike("recipient_email", email);
+    let q = db.from("email_confirmations").select("id", { count: "exact", head: true }).ilike("recipient_email", escapeLike(email));
     if (excludeFormId) q = q.neq("form_id", excludeFormId);
     const { count, error } = await q;
     if (error) return GLOSARIO_NEGOCIO; // ante la duda, mejor explicar de más

@@ -1,3 +1,4 @@
+import { escapeLike } from "@/lib/sqlLike";
 import { getSupabaseServiceClient } from "./supabase";
 import { sendTemplatedEmail } from "./email";
 import { SABER_MAS } from "./links";
@@ -95,8 +96,8 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
   if (!inviter || !["admin", "sibarita"].includes(inviter.role as string)) return { ok: false, error: "Esta invitación ya no está disponible." };
 
   const [{ data: open }, { data: exists }] = await Promise.all([
-    db.from("shopper_applications").select("id").eq("status", "pendiente").ilike("email", input.email).limit(1),
-    db.from("profiles").select("id").ilike("email", input.email).limit(1),
+    db.from("shopper_applications").select("id").eq("status", "pendiente").ilike("email", escapeLike(input.email)).limit(1),
+    db.from("profiles").select("id").ilike("email", escapeLike(input.email)).limit(1),
   ]);
   if ((open && open.length > 0) || (exists && exists.length > 0)) return { ok: true };
 
@@ -161,7 +162,7 @@ export async function approveApplication(db: Db, id: string, reviewerId: string)
   if (app.status !== "pendiente") return { ok: false, error: "Esta solicitud ya fue revisada.", status: 409 };
 
   const email = String(app.email).toLowerCase();
-  const { data: existing } = await db.from("profiles").select("id").ilike("email", email).maybeSingle();
+  const { data: existing } = await db.from("profiles").select("id").ilike("email", escapeLike(email)).maybeSingle();
   if (existing) return { ok: false, error: "Ya existe una cuenta con ese correo.", status: 409 };
 
   const { data: created, error: createError } = await db.auth.admin.createUser({

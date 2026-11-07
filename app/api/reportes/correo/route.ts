@@ -1,3 +1,5 @@
+import { escapeLike } from "@/lib/sqlLike";
+import { rateLimit } from "@/lib/rateLimit";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { sendResultEmailForForm } from "@/lib/resultEmailSend";
@@ -8,6 +10,8 @@ import { ACCESS_TTL_DAYS, accessUrl, issueAccessToken } from "@/lib/accessTokens
  * uno), le manda el resumen y lo deja en la secuencia de recordatorios. Límite: 3 envíos por reporte y uno por hora.
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "rcorreo", 10, 3600000);
+  if (limited) return limited;
   let shortCode = "";
   let email = "";
   try {
@@ -50,8 +54,17 @@ export async function POST(req: NextRequest) {
   // Primer contacto completo: si ese correo aún no tiene cuenta, se crea la del negocio y el correo trae el acceso.
   let acceso: { link: string; code: string; baseUrl: string; ttlDays: number } | null = null;
   try {
-    const { data: profile } = await db.from("profiles").select("id").ilike("email", email).maybeSingle();
+    const { data: profile } = await db.from("profiles").select("id").ilike("email", escapeLike(email)).maybeSingle();
+    // Seguridad: el correo lo escribe quien abre el reporte y no está verificado. Solo se crea la cuenta del negocio si la ficha
+    // no tiene aún otro correo registrado ni otra cuenta vinculada; si no, se manda solo el resumen (sin acceso a la cuenta).
+    const registered = ((client.email as string | null) || "").trim().toLowerCase();
+    const emailMatches = !registered || registered === email;
+    let hasOtherAccount = false;
     if (!profile) {
+      const { count: linked } = await db.from("profiles").select("id", { count: "exact", head: true }).eq("client_id", form.client_id as string);
+      hasOtherAccount = (linked ?? 0) > 0;
+    }
+    if (!profile && emailMatches && !hasOtherAccount) {
       const { data: createdUser, error: userError } = await db.auth.admin.createUser({ email, email_confirm: true });
       if (createdUser?.user && !userError) {
         await db.from("profiles").upsert({ id: createdUser.user.id, email, full_name: client.name as string, role: "cliente", client_id: form.client_id as string });

@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionProfile } from "@/lib/auth";
 import { recordReportView } from "@/lib/reportTracking";
@@ -10,6 +11,8 @@ import { recordReportView } from "@/lib/reportTracking";
  * sibaritas y Shoppers revisando el reporte).
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "visto", 60, 600000);
+  if (limited) return limited;
   let shortCode = "";
   try {
     const body = (await req.json()) as { shortCode?: unknown };

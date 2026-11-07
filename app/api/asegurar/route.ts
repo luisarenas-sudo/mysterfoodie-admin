@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { secureVisitRequest } from "@/lib/visitRequests";
@@ -9,6 +10,8 @@ const SLOTS = ["Desayuno", "Comida", "Cena", "Me da igual"] as const;
  * horario, pasa la solicitud a programada y devuelve la liga de pago de Mercado Pago.
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "asegurar", 15, 3600000);
+  if (limited) return limited;
   let id = "";
   let date = "";
   let slot = "";

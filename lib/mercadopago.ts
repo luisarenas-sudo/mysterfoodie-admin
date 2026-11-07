@@ -1,3 +1,4 @@
+import { PRICE_MXN } from "@/lib/earningsMatrix";
 /**
  * Integracion con MercadoPago (Checkout Pro) para cobrar el reporte
  * completo desde el link publico del reporte (/r/[shortCode]). Requiere
@@ -15,7 +16,7 @@
 
 const MP_API_URL = "https://api.mercadopago.com";
 
-export const FULL_REPORT_PRICE_MXN = Number(process.env.FULL_REPORT_PRICE_MXN) || 850;
+export const FULL_REPORT_PRICE_MXN = Number(process.env.FULL_REPORT_PRICE_MXN) || PRICE_MXN;
 /** Total con IVA (16 %): solo se informa, por si el negocio quiere factura. El pago en línea de la visita se cobra sin IVA. */
 export const FULL_REPORT_PRICE_WITH_IVA_MXN = Math.round(FULL_REPORT_PRICE_MXN * 1.16);
 

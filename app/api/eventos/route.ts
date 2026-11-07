@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextResponse, type NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -31,6 +32,8 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "eventos", 120, 600000);
+  if (limited) return limited;
   try {
     const origin = req.headers.get("origin") || "";
     if (origin && !ORIGINS.includes(origin) && !/^http:\/\/localhost(:\d+)?$/.test(origin)) return done(req);

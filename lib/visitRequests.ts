@@ -1,3 +1,4 @@
+import { escapeLike } from "@/lib/sqlLike";
 import { GLOSARIO_NEGOCIO } from "./glosario";
 import { getSupabaseServiceClient } from "./supabase";
 import { BUSINESS_TYPES, businessTypePhrase, TOTAL_ITEM_COUNT } from "./categories";
@@ -124,7 +125,7 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
   const { data: profile } = await db
     .from("profiles")
     .select("id, role, client_id")
-    .ilike("email", input.email)
+    .ilike("email", escapeLike(input.email))
     .maybeSingle();
 
   // ¿Ya existe un negocio con ese correo?
@@ -133,7 +134,7 @@ export async function createVisitRequest(db: Db, input: RequestInput): Promise<C
     const { data: byEmail } = await db
       .from("clients")
       .select("id")
-      .ilike("email", input.email)
+      .ilike("email", escapeLike(input.email))
       .order("created_at", { ascending: true })
       .limit(1);
     clientId = byEmail?.[0]?.id ?? null;

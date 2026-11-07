@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
@@ -11,6 +12,8 @@ import { markCheckoutClick } from "@/lib/reportTracking";
  * MercadoPago y redirige de una vez a la pasarela de pago (init_point).
  */
 export async function GET(req: NextRequest) {
+  const limited = rateLimit(req, "checkout", 30, 600000);
+  if (limited) return limited;
   const shortCode = req.nextUrl.searchParams.get("shortCode");
   if (!shortCode) {
     return NextResponse.json({ error: "Falta shortCode" }, { status: 400 });

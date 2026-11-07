@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { accessUrl, issueAccessToken, secondsSinceLastToken } from "@/lib/accessTokens";
@@ -11,6 +12,8 @@ export const dynamic = "force-dynamic";
  * a la misma persona.
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "recuperar", 5, 900000);
+  if (limited) return limited;
   let body: { email?: string };
   try {
     body = await req.json();

@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { isSlotStillFree, createCalendarEvent } from "@/lib/googleCalendar";
@@ -15,6 +16,8 @@ type Body = {
 };
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "agendar", 15, 3600000);
+  if (limited) return limited;
   let db;
   try {
     db = getSupabaseServiceClient();
@@ -22,7 +25,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Supabase no está configurado" }, { status: 500 });
   }
 
-  const body: Body = await req.json();
+  let body: Body;
+  try {
+    body = (await req.json()) as Body;
+  } catch {
+    return NextResponse.json({ error: "Solicitud no válida" }, { status: 400 });
+  }
   const { shortCode, slotStartISO, slotEndISO, contactName, contactEmail, contactPhone } = body;
 
   if (!shortCode || !slotStartISO || !slotEndISO || !contactEmail) {

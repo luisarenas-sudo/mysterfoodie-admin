@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
@@ -10,6 +11,8 @@ import { createApplication, parseApplication } from "@/lib/aspirantes";
 const MAX_PER_IP_PER_HOUR = 4;
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "unete", 10, 3600000);
+  if (limited) return limited;
   let p: Record<string, unknown>;
   try {
     p = await req.json();

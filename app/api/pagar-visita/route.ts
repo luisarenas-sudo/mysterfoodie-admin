@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopago";
@@ -11,6 +12,8 @@ import { createPaymentPreference, FULL_REPORT_PRICE_MXN } from "@/lib/mercadopag
 const SITE = "https://mysterfoodie.com/solicita-visita/";
 
 export async function GET(req: NextRequest) {
+  const limited = rateLimit(req, "pagarvisita", 30, 600000);
+  if (limited) return limited;
   const id = req.nextUrl.searchParams.get("id");
   if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.redirect(`${SITE}?pago=error`);
 

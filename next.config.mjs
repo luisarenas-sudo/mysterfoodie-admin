@@ -3,6 +3,22 @@ import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const csp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'self' https://*.mercadopago.com https://*.mercadopago.com.mx https://www.mercadopago.com.mx",
+  "frame-ancestors 'self'",
+  // Next.js inyecta scripts y estilos en línea; se limita el resto a la propia app y a los servicios que usa.
+  "script-src 'self' 'unsafe-inline' https://*.mercadopago.com https://*.mercadolibre.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mercadopago.com https://*.mercadolibre.com https://api.mercadopago.com",
+  "frame-src 'self' https://*.mercadopago.com https://*.mercadopago.com.mx https://www.google.com",
+  "media-src 'self' blob: data:",
+].join("; ");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: __dirname,
@@ -24,6 +40,8 @@ const nextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Modo solo informe: avisa de violaciones sin romper la app mientras se afina la lista; pasar a Content-Security-Policy tras revisar.
+          { key: "Content-Security-Policy-Report-Only", value: csp },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), payment=(), usb=()" },
         ],
