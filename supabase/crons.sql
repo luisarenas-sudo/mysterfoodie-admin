@@ -14,3 +14,5 @@ from cron.job b,
           ('solicitudes-vencidas', '*/10 * * * *', 'solicitudes-vencidas') -- cada 10 min (solicitudes de visita: avisos a las 2/3/5 h sin asignar, hechas, sin Shopper a los 5 días)
   ) as v(jobname, horario, ruta)
 where b.jobname = 'activar-cuenta-negocio';
+
+-- Reporte mensual de ventas y pagos: ver supabase/pagos_mensuales.sql (días 1 a 3 de cada mes, 15:00 UTC = 9:00 am CDMX).

@@ -15,6 +15,7 @@ import type { ProfileSale } from "@/lib/profileSales";
 import { formatMxn, scenarioByKey } from "@/lib/earningsMatrix";
 import { ProfileSalesAdmin, ProfileSalesPersonal } from "@/components/finanzas/ProfileSalesSection";
 import { getMonthProfileSales } from "@/lib/profileSales";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 import FinanzasCalculator from "@/components/admin/FinanzasCalculator";
 import BackLink from "@/components/BackLink";
 import MobileSectionHeader from "@/components/mobile/MobileSectionHeader";
@@ -76,7 +77,7 @@ function MonthNav({ month }: { month: string }) {
 }
 
 /** Vista de un Sibarita o un Shopper: solo sus ventas del mes y su ganancia. */
-function PersonalView({ role, userId, visits, profileSales }: { role: "sibarita" | "agente"; userId: string; visits: PaidVisit[]; profileSales: ProfileSale[] }) {
+function PersonalView({ role, userId, visits, profileSales, payout }: { role: "sibarita" | "agente"; userId: string; visits: PaidVisit[]; profileSales: ProfileSale[]; payout: { total: number; paidAt: string | null } | null }) {
   const mine = visits.filter((v) => (role === "sibarita" ? v.sibaritaId === userId : v.foodieId === userId));
   const share = (v: PaidVisit) => (role === "sibarita" ? v.sibarita : v.foodie);
   const total = mine.reduce((acc, v) => acc + share(v), 0);
@@ -96,6 +97,18 @@ function PersonalView({ role, userId, visits, profileSales }: { role: "sibarita"
           {mine.length} {mine.length === 1 ? "venta" : "ventas"} (reportes y visitas de plan)
         </div>
       </div>
+
+      {payout && (
+        <div className="card mt-4 flex items-center gap-3 p-4" style={{ background: payout.paidAt ? "#E8F7EE" : "#FFF7E6" }}>
+          <div className="text-[22px]" aria-hidden="true">{payout.paidAt ? "✅" : "⏳"}</div>
+          <div className="text-[14px] leading-snug">
+            <div className="font-bold">{payout.paidAt ? `Ya te depositaron ${formatMxn(payout.total)}` : `Te toca ${formatMxn(payout.total)}: depósito en proceso`}</div>
+            <div style={{ color: MUTED }}>
+              {payout.paidAt ? `Pagado el ${new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", timeZone: "America/Mexico_City" }).format(new Date(payout.paidAt))}.` : "Cuando el Master Chef lo marque como pagado, aquí y en tu Inicio verás que ya se depositó."}
+            </div>
+          </div>
+        </div>
+      )}
 
       {mine.length > 0 && (
         <div className="card mt-4 p-5">
@@ -169,11 +182,13 @@ function PersonalView({ role, userId, visits, profileSales }: { role: "sibarita"
 
 /** Vista del Master Chef: todo el mes, desglose por perfil y sus propias ventas. */
 function AdminView({
+  month,
   visits,
   profiles,
   unpaidPlan,
   profileSales,
 }: {
+  month: string;
   visits: PaidVisit[];
   profiles: Map<string, ProfileLite>;
   unpaidPlan: UnpaidPlanVisits;
@@ -204,7 +219,14 @@ function AdminView({
 
   return (
     <>
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <Link href={`/finanzas/pagos?mes=${month}`} className="card mf-tap mt-4 flex items-center justify-between gap-3 p-4">
+        <div>
+          <div className="text-[15px] font-bold">💸 Pagos del mes</div>
+          <div className="text-[12.5px]" style={{ color: MUTED }}>Lo que debes depositar a cada persona, con palomita de «ya le pagué».</div>
+        </div>
+        <span className="text-[20px] font-semibold text-brand-500" aria-hidden="true">›</span>
+      </Link>
+      <div className="mt-3 grid grid-cols-2 gap-3">
         <StatCard label="Ventas del mes" value={String(visits.length)} hint={`${formatMxn(bruto)} brutos`} />
         <StatCard label="Mi parte" value={formatMxn(adminTotal)} hint={ROLE_LABELS.admin} />
         <StatCard label="Sibaritas" value={formatMxn(sibTotal)} />
@@ -325,6 +347,11 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
   const month = isValidMonth(mes) && mes <= currentMonthCdmx() ? mes : currentMonthCdmx();
   const { visits, profiles, unpaidPlan } = await getMonthEarnings(month);
   const profileSales = await getMonthProfileSales(month, profile.role === "admin" ? undefined : profile.userId).catch((): ProfileSale[] => []);
+  let payout: { total: number; paidAt: string | null } | null = null;
+  if (profile.role !== "admin") {
+    const { data: p } = await getSupabaseServiceClient().from("monthly_payouts").select("total, paid_at").eq("month", month).eq("person_id", profile.userId).maybeSingle();
+    if (p) payout = { total: Number(p.total), paidAt: (p.paid_at as string | null) ?? null };
+  }
 
   return (
     <>
@@ -345,9 +372,9 @@ export default async function FinanzasPage({ searchParams }: { searchParams: Pro
         <MonthNav month={month} />
 
         {profile.role === "admin" ? (
-          <AdminView visits={visits} profiles={profiles} unpaidPlan={unpaidPlan} profileSales={profileSales} />
+          <AdminView month={month} visits={visits} profiles={profiles} unpaidPlan={unpaidPlan} profileSales={profileSales} />
         ) : (
-          <PersonalView role={profile.role as "sibarita" | "agente"} userId={profile.userId} visits={visits} profileSales={profileSales} />
+          <PersonalView role={profile.role as "sibarita" | "agente"} userId={profile.userId} visits={visits} profileSales={profileSales} payout={payout} />
         )}
       </main>
     </>

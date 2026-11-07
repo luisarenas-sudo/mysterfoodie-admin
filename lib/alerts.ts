@@ -488,10 +488,81 @@ async function profileTaskAlerts(db: Db, userId: string): Promise<HomeAlert[]> {
   return [];
 }
 
+
+// ------------------------------------------------------------ pagos del mes
+/**
+ * Reporte de ventas mensual. Master Chef: «Reporte de ventas mensual listo» mientras falten pagos por marcar
+ * (y un aviso si ya no hay nada pendiente pero aún no lo abre). Sibarita/Shopper: su resumen del mes y, cuando se les
+ * deposita, «Ya te depositaron» (un aviso, se cierra con la X).
+ */
+async function payoutAlerts(db: Db, userId: string, role: string): Promise<HomeAlert[]> {
+  const from = shiftMonth(currentMonthCdmx(), -3);
+  const alerts: HomeAlert[] = [];
+  if (role === "admin") {
+    const { data: reports } = await db.from("monthly_payout_reports").select("month, opened_at").gte("month", from).order("month", { ascending: false });
+    for (const r of reports ?? []) {
+      const month = r.month as string;
+      const { data: rows } = await db.from("monthly_payouts").select("total, paid_at").eq("month", month);
+      const open = (rows ?? []).filter((x) => !x.paid_at);
+      const openTotal = open.reduce((a, x) => a + Number(x.total), 0);
+      if (open.length > 0) {
+        alerts.push({
+          key: `pay:report:${month}`,
+          kind: "pendiente",
+          tone: "warn",
+          emoji: "💸",
+          title: "Reporte de ventas mensual listo",
+          detail: `${monthLabel(month)}: te falta depositar ${formatMxn(openTotal)} a ${plural(open.length, "persona", "personas")}.`,
+          href: `/finanzas/pagos?mes=${month}`,
+        });
+      } else if (!r.opened_at) {
+        alerts.push({
+          key: `pay:report:${month}`,
+          kind: "aviso",
+          tone: "info",
+          emoji: "💸",
+          title: "Reporte de ventas mensual listo",
+          detail: `${monthLabel(month)}: no hay depósitos pendientes.`,
+          href: `/finanzas/pagos?mes=${month}`,
+        });
+      }
+    }
+    return alerts;
+  }
+  const { data: mine } = await db.from("monthly_payouts").select("month, total, paid_at").eq("person_id", userId).gte("month", from).order("month", { ascending: false });
+  for (const p of mine ?? []) {
+    const month = p.month as string;
+    const total = Number(p.total);
+    if (p.paid_at) {
+      if (Date.now() - new Date(p.paid_at as string).getTime() > 14 * DAY_MS) continue;
+      alerts.push({
+        key: `pay:paid:${month}`,
+        kind: "aviso",
+        tone: "ok",
+        emoji: "✅",
+        title: `Ya te depositaron ${formatMxn(total)}`,
+        detail: `Tus ventas de ${monthLabel(month)}. Revisa el detalle en Finanzas.`,
+        href: `/finanzas?mes=${month}`,
+      });
+    } else {
+      alerts.push({
+        key: `pay:mine:${month}`,
+        kind: "aviso",
+        tone: "info",
+        emoji: "💸",
+        title: `Tu resumen de ${monthLabel(month).toLowerCase()} está listo`,
+        detail: `Te toca ${formatMxn(total)}. Te lo depositan en los próximos días.`,
+        href: `/finanzas?mes=${month}`,
+      });
+    }
+  }
+  return alerts;
+}
+
 export async function getHomeAlerts(profile: { userId: string; role: string }): Promise<HomeAlert[]> {
   const db = getSupabaseServiceClient();
 
-  const [raw, tasks, dismissed] = await Promise.all([
+  const [raw, tasks, payouts, dismissed] = await Promise.all([
     profile.role === "agente"
       ? Promise.all([foodieAlerts(profile.userId), poolAlerts(db, profile.userId, "agente")]).then(([a, b]) => [...a, ...b])
       : profile.role === "admin"
@@ -501,11 +572,12 @@ export async function getHomeAlerts(profile: { userId: string; role: string }): 
           : Promise.resolve([] as HomeAlert[]),
     // Un fallo al armar la tarea nunca debe tumbar los pendientes.
     ["agente", "sibarita", "admin"].includes(profile.role) ? profileTaskAlerts(db, profile.userId).catch((): HomeAlert[] => []) : Promise.resolve([] as HomeAlert[]),
+    ["agente", "sibarita", "admin"].includes(profile.role) ? payoutAlerts(db, profile.userId, profile.role).catch((): HomeAlert[] => []) : Promise.resolve([] as HomeAlert[]),
     db.from("alert_dismissals").select("alert_key, dismissed_at").eq("user_id", profile.userId),
   ]);
 
   const closedAt = new Map((dismissed.data || []).map((d) => [d.alert_key as string, new Date(d.dismissed_at as string).getTime()]));
-  return [...raw, ...tasks]
+  return [...raw, ...tasks, ...payouts]
     .filter((a) => {
       const t = closedAt.get(a.key);
       if (t === undefined) return true;
