@@ -6,7 +6,7 @@ export const PROGRAM_VISIT_URL = "https://mysterfoodie.com/solicita-visita/?prog
 /** Páginas de mysterfoodie.com que los correos enlazan para ampliar cada tema (mismas anclas que construye web/_src/build.py). */
 export const WEB_URL = "https://mysterfoodie.com";
 export const METODOLOGIA_URL = `${WEB_URL}/metodologia/`;
-export const METODOLOGIA_QUIEN_OPINA_URL = `${WEB_URL}/metodologia/#quien-opina`;
+export const METODOLOGIA_QUIEN_OPINA_URL = `${WEB_URL}/equipo/#quien-opina`;
 export const SERVICIOS_URL = `${WEB_URL}/servicios/`;
 export const PERFIL_SERVICIOS_URL = `${WEB_URL}/servicios/#perfil-mysterfoodie`;
 export const PRIVACIDAD_PERFIL_URL = `${WEB_URL}/privacidad/#perfil-anonimo`;
