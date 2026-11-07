@@ -13,9 +13,9 @@ import { academyConfirmationEmail } from "@/lib/academyEmail";
  * límite por IP y respuesta genérica (no revela si el correo ya estaba).
  */
 
-const ORIGINS = ["https://mysterfoodie.com", "https://www.mysterfoodie.com"];
+const ORIGINS = ["https://mysterfoodie.com", "https://www.mysterfoodie.com", "https://uni.mysterfoodie.com"];
 const MAX_PER_IP_PER_HOUR = 5;
-const SOURCES = new Set(["metodologia", "nosotros", "footer", "servicios", "inicio", "otra"]);
+const SOURCES = new Set(["metodologia", "nosotros", "footer", "servicios", "inicio", "uni", "uni-hero", "otra"]);
 
 function corsHeaders(req: NextRequest): Record<string, string> {
   const origin = req.headers.get("origin") || "";

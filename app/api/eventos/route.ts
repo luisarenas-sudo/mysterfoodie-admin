@@ -10,7 +10,7 @@ import { WEB_EVENTS, channelOf } from "@/lib/webStats";
  * No guarda la IP: guarda un hash que cambia cada día. Ignora robots y a quien activó «No rastrear».
  * Siempre responde 204 para no frenar ni delatar nada a la página.
  */
-const ORIGINS = ["https://mysterfoodie.com", "https://www.mysterfoodie.com"];
+const ORIGINS = ["https://mysterfoodie.com", "https://www.mysterfoodie.com", "https://uni.mysterfoodie.com"];
 const MAX_PER_VISITOR_PER_10_MIN = 40;
 
 function cors(req: NextRequest): Record<string, string> {
