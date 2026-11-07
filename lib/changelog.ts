@@ -19,6 +19,18 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.36.0",
+    date: "2026-11-07",
+    title: "Reporte de ventas mensual y control de pagos",
+    emoji: "💸",
+    highlights: [
+      "Cada día 1 (9:00 am) te llega un correo con la tabla del mes: lo que generó cada perfil, cuánto depositar y cuánto queda a la plataforma.",
+      "En tu Inicio aparece «Reporte de ventas mensual listo»; al tocarlo ves a quién depositar y marcas la palomita cuando pagues.",
+      "Cada Sibarita o Shopper ve en su Inicio y en Finanzas su resumen del mes y, al marcar el pago, «Ya te depositaron».",
+      "Descarga el CSV del mes y recalcula sin perder lo ya pagado.",
+    ],
+  },
+  {
     version: "0.35.0",
     date: "2026-11-07",
     title: "Versión 1: seguridad y alineación",
