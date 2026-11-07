@@ -19,6 +19,19 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "0.35.0",
+    date: "2026-11-07",
+    title: "Versión 1: seguridad y alineación",
+    emoji: "🛡️",
+    highlights: [
+      "Seguridad: Next actualizado (corrige una falla crítica), límite de intentos en formularios públicos, secreto de automatizaciones con comparación segura y cuentas de negocio solo con correo de confianza.",
+      "Cobros: los tres cobros de Mercado Pago salen de una sola función; el webhook revisa la firma (si se configura), el monto y no duplica pagos.",
+      "Reporte del primer contacto: oferta con jerarquía arriba de los 76 indicadores, «Incluye asesoría de 20 minutos» destacado y Palabra MysterFoodie en puntos.",
+      "Escritorio y celular comparten el envío de la visita; escritorio ya muestra el avance del plan.",
+      "Textos y colores alineados: Master Chef, MysterFoodie y un solo verde/rojo de avisos.",
+    ],
+  },
+  {
     version: "0.34.5",
     date: "2026-11-06",
     title: "Enviar GRATIS en dos toques",
