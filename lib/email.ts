@@ -6,7 +6,7 @@ import { FULL_REPORT_PRICE_MXN, FULL_REPORT_PRICE_WITH_IVA_MXN } from "./mercado
 import { PALABRA_FOODIE_QUOTE } from "./brand";
 import { annotateFirst, type GlosarioKey } from "./glosario";
 import type { EmailCallout } from "./earningsCopy";
-import { METODOLOGIA_URL, METODOLOGIA_BOTON } from "./links";
+import { METODOLOGIA_URL, METODOLOGIA_BOTON, BIENVENIDA_URL } from "./links";
 
 export type SendResultEmailParams = {
   to: string;
@@ -14,6 +14,8 @@ export type SendResultEmailParams = {
   score: number;
   reportUrl: string;
   categoryScores: CategoryScore[];
+  /** Código corto de la visita (shortCode). Si viene y es primer contacto (glosario), se arma el link a la página de bienvenida con el video explicativo, personalizado para este negocio. */
+  shortCode?: string;
   /** Asunto ya renderizado (plantilla de Automatizaciones "resultado_visita" o el texto por default). */
   subject: string;
   /** Párrafo de introducción ya renderizado (plantilla de Automatizaciones "resultado_visita" o el texto por default). Variables ya sustituidas. */
@@ -196,9 +198,19 @@ function renderScoreCard(score: number): string {
 export function renderEmailHtml(params: SendResultEmailParams): string {
   const { businessName, introText, score, reportUrl, categoryScores } = params;
   const rated = categoryScores.filter((c) => c.count > 0).length;
+  // Primer contacto (glosario) + shortCode disponible: link a la página de bienvenida,
+  // personalizado por negocio (query params; el sitio estático no tiene backend).
+  const bienvenidaUrl = params.shortCode
+    ? `${BIENVENIDA_URL}?biz=${encodeURIComponent(params.shortCode)}&n=${encodeURIComponent(businessName)}`
+    : null;
 
   return renderEmailShell(`
     <h2 style="margin: 0 0 20px; font-size: 25px; line-height: 1.25; color: #111827;">Resultado de su visita MysterFoodie</h2>
+    ${
+      params.glosario && bienvenidaUrl
+        ? `<p style="margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: #9ca3af;">¿Qué es MysterFoodie? ¿Por qué están recibiendo esto? <a href="${escapeHtml(bienvenidaUrl)}" style="color: ${BRAND_RED}; text-decoration: underline;">Un video explicativo corto (~2 min)</a>.</p>`
+        : ""
+    }
     <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #374151;">Hola equipo de <strong>${escapeHtml(businessName)}</strong>,</p>
     <p style="white-space: pre-line; margin: 0; font-size: 15px; line-height: 1.65; color: #4b5563;">${renderRichText(annotateFirst(introText, params.glosario))}</p>
 

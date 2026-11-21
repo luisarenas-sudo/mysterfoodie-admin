@@ -2,6 +2,8 @@
 export const PACKAGES_URL = "https://mysterfoodie.com/servicios/#comparativa";
 /** Formulario de la web con el switch "Programar mi visita" ya activado ($850 + consumo). */
 export const PROGRAM_VISIT_URL = "https://mysterfoodie.com/solicita-visita/?programa=1";
+/** Página oculta para el primer contacto frío (correo de resultado): responde qué es MysterFoodie y por qué llegó el correo, con el video de introducción. No está en el menú ni en el sitemap. */
+export const BIENVENIDA_URL = "https://mysterfoodie.com/bienvenida/";
 
 /** Páginas de mysterfoodie.com que los correos enlazan para ampliar cada tema (mismas anclas que construye web/_src/build.py). */
 export const WEB_URL = "https://mysterfoodie.com";

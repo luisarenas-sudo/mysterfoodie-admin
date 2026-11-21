@@ -62,6 +62,7 @@ export async function sendResultEmailForForm(
     acceso: acceso ?? null,
     score: form.overall_score,
     reportUrl,
+    shortCode: form.short_code,
     categoryScores: catScores,
   });
 

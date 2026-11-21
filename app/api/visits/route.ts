@@ -453,6 +453,7 @@ export async function POST(req: NextRequest) {
             score,
             reportUrl,
             categoryScores: catScores,
+            shortCode,
           });
           await db.from("email_confirmations").insert({
             form_id: form.id,
