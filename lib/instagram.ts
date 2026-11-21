@@ -29,7 +29,7 @@ export function buildDmMessage(
     return (
       `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
       `y calificó de forma independiente la experiencia real.${w} ` +
-      `Les regalamos su reporte completo, sin ningún costo. Descarga GRATIS tu reporte aquí: ${reportUrl}`
+      `Les regalamos su reporte completo, sin ningún costo. Es un resultado privado, solo para ustedes. Descarga GRATIS tu reporte aquí: ${reportUrl}`
     );
   }
 
@@ -39,7 +39,7 @@ export function buildDmMessage(
     return (
       `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
       `y evaluó de forma independiente la experiencia real.${w} ` +
-      `Les comparto su resultado: trae oportunidades claras y con gusto les ayudo a ver por dónde empezar. Aquí lo pueden ver: ${reportUrl}`
+      `Les comparto su resultado: trae oportunidades claras y con gusto les ayudo a ver por dónde empezar. Es un resultado privado, solo para ustedes. Aquí lo pueden ver: ${reportUrl}`
     );
   }
 
@@ -63,7 +63,7 @@ export function buildDmMessage(
   return (
     `Hola equipo de ${businessName}. Un MysterFoodie visitó su ${tipo} sin avisar, pagó su consumo ` +
     `y calificó de forma independiente la experiencia real.${waiterPart} ` +
-    `El resultado fue de ${score} de 5 estrellas. Aquí lo pueden ver: ${reportUrl}`
+    `El resultado fue de ${score} de 5 estrellas. Es un resultado privado, solo para ustedes. Aquí lo pueden ver: ${reportUrl}`
   );
 }
 

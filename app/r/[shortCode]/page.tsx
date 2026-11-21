@@ -260,9 +260,13 @@ function FullReportDetail({
  */
 export async function generateMetadata({ params }: { params: Promise<{ shortCode: string }> }): Promise<Metadata> {
   const { shortCode } = await params;
+  // Reporte privado: solo quien tiene el enlace lo ve. noindex evita que un
+  // buscador lo indexe si alguna vez queda enlazado en otro sitio (el
+  // negocio sigue pudiendo compartirlo directamente con quien quiera).
+  const robots = { index: false, follow: false };
   const d = await getShareData(shortCode);
   if (!d) {
-    return { title: "MysterFoodie · Resultado de la evaluación" };
+    return { title: "MysterFoodie · Resultado de la evaluación", robots };
   }
   const where = d.city ? ` en ${d.city}` : "";
   const title = `${d.name}: ${d.score.toFixed(1)} de 5 ${starsText(d.score)} · ${d.verdictLabel}`;
@@ -270,6 +274,7 @@ export async function generateMetadata({ params }: { params: Promise<{ shortCode
   return {
     title,
     description,
+    robots,
     openGraph: { type: "website", siteName: "MysterFoodie", locale: "es_MX", title, description },
     twitter: { card: "summary_large_image", title, description },
   };

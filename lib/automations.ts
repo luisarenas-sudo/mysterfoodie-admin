@@ -231,7 +231,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
 export const DEFAULT_RESULTADO_SUBJECT = "Resultado de su visita MysterFoodie: {{promedio}} de 5 estrellas";
 export const DEFAULT_RESULTADO_INTRO =
   "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y calificó de forma independiente** " +
-  "la experiencia real.{{mesero_linea}} Este es el resultado:";
+  "la experiencia real.{{mesero_linea}} Es un resultado privado, solo para ustedes. Este es el resultado:";
 
 /**
  * Notas bajas (menos de 2.5): sin la calificación en el asunto ni en el texto y con enfoque de ayuda. Para estos casos se
@@ -240,7 +240,7 @@ export const DEFAULT_RESULTADO_INTRO =
 export const LOW_RESULTADO_SUBJECT = "Tu resultado MysterFoodie ya está listo";
 export const LOW_RESULTADO_INTRO =
   "Un **MysterFoodie** visitó su {{tipo_negocio}} sin avisar, **pagó su consumo y evaluó de forma independiente** " +
-  "la experiencia real.{{mesero_linea}} Les compartimos el resultado: trae oportunidades claras y con gusto les ayudamos a ver por dónde empezar.";
+  "la experiencia real.{{mesero_linea}} Es un resultado privado, solo para ustedes. Les compartimos el resultado: trae oportunidades claras y con gusto les ayudamos a ver por dónde empezar.";
 
 /** Variables que acepta la plantilla "resultado_visita". */
 export function resultadoVars(params: {
